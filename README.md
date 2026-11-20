@@ -41,7 +41,7 @@ bash scripts/proxmox-setup.sh --help
 bash scripts/proxmox-setup.sh
 ```
 
-The wizard prompts for static private IP/CIDR, gateway, DNS, LXC ID, bridge/storage, assistant name, OpenAI API or local Open WebUI/Ollama, model, a hidden **user-owned API key**, and optional authenticated HTTPS hostname. It never copies the author's key; v1.0.1 had no project-distributed runtime secrets. With OpenAI, security telemetry leaves your network and usage is billed separately; this choice requires explicit consent. The wizard refuses an existing container ID or Nginx hostname. It **does not** attach any new CrowdSec host bouncer.
+The wizard prompts for static private IP/CIDR, gateway, DNS, LXC ID, bridge/storage, assistant name, OpenAI API or local Open WebUI/Ollama, model, a hidden **user-owned API key**, and optional authenticated HTTPS hostname. It never copies the author's key; v1.0.1 had no project-distributed runtime secrets. With OpenAI, security telemetry leaves your network and usage is billed separately; this choice requires explicit consent. The wizard refuses an existing container ID or Nginx hostname. It initializes offline IP-country mapping, includes generic HTTP(S) and TCP service checks (no personal homepage required), and provides an **explicitly optional** Nginx bouncer registration/cutover with a backup. Host-wide enforcement defaults to unchanged.
 
 Manual Debian LXC deployment is still supported; see [`docs/INSTALL.md`](docs/INSTALL.md). Upgrade/recovery procedures are in `docs/MIGRATION.md` and require an independent LXC backup.
 

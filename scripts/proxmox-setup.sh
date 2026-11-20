@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # NetSec first-time Proxmox LXC installer (v1.0.2).
-# Deliberately refuses overwrites. Does not configure a CrowdSec host bouncer.
+# Deliberately refuses existing LXCs and Nginx sites.
+# Opt-in host bouncer cutover requires explicit operator confirmation.
 set -Eeuo pipefail
 umask 077
 HERE="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -12,11 +13,13 @@ Usage: sudo bash scripts/proxmox-setup.sh
 
 Interactive prompts: new LXC ID, static private IPv4/CIDR, gateway, DNS,
 LXC storage/bridge, web hostname and login, AI name, provider (OpenAI API,
-local Open WebUI, or none), model, and API key (hidden input).
+local Open WebUI, or none), model, API key (hidden input), generic HTTP/TCP
+service monitoring, offline GeoIP, and optional Nginx CrowdSec bouncer.
 
 Run on the Proxmox HOST from an extracted NetSec source checkout, NOT in an
 existing NetSec container. It will never overwrite an existing LXC or Nginx
-site; never replaces a host CrowdSec bouncer. Use --help to show this text.
+site. Replacing a host CrowdSec bouncer is a separately confirmed action.
+Use --help to show this text.
 HELP
 }
 [[ ${1:-} != --help ]] || { usage; exit 0; }
@@ -114,6 +117,7 @@ p=urlsplit(sys.argv[1]);assert p.scheme in ('http','https') and p.hostname and n
 if p.scheme=='http':assert ipaddress.IPv4Address(p.hostname).is_private
 PYURL
   else
+    [[ "$AI_MODEL" =~ ^(gpt-|o[0-9]|ft:|chatgpt-) ]] || die 'This does not look like an OpenAI model ID. Use provider 2 for local Jimmy or Qwen models.'
     echo 'CLOUD PRIVACY: Requests may contain sampled security events, source IPs, and URLs.'
     yesno 'I agree to transmit this data to OpenAI using my key' || die 'OpenAI transfer not authorized'
   fi
@@ -140,18 +144,87 @@ USE_LOGS=0
 if [[ -f /var/log/nginx/access.log ]] && yesno 'Read existing host Nginx logs (read-only mount and access ACLs)?';then USE_LOGS=1;fi
 USE_CROWDSEC=0
 if [[ $USE_LOGS == 1 ]] && yesno 'Install independent CrowdSec detection engine in new LXC (NO host bouncer)?';then USE_CROWDSEC=1;fi
+# Service checks are fully independent of the user's homepage (no authentication
+# tokens or Proxmox API privileges required). HTTP checks use GET; TCP checks only
+# establish a connection, e.g. to Proxmox :8006, SSH :22, or a VM's service port.
+SERVICE_CHECKS=()
+printf '\nBuilt-in read-only service health checks work on any host, VM, or container.\n'
+echo 'Use TCP for Proxmox with self-signed HTTPS on :8006; use HTTP for health endpoints.'
+if yesno 'Configure service checks now?';then
+  while (( ${#SERVICE_CHECKS[@]} < 25 ));do
+    ask SERVICE_NAME 'Service name (blank to finish)' ''
+    [[ -n "$SERVICE_NAME" ]] || break
+    [[ ${#SERVICE_NAME} -le 75 && "$SERVICE_NAME" != *'|'* && "$SERVICE_NAME" != *$'\n'* ]] || die 'Invalid service name'
+    ask SERVICE_KIND 'Type: 1=HTTP(S), 2=TCP' '1'
+    case "$SERVICE_KIND" in
+      1)
+        ask SERVICE_URL 'HTTP(S) URL, e.g. https://example.com/health' ''
+        SERVICE_CHECKS+=("http|$SERVICE_NAME|$SERVICE_URL")
+        ;;
+      2)
+        ask SERVICE_HOST 'Host IPv4/DNS (without port)' ''
+        ask SERVICE_PORT 'TCP port (1-65535)' '8006'
+        [[ "$SERVICE_PORT" =~ ^[0-9]{1,5}$ ]] && ((SERVICE_PORT >= 1 && SERVICE_PORT <= 65535)) || die 'Invalid TCP port'
+        SERVICE_CHECKS+=("tcp|$SERVICE_NAME|$SERVICE_HOST|$SERVICE_PORT")
+        ;;
+      *) die 'Choose HTTP(S) or TCP' ;;
+    esac
+  done
+fi
+if (( ${#SERVICE_CHECKS[@]} ));then
+  python3 - "${SERVICE_CHECKS[@]}" <<'PYSERV' || die 'Invalid service check configuration'
+import sys
+from urllib.parse import urlsplit
+for raw in sys.argv[1:]:
+    parts=raw.split('|')
+    if len(parts)<3: raise SystemExit('Invalid service entry')
+    if parts[0]=='http':
+        if len(parts)!=3:raise SystemExit('Invalid HTTP entry')
+        p=urlsplit(parts[2]);port=p.port
+        if p.scheme not in ('http','https') or not p.hostname or p.username or p.password or p.fragment:
+            raise SystemExit('Invalid HTTP(S) URL')
+    elif parts[0]=='tcp':
+        if len(parts)!=4 or not parts[2] or any(c.isspace() for c in parts[2]):
+            raise SystemExit('Invalid TCP host')
+    else:raise SystemExit('Invalid service type')
+print('Validated',len(sys.argv)-1,'service checks')
+PYSERV
+fi
+
+BOUNCER_MODE=skip
+if [[ "$USE_CROWDSEC" == 1 ]];then
+  echo 'CrowdSec Nginx bouncer (host-wide enforcement affects ALL Nginx sites):'
+  echo '  1) Keep current host bouncer unchanged / detection-only (recommended for staging)'
+  echo '  2) Set up a new host Nginx bouncer, only if not currently configured'
+  echo '  3) Explicitly cut over an existing host bouncer to this new CrowdSec engine'
+  ask BOUNCER_CHOICE 'Bouncer [1/2/3]' '1'
+  case "$BOUNCER_CHOICE" in
+    1) BOUNCER_MODE=skip ;;
+    2) BOUNCER_MODE=new ;;
+    3)
+      BOUNCER_MODE=cutover
+      echo 'DANGER: Cutover changes CrowdSec enforcement for every Nginx site on this host.'
+      ask CUTOVER_CONFIRM "Type SWITCH-TO-$CTID to authorize host-wide bouncer cutover" ''
+      [[ "$CUTOVER_CONFIRM" == "SWITCH-TO-$CTID" ]] || die 'Host bouncer cutover not authorized'
+      ;;
+    *) die 'Invalid bouncer choice' ;;
+  esac
+fi
 ENABLE_AI=0
+VERIFY_AI=0
 if [[ "$AI_PROVIDER" != none ]];then
   if [[ "$USE_LOGS" != 1 ]];then echo 'No Nginx log mount selected; AI assessments require readable Nginx logs.';fi
   echo 'AI timers run repeatedly and may use billable API tokens.'
   if [[ "$USE_LOGS" == 1 ]] && yesno 'Enable automatic AI assessment and classification timers?';then ENABLE_AI=1;fi
+  if yesno 'Test AI provider with one real assessment after install (may incur API charges)?';then VERIFY_AI=1;fi
 fi
 
 printf '\nINSTALL PLAN (review carefully)\n'
 printf 'LXC: %s (%s), static %s, gateway %s, DNS %s, bridge %s\n' "$CTID" "$HOSTNAME" "$CIDR" "$GW" "$DNS" "$BRIDGE"
 printf 'Storage: %s/%s (%s GiB)\n' "$TEMPLATE_STORE" "$ROOT_STORE" "$DISK_GB"
 printf 'Dashboard: %s; operator: %s; AI: %s / %s; assistant: %s\n' "${DOMAIN:-not configured}" "${OP_USER:-not configured}" "$AI_PROVIDER" "${AI_MODEL:-none}" "$AI_NAME"
-printf 'Host log access: %s; CrowdSec detector: %s; scheduled AI: %s\n' "$USE_LOGS" "$USE_CROWDSEC" "$ENABLE_AI"
+printf 'Host log access: %s; CrowdSec detector: %s; bouncer: %s; scheduled AI: %s; AI test: %s\n' "$USE_LOGS" "$USE_CROWDSEC" "$BOUNCER_MODE" "$ENABLE_AI" "$VERIFY_AI"
+printf 'Direct service checks: %s; offline GeoIP: automatic download + monthly update timer\n' "${#SERVICE_CHECKS[@]}"
 yesno 'Proceed and CREATE a new LXC and (if selected) Nginx site?' || { echo 'Cancelled: no changes made'; exit 0; }
 
 STAGING="$(mktemp -d /run/netsec-setup.XXXXXXXX)"
@@ -164,17 +237,30 @@ TEMPLATE="$(pveam available --section system | awk '$2 ~ /^debian-12-standard_.*
 [[ -n "$TEMPLATE" ]] || die 'Debian 12 template unavailable'
 pveam list "$TEMPLATE_STORE" | grep -Fq "$TEMPLATE" || pveam download "$TEMPLATE_STORE" "$TEMPLATE"
 
-pct create "$CTID" "$TEMPLATE_STORE:vztmpl/$TEMPLATE" \
+# Proxmox creates container system paths with the invoking process umask.
+# Using 0077 here makes /etc mode 0700: root DNS works, but _apt cannot read
+# /etc/resolv.conf. The subshell limits 0022 to CT creation; secrets stay 0077.
+(
+  umask 0022
+  pct create "$CTID" "$TEMPLATE_STORE:vztmpl/$TEMPLATE" \
   --hostname "$HOSTNAME" --ostype debian --unprivileged 1 \
   --cores 2 --memory 2048 --swap 512 --rootfs "$ROOT_STORE:$DISK_GB" \
   --net0 "name=eth0,bridge=$BRIDGE,ip=$CIDR,gw=$GW" \
   --nameserver "$DNS" --onboot 1
+)
 if [[ "$USE_LOGS" == 1 ]];then
   pct set "$CTID" -mp0 /var/log/nginx,mp=/mnt/nginx-logs,ro=1
 fi
 pct start "$CTID"
-pct exec "$CTID" -- apt-get update
-pct exec "$CTID" -- apt-get install -y python3 curl ca-certificates socat acl
+# Explicitly verify that unprivileged APT can traverse /etc before downloading.
+pct exec "$CTID" -- chmod 755 /etc
+for attempt in 1 2 3 4 5 6 7 8 9 10;do
+  if pct exec "$CTID" -- runuser -u _apt -- getent ahostsv4 deb.debian.org >/dev/null;then break;fi
+  if [[ "$attempt" == 10 ]];then die 'Container DNS not ready for _apt; check networking and /etc permissions';fi
+  sleep 2
+done
+pct exec "$CTID" -- apt-get -o Acquire::ForceIPv4=true -o Acquire::Retries=3 -o APT::Update::Error-Mode=any update
+pct exec "$CTID" -- apt-get -o Acquire::ForceIPv4=true -o Acquire::Retries=3 install -y python3 curl ca-certificates socat acl
 
 # Distribute *exactly* the reviewed local sources; no blind network git checkout.
 mkdir -p "$STAGING/source"
@@ -195,8 +281,47 @@ p.write_text(json.dumps(d,indent=2)+"\n")
 pct exec "$CTID" -- chown root:statusdash /opt/server-status/config.json
 pct exec "$CTID" -- chmod 640 /opt/server-status/config.json
 
+# Add site-independent service checks as root-only configuration (no tokens).
+if (( ${#SERVICE_CHECKS[@]} ));then
+  pct exec "$CTID" -- python3 -c '
+import json,sys,pathlib
+p=pathlib.Path("/opt/server-status/config.json")
+d=json.loads(p.read_text());checks=[]
+for raw in sys.argv[1:]:
+    parts=raw.split("|")
+    if parts[0]=="http":checks.append({"name":parts[1],"type":"http","url":parts[2]})
+    elif parts[0]=="tcp":checks.append({"name":parts[1],"type":"tcp","host":parts[2],"port":int(parts[3])})
+d["services"]=checks
+d["homepage_status_file"]=""
+p.write_text(json.dumps(d,indent=2)+"\n")
+' "${SERVICE_CHECKS[@]}"
+  pct exec "$CTID" -- chown root:statusdash /opt/server-status/config.json
+  pct exec "$CTID" -- chmod 640 /opt/server-status/config.json
+fi
+
+# Offline GeoIP is a first-class part of a standard installation.
+# Failure does not cause a false OK: the dashboard explicitly says NOT INSTALLED.
+if pct exec "$CTID" -- runuser -u statusdash -- python3 /opt/server-status/geoip_update.py;then
+  echo 'Offline geographic IP database initialized.'
+else
+  echo 'WARNING: GeoIP download failed; map will show NOT INSTALLED. Retry as statusdash after network is available.' >&2
+fi
+pct exec "$CTID" -- systemctl enable --now netsec-geoip-update.timer
+
 PROXY_IP="$(ip -4 route get "$IP" | sed -n 's/.* src \([0-9.]*\).*/\1/p')"
 [[ -n "$PROXY_IP" ]] || die 'Could not determine Proxmox Nginx source IP'
+HOST_TIMEZONE="$(timedatectl show -p Timezone --value 2>/dev/null || echo UTC)"
+pct exec "$CTID" -- python3 -c '
+import json,pathlib,sys
+p=pathlib.Path("/etc/netsec-diagnostics.json")
+d=json.loads(p.read_text())
+d["nginx_host_ip"]=sys.argv[1]
+d["nginx_timezone"]=sys.argv[2] or "UTC"
+d["https_hosts"]=[sys.argv[3]] if sys.argv[3] else []
+p.write_text(json.dumps(d,indent=2)+"\n")
+' "$PROXY_IP" "$HOST_TIMEZONE" "$DOMAIN"
+pct exec "$CTID" -- chown root:statusdash /etc/netsec-diagnostics.json
+pct exec "$CTID" -- chmod 640 /etc/netsec-diagnostics.json
 if [[ "$USE_PROXY" == 1 ]];then
   python3 - "$PROXY_IP" "$OP_USER" "$DOMAIN" "$STAGING/proxy.json" <<'PYJSON'
 import json,sys
@@ -294,10 +419,37 @@ fi
 pct exec "$CTID" -- systemctl restart server-status.service
 pct exec "$CTID" -- systemctl is-active --quiet server-status.service
 pct exec "$CTID" -- curl -fsS http://127.0.0.1:8787/api/status >/dev/null
-if [[ "$ENABLE_AI" == 1 && "$USE_LOGS" == 1 ]];then
-  pct exec "$CTID" -- systemctl enable --now netsec-ai.timer netsec-source-ai.timer netsec-ai-manual.path
+AI_READY=0
+if [[ "$AI_PROVIDER" != none && "$USE_LOGS" == 1 ]];then
+  if [[ "$VERIFY_AI" == 1 || "$ENABLE_AI" == 1 ]];then
+    echo 'Testing AI provider with a single real assessment (API usage may be billed).'
+    if pct exec "$CTID" -- systemctl start netsec-ai.service;then
+      AI_READY=1
+    else
+      echo 'WARNING: AI authentication/model/test failed. AI timers will remain disabled. Examine netsec-ai.service journal.' >&2
+    fi
+  fi
+  if [[ "$ENABLE_AI" == 1 && "$AI_READY" == 1 ]];then
+    pct exec "$CTID" -- systemctl enable --now netsec-ai.timer netsec-source-ai.timer netsec-ai-manual.path
+  fi
 fi
-# CrowdSec is observation-only by default. Never connect it to a production bouncer.
+# Host bouncer setup is an opt-in, independently confirmed operation.
+# It is never part of default staging. An existing host-wide bouncer only
+# changes under explicit --cutover, with an on-host backup and rollback.
+if [[ "$BOUNCER_MODE" != skip ]];then
+  echo 'Setting up private CrowdSec LAPI relay and Nginx host bouncer.'
+  pct exec "$CTID" -- bash /root/netsec-setup/scripts/configure-lapi-relay.sh "$IP" "$PROXY_IP"
+  if ! dpkg-query -W -f='${Status}' crowdsec-nginx-bouncer 2>/dev/null | grep -q 'install ok installed';then
+    echo 'Installing the official crowdsec-nginx-bouncer package on the Nginx host.'
+    apt-get -o Acquire::Retries=3 install -y crowdsec-nginx-bouncer
+  fi
+  if bash "$HERE/scripts/configure-host-bouncer.sh" "$CTID" "$IP" "--$BOUNCER_MODE";then
+    echo 'Bouncer connected; check its last pull and verify enforcement separately.'
+  else
+    echo 'WARNING: Host bouncer configuration did not complete. Existing Nginx configuration was preserved/restored. Review before cutover.' >&2
+  fi
+fi
+# Manual dashboard bans remain disabled until the bouncer is verified.
 pct exec "$CTID" -- systemctl disable --now netsec-ban-worker.path >/dev/null 2>&1 || true
 printf '\nINSTALL COMPLETE: NetSec on LXC %s at %s\n' "$CTID" "$IP"
 if [[ "$USE_PROXY" == 1 ]];then
@@ -307,4 +459,4 @@ else
   echo 'No HTTPS site configured; privileged UI actions remain disabled until authenticated Nginx is configured.'
 fi
 printf 'AI: %s | assistant: %s | timers enabled: %s\n' "$AI_PROVIDER" "$AI_NAME" "$ENABLE_AI"
-echo 'To finish: review docs/INSTALL_FROM_SCRATCH.md; configure CrowdSec bouncer only after separate review.'
+echo 'To finish: review docs/INSTALL_FROM_SCRATCH.md; verify HTTP/TCP checks, GeoIP, AI and host bouncer enforcement separately.'

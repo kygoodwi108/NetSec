@@ -276,7 +276,7 @@ button,input{font:inherit}button{cursor:pointer}button:focus-visible,input:focus
 </section>
 
 <section class="panel" id="homepageSection" aria-label="Homepage service status" style="margin-bottom:15px">
-<div class="panelhead"><div><h2>Infrastructure services</h2><div class="subtle tiny">Read-only data from local infrastructure status feed</div></div><span class="tag" id="homepageFeedBadge">WAITING FOR FEED</span></div>
+<div class="panelhead"><div><h2>Infrastructure services</h2><div class="subtle tiny">Read-only HTTP(S) and TCP checks; optional homepage integration</div></div><span class="tag" id="homepageFeedBadge">WAITING FOR FEED</span></div>
 <div class="homepage-grid" id="homepageServiceGrid"><div class="subtle tiny">Loading service health…</div></div>
 </section>
 <section class="grid metrics" aria-label="Summary metrics"><div class="panel metric emphasis"><div class="label">Requests / 24h</div><div class="value" id="requests">—</div><div class="footer">Observed at Nginx</div></div><div class="panel metric"><div class="label">Unique source IPs</div><div class="value" id="unique">—</div><div class="footer">Not unique people</div></div><div class="panel metric"><div class="label">Probe-like hits</div><div class="value" id="probes">—</div><div class="footer">Pattern matching</div></div><div class="panel metric"><div class="label">HTTP 5xx</div><div class="value" id="errors">—</div><div class="footer" id="errorRate">Server errors / 24h</div></div><div class="panel metric"><div class="label">CrowdSec alerts</div><div class="value" id="alerts">—</div><div class="footer">Available export, not blocks</div></div></section>
@@ -345,7 +345,7 @@ function empty(tbody,message='No matching data'){tbody.replaceChildren();let tr=
 function table(id,rows,fn){const tb=$(id);tb.replaceChildren();if(!rows?.length){empty(tb);return}for(const item of rows){const tr=el('tr');for(const cell of fn(item)){const td=el('td');if(typeof cell==='object'&&cell!==null){td.appendChild(cell)}else{td.textContent=String(cell??'—')}tr.appendChild(td)}tb.appendChild(tr)}}
 function code(v){let span=el('span','code'+(v>=500?' err':v===401||v===403||v===404?' warn':''),String(v));return span}
 function label(id,value,cls){const node=$(id);node.textContent=value;node.className='status '+cls}
-function risk(d){let r=d.risk||{},level=r.level||'unknown';$('riskLabel').textContent=r.label||'UNKNOWN';$('riskLabel').style.color=({red:'var(--red)',amber:'var(--amber)',green:'var(--green)',unknown:'var(--muted)'})[level];$('lights').setAttribute('aria-label','Traffic security posture: '+level);for(const bulb of $('lights').children)bulb.classList.toggle('on',bulb.classList.contains(level));const rs=$('riskReasons');rs.replaceChildren();for(const reason of (r.reasons||[])){rs.appendChild(el('div','reason',reason))}$('riskScope').textContent=r.scope||'';const t=d.traffic||{},cs=d.crowdsec||{},services=d.services||[];label('logHealth',t.log_files_readable>0?'READING':'NO LOGS',t.log_files_readable>0?'ok':'bad');label('csHealth',!cs.configured?'NOT CONFIGURED':cs.error?'EXPORT ERROR':'CONNECTED',!cs.configured?'muted':cs.error?'warn':'ok');label('svcHealth',!services.length?'NOT CONFIGURED':d.homepage&&d.homepage.state!=='fresh'?'FEED STALE':services.some(s=>s.status==='down')?'DEGRADED':services.some(s=>s.status!=='up')?'UNKNOWN':'RESPONDING',!services.length?'muted':d.homepage&&d.homepage.state!=='fresh'?'warn':services.some(s=>s.status==='down')?'warn':services.some(s=>s.status!=='up')?'warn':'ok');label('geoHealth',d.geo?.enabled?'OFFLINE ACTIVE':'NOT INSTALLED',d.geo?.enabled?'ok':'muted')}
+function risk(d){let r=d.risk||{},level=r.level||'unknown';$('riskLabel').textContent=r.label||'UNKNOWN';$('riskLabel').style.color=({red:'var(--red)',amber:'var(--amber)',green:'var(--green)',unknown:'var(--muted)'})[level];$('lights').setAttribute('aria-label','Traffic security posture: '+level);for(const bulb of $('lights').children)bulb.classList.toggle('on',bulb.classList.contains(level));const rs=$('riskReasons');rs.replaceChildren();for(const reason of (r.reasons||[])){rs.appendChild(el('div','reason',reason))}$('riskScope').textContent=r.scope||'';const t=d.traffic||{},cs=d.crowdsec||{},services=d.services||[];label('logHealth',t.log_files_readable>0?'READING':'NO LOGS',t.log_files_readable>0?'ok':'bad');label('csHealth',!cs.configured?'NOT CONFIGURED':cs.error?'EXPORT ERROR':'CONNECTED',!cs.configured?'muted':cs.error?'warn':'ok');label('svcHealth',!services.length?'NOT CONFIGURED':d.service_source==='homepage'&&d.homepage&&d.homepage.state!=='fresh'?'FEED STALE':services.some(s=>s.status==='down')?'DEGRADED':services.some(s=>s.status!=='up')?'UNKNOWN':'RESPONDING',!services.length?'muted':d.service_source==='homepage'&&d.homepage&&d.homepage.state!=='fresh'?'warn':services.some(s=>s.status==='down')?'warn':services.some(s=>s.status!=='up')?'warn':'ok');label('geoHealth',d.geo?.enabled?'OFFLINE ACTIVE':'NOT INSTALLED',d.geo?.enabled?'ok':'muted')}
 function chart(){if(!data)return;const t=data.traffic||{};const arr=period===24?(t.hourly||[]):(t.daily||[]).slice(period===7?-7:-14);let svg=$('trafficChart');svg.replaceChildren();const W=720,H=258,L=37,R=12,T=20,B=37;const P=W-L-R,Q=H-T-B;let max=Math.max(1,...arr.map(x=>x.requests||0));max=Math.ceil(max*1.18)||1;const x=i=>L+(arr.length<2?P/2:P*i/(arr.length-1)),y=v=>T+Q*(1-v/max);
 for(let j=0;j<=4;j++){let val=max*j/4,Y=y(val);svg.append(sEl('line',{x1:L,y1:Y,x2:W-R,y2:Y,stroke:'#2b4559','stroke-dasharray':'3 6'}));svg.append(sEl('text',{x:26,y:Y+4,fill:'#87a1b5','font-size':11,'text-anchor':'end'},Math.round(val).toString()))}
 if(!arr.length)return;
@@ -360,15 +360,18 @@ function logs(){if(!data)return;let arr=(data.traffic?.recent_requests||[]).filt
 function aiInsights(d){aiShowState(d.ai||{});}
 
 function homepageRender(d){
- const feed=d.homepage||{},items=d.services||[],grid=$('homepageServiceGrid'),badge=$('homepageFeedBadge');
+ const fromHomepage=d.service_source==='homepage';
+ const feed=fromHomepage?(d.homepage||{}):(d.service_monitor||{});
+ const items=d.services||[],grid=$('homepageServiceGrid'),badge=$('homepageFeedBadge');
  grid.replaceChildren();
  const state=feed.state||'not_configured';
  const age=Number.isFinite(Number(feed.age_seconds))&&feed.age_seconds!==null
   ?' · '+Math.max(0,Math.round(Number(feed.age_seconds)))+'s ago':'';
- badge.textContent=(state==='fresh'?'LIVE FEED':state==='stale'?'STALE FEED':'NO FEED')+age;
+ badge.textContent=fromHomepage?(state==='fresh'?'LIVE HOMEPAGE':state==='stale'?'STALE HOMEPAGE':'HOMEPAGE UNAVAILABLE')+age:
+   (state==='checked'?'DIRECT CHECKS':'NOT CONFIGURED');
  badge.title=feed.error||'';
- if(!items.length || state==='unavailable'){
-  grid.append(el('div','callout',feed.error||'Homepage status is unavailable. Verify the read-only feed mount.'));
+ if(!items.length){
+  grid.append(el('div','callout','No services configured. Add HTTP(S) URLs or TCP endpoints in NetSec config.json, or use the first-time setup wizard.'));
   return;
  }
  for(const item of items){
@@ -376,8 +379,10 @@ function homepageRender(d){
   const title=el('strong','',String(item.name||item.id||'Service'));
   const status=['up','down','stale'].includes(item.status)?item.status:'unknown';
   const code=Number.isInteger(item.http_code)?' · HTTP '+item.http_code:'';
+  const ms=Number.isInteger(item.latency_ms)?' · '+item.latency_ms+'ms':'';
+  const kind=item.type==='tcp'?' · TCP':'';
   const msg=status==='up'?'RESPONDING':status==='down'?'UNREACHABLE':status==='stale'?'STALE DATA':'UNKNOWN';
-  const line=el('span',status,msg+code);
+  const line=el('span',status,msg+code+ms+kind);
   cell.append(title,line);grid.append(cell);
  }
 }
@@ -574,9 +579,9 @@ $('aiForceRefresh').addEventListener('click',aiForceRefresh);
     H('hubSources').textContent=fmtH(t.unique_ips);
     H('hubDenied').textContent=fmtH((t.http_401||0)+(t.http_403||0));
     const svc=d.services||[],up=svc.filter(x=>x.status==='up').length;
-    const state=d.homepage?.state;
+    const state=d.service_source==='homepage'?d.homepage?.state:d.service_monitor?.state;
     H('hubServices').textContent=svc.length?up+' / '+svc.length:'—';
-    H('hubServiceCaption').textContent=state==='fresh'?'LIVE HOMEPAGE TELEMETRY':state==='stale'?'STALE DATA — NOT LIVE':state==='unavailable'?'HEALTH FEED UNAVAILABLE':svc.length?'Configured service checks':'No services configured';
+    H('hubServiceCaption').textContent=state==='fresh'?'LIVE HOMEPAGE TELEMETRY':state==='stale'?'STALE DATA — NOT LIVE':state==='unavailable'?'HEALTH FEED UNAVAILABLE':svc.length?'LIVE SERVICE REACHABILITY CHECKS':'No services configured';
     H('headline').textContent=(d.host||'NetSec')+' / '+hubTitles[activeHub];
   }
 

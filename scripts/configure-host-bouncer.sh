@@ -1,57 +1,82 @@
 #!/usr/bin/env bash
-# On Proxmox host after CrowdSec engine+relay and Nginx bouncer package are ready.
-# ./configure-host-bouncer.sh <CTID> <LXC_IP>
+# Configure the host-wide CrowdSec Nginx bouncer to use a NEW NetSec CrowdSec LAPI.
+# Usage: bash configure-host-bouncer.sh <CTID> <LXC_IPV4> --new|--cutover
+# Must not be used on an active installation unless the operator authorized
+# the associated cutover in the host installer. Backups are retained on host.
 set -Eeuo pipefail
-[[ $EUID -eq 0 ]] || { echo 'Must run as root on Proxmox host.' >&2; exit 1; }
-[[ $# -eq 2 ]] || { echo "Usage: $0 <CTID> <CONTAINER_IP>" >&2; exit 2; }
-CTID="$1"; CT_IP="$2"
+umask 077
+[[ $EUID -eq 0 ]] || { echo 'Root on Nginx host required.' >&2; exit 2; }
+[[ $# -eq 3 && "$3" =~ ^(--new|--cutover)$ ]] || { echo 'Usage: <CTID> <LXC_IP> --new|--cutover' >&2; exit 2; }
+CTID="$1"; CT_IP="$2"; MODE="$3"
+[[ "$CTID" =~ ^[1-9][0-9]{1,5}$ ]] || exit 2
 python3 - "$CT_IP" <<'PY'
 import ipaddress,sys
-ip=ipaddress.ip_address(sys.argv[1])
-if ip.version!=4 or not ip.is_private:raise SystemExit('Container IP must be private IPv4')
+ip=ipaddress.ip_address(sys.argv[1]); assert ip.version == 4 and ip.is_private
 PY
-command -v pct >/dev/null || { echo 'pct not found; run on Proxmox host.' >&2; exit 1; }
-command -v nginx >/dev/null || { echo 'nginx not found; install it first.' >&2; exit 1; }
-dpkg-query -W -f='${Status}' crowdsec-nginx-bouncer 2>/dev/null | grep -q 'install ok installed' || {
- echo 'crowdsec-nginx-bouncer not installed. See README.md for package installation.' >&2; exit 1; }
-CONFIG=/etc/crowdsec/bouncers/crowdsec-nginx-bouncer.conf.local
-KEYFILE=/root/netsec-nginx-bouncer.key
-[[ -f /etc/crowdsec/bouncers/crowdsec-nginx-bouncer.conf ]] || { echo 'Vendor bouncer configuration missing.' >&2; exit 1; }
-if [[ -e "$CONFIG" || -e "$KEYFILE" ]]; then
-  echo 'An existing local bouncer configuration or key exists; refusing to overwrite. Review manually.' >&2
+for exe in pct nginx python3;do command -v "$exe" >/dev/null || exit 2;done
+pkg_status=$(dpkg-query -W -f='${Status}' crowdsec-nginx-bouncer 2>/dev/null || true)
+[[ "$pkg_status" == 'install ok installed' ]] || { echo 'crowdsec-nginx-bouncer package missing.' >&2; exit 2; }
+CONFIG=/etc/crowdsec/bouncers/crowdsec-nginx-bouncer.conf
+OVERRIDE=/etc/crowdsec/bouncers/crowdsec-nginx-bouncer.conf.local
+[[ -f "$CONFIG" ]] || { echo "Vendor config $CONFIG is missing." >&2; exit 2; }
+if [[ -e "$OVERRIDE" ]];then
+  echo "Found $OVERRIDE. Version-dependent override precedence; refuse automatic change. Reconcile manually." >&2
+  exit 2
+fi
+if [[ "$MODE" == --new ]];then
+  # Do not seize an existing, working Nginx bouncer from another LAPI.
+  if grep -Eq '^\s*API_KEY\s*=\s*[^#[:space:]]{12,}' "$CONFIG";then
+    echo 'Existing Nginx bouncer API key detected. Choose explicit cutover, not new installation.' >&2
+    exit 2
+  fi
+fi
+# Ensure remote relay is accessible before touching a working host bouncer.
+python3 - "$CT_IP" <<'PY'
+import socket,sys
+with socket.create_connection((sys.argv[1],8081),timeout=5):pass
+PY
+BACKUP="/root/netsec-bouncer-backups/$(date -u +%Y%m%dT%H%M%SZ)-ct${CTID}"
+mkdir -m 0700 -p "$BACKUP"
+cp -a "$CONFIG" "$BACKUP/crowdsec-nginx-bouncer.conf"
+nginx -t >/dev/null
+NAME="netsec-nginx-ct${CTID}-$(date -u +%Y%m%d%H%M%S)"
+KEY="$(pct exec "$CTID" -- cscli bouncers add "$NAME" -o raw | tr -d '\r\n')"
+if [[ ! "$KEY" =~ ^[A-Za-z0-9_./+=~-]{32,250}$ ]];then
+  echo 'CrowdSec bouncer registration returned invalid credentials; Nginx untouched.' >&2
   exit 1
 fi
-BOUNCER_NAME="netsec-nginx-pve-${CTID}"
-KEY="$(pct exec "$CTID" -- cscli bouncers add "$BOUNCER_NAME" -o raw | tr -d '\r\n')"
-if [[ ! "$KEY" =~ ^[A-Za-z0-9_./+=~-]{32,250}$ ]]; then
- echo 'CrowdSec registration returned an invalid key. No Nginx configuration changed. Check cscli bouncers list.' >&2
- exit 1
+# Credential only ever passes through stdin; avoid exposing it on the process command line.
+export NETSEC_BOUNCER_LAPI="http://${CT_IP}:8081"
+if ! python3 - "$CONFIG" 3<<<"$KEY" <<'PYWRITE'
+import os,pathlib,re,sys
+config=pathlib.Path(sys.argv[1]); key=os.fdopen(3).read().strip()
+if not key:raise SystemExit('Missing key')
+content=config.read_text()
+for field,value in [('API_URL',os.environ['NETSEC_BOUNCER_LAPI']),('API_KEY',key),('ENABLED','true'),('MODE','stream')]:
+    pat=re.compile(r'^'+field+r'\s*=.*$',re.M)
+    if pat.search(content):content=pat.sub(lambda m, v=value, f=field:f+'='+v,content,count=1)
+    else:content+='\n'+field+'='+value+'\n'
+config.write_text(content)
+PYWRITE
+then
+  cp -a "$BACKUP/crowdsec-nginx-bouncer.conf" "$CONFIG"
+  echo 'Writing bouncer config failed; restored backup.' >&2
+  exit 1
 fi
-umask 077
-printf '%s\n' "$KEY" > "$KEYFILE"
-chmod 600 "$KEYFILE"
-# .local overrides main package configuration without replacing vendor settings.
-cat > "$CONFIG" <<EOF
-API_URL=http://${CT_IP}:8081
-API_KEY=${KEY}
-ENABLED=true
-MODE=stream
-UPDATE_FREQUENCY=10
-BOUNCING_ON_TYPE=ban
-CAPTCHA_PROVIDER=
-EOF
-unset KEY
+unset KEY NETSEC_BOUNCER_LAPI
 chown root:www-data "$CONFIG" 2>/dev/null || chown root:root "$CONFIG"
-chmod 640 "$CONFIG"
-if ! nginx -t; then
-  rm -f "$CONFIG"
-  echo 'nginx -t failed. Removed new .conf.local; bouncer registration/key retained for recovery.' >&2
+chmod 0640 "$CONFIG"
+if ! nginx -t;then
+  cp -a "$BACKUP/crowdsec-nginx-bouncer.conf" "$CONFIG"
+  nginx -t || true
+  echo 'Nginx validation failed; restored old bouncer config.' >&2
   exit 1
 fi
-systemctl reload nginx
-if ! nginx -T 2>&1 | grep -Eqi 'crowdsec.*lua|lua.*crowdsec'; then
- echo 'WARNING: No CrowdSec Lua integration found in active nginx -T output. Verify package includes.' >&2
+if ! systemctl reload nginx;then
+  cp -a "$BACKUP/crowdsec-nginx-bouncer.conf" "$CONFIG"
+  nginx -t && systemctl reload nginx || true
+  echo 'Nginx reload failed; restored previous bouncer config.' >&2
+  exit 1
 fi
-echo 'Bouncer registered and host Nginx reloaded.'
-echo "Secret key stored at ${KEYFILE} (root only); local config at ${CONFIG} (root / Nginx worker)."
-echo 'NEXT: Run verified test ban/403, then delete the temporary test decision.'
+printf 'Host Nginx bouncer config updated. Backup: %s\n' "$BACKUP"
+echo 'Registered, NOT YET PROVEN ENFORCING: verify cscli bouncers list last pull and controlled ban before enabling operator manual bans.'

@@ -1,3 +1,11 @@
+## v1.0.2 installer refinement (release candidate)
+
+- Fixed unprivileged Debian APT DNS failure during Proxmox LXC creation: container-creation umask is 0022 only in a subshell, and `_apt` DNS readiness is verified before strict/retried APT updates.
+- Automatic offline DB-IP country database initialization and monthly refresh timer; download failures are reported without falsely marking GeoIP ready.
+- Portable generic HTTP(S) and TCP endpoint checks configure directly in the wizard. No dependency on an author's homepage; the old homepage integration remains optional.
+- Opt-in CrowdSec Nginx bouncer registration or explicit host-wide cutover (defaults to no change). Retains backup and rollback, refuses unexpected override configs, does not claim enforcement before a verified test.
+- Added optional one-shot AI provider test, host-specific diagnostics, provider-family guard against local model names on OpenAI, and regression tests.
+
 # Changelog
 
 Version history is intentionally renumbered for the consolidated, future public Git repository.

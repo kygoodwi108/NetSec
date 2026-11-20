@@ -1,0 +1,11 @@
+[Unit]
+Description=Monthly offline IP-country database refresh
+
+[Timer]
+OnCalendar=monthly
+RandomizedDelaySec=6h
+Persistent=true
+Unit=netsec-geoip-update.service
+
+[Install]
+WantedBy=timers.target

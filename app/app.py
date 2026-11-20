@@ -26,6 +26,7 @@ from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 from urllib.parse import parse_qs
 import netsec_homepage as KVG
+import netsec_service_checks as SVC
 import netsec_intel as NI  # NetSec v3 intelligence
 import netsec_connections as NC  # Read-only per-IP response outcomes
 import netsec_source_hub as NSH  # Advisory AI source metadata and full inventory
@@ -147,25 +148,7 @@ def _load_alerts():
 
 
 def _services():
-    result = []
-    for item in CFG.get('services', [])[:25]:
-        name = str(item.get('name', 'Service'))[:90]
-        url = str(item.get('url', ''))
-        if not url.startswith(('http://', 'https://')):
-            result.append({'name': name, 'status': 'configuration error'})
-            continue
-        start = time.monotonic()
-        try:
-            with urlopen(Request(url, headers={'User-Agent': 'NetSecReadOnly/2.0'}), timeout=3) as r:
-                code = r.status
-            status = 'up' if code < 500 else 'down'
-            result.append({'name': name, 'status': status, 'http_code': code,
-                           'latency_ms': round((time.monotonic()-start)*1000)})
-        except HTTPError as e:
-            result.append({'name': name, 'status': 'responding' if e.code < 500 else 'down', 'http_code': e.code})
-        except (URLError, OSError, TimeoutError):
-            result.append({'name': name, 'status': 'down'})
-    return result
+    return SVC.sample(CFG.get('services', []))['services']
 
 
 @lru_cache(maxsize=12000)
@@ -335,10 +318,15 @@ def _make_snapshot(scope='all'):
             by_country[country] += count
             mapped_req += count
     cs = _load_alerts()
-    homepage = KVG.feed(CFG.get('homepage_status_file'), CFG.get('homepage_max_age_seconds',150)) if CFG.get('homepage_status_file') else None
-    svc = homepage['services'] if homepage and homepage['state'] != 'unavailable' else (
-        [{'name':'Local homepage status feed','status':'down','source':'homepage','http_code':None}]
-        if homepage else _services())
+    # Generic checks are the default. A legacy homepage file is optional and
+    # never required for new deployments. If a legacy feed is stale or broken,
+    # use the configured direct checks instead of fabricating a service failure.
+    service_monitor = SVC.sample(CFG.get('services', []))
+    homepage = KVG.feed(CFG.get('homepage_status_file'), CFG.get('homepage_max_age_seconds', 150)) if CFG.get('homepage_status_file') else None
+    use_homepage = bool(homepage and (homepage['state'] == 'fresh' or
+                         (not service_monitor['services'] and homepage['state'] == 'stale')))
+    svc = homepage['services'] if use_homepage else service_monitor['services']
+    service_source = 'homepage' if use_homepage else 'configured'
     geo_rows = []
     for code, count in by_country.most_common(35):
         c = CENTROIDS.get(code)
@@ -367,7 +355,8 @@ def _make_snapshot(scope='all'):
            'attribution': 'IP geolocation by DB-IP.com (CC BY 4.0)'}
     return {'generated_at': _iso(now), 'host': str(CFG.get('display_name', 'Home Server'))[:100],
             'traffic': traffic, 'geo': geo, 'risk': _risk_traffic(traffic, cs, svc, now),
-            'services': svc, 'homepage': homepage, 'crowdsec': cs, 'ai': _load_ai_assessment(),
+            'services': svc, 'homepage': homepage, 'service_monitor': service_monitor,
+            'service_source': service_source, 'crowdsec': cs, 'ai': _load_ai_assessment(),
             'scope': 'Nginx HTTP(S) logs plus optional exported CrowdSec; not SSH/firewall/VPN audit data.'}
 
 
