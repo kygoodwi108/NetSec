@@ -1,7 +1,7 @@
 # Recovery, migrations and upgrades
 
 ## What the public source ZIP does and does not contain
-The ZIP contains **every reconstructed v1.1.0 application module, static asset, service file and setup script**. It is re-installable on a new Debian LXC with external Proxmox/Nginx/CrowdSec configuration.
+The ZIP contains **every reconstructed v1.1.1 application module, static asset, service file and setup script**. It is re-installable on a new Debian LXC with external Proxmox/Nginx/CrowdSec configuration.
 
 It deliberately **does not** contain your live IP labels, history SQLite databases, source AI classifications, CrowdSec ban decisions, private API keys, the `netsecadmin` password file, certificates, Nginx site files or personal runtime configs. These are operational state and secrets and must **never** go into Git.
 
@@ -26,3 +26,9 @@ bash scripts/install-lxc.sh --upgrade
 
 ## NetSec v1.1.0 release handoff
 A new chat can start by uploading this ZIP and saying: "Continue NetSec v1.1.0; read docs/PROJECT_HANDOFF.md and docs/INSTALL_FROM_SCRATCH.md. Test the Jimmy PWA/chat/push on a safe staging instance before production cutover." The next chat does not require the entire old conversation to understand the project structure. For any new release, provide a complete Mac-to-Proxmox-to-LXC remote installation and rollback procedure.
+
+## NetSec 1.1.0 → 1.1.1 UI-only upgrade
+
+Version 1.1.1 introduces mobile presentation assets and static file routing; no database schema, push keys, Nginx site or CrowdSec bouncer changes. The `--upgrade` script supports the installed 1.1.0 signature and retains `config.json`, operator context, credentials, and `/var/lib/server-status`. It still replaces NetSec systemd units and restarts the dashboard: take a verified `vzdump` first, preserve host Nginx/bouncer configuration separately, and confirm scheduled services afterward.
+
+To install from GitHub, first `git pull --ff-only origin main` into a clean Proxmox source checkout after publishing the verified 1.1.1 files, verify `cat VERSION` and `bash ci/check.sh`, then tar excluding `.git`, checksum/`pct push` it to the intended LXC and extract in `/root`. Run `bash scripts/install-lxc.sh --upgrade` inside that extracted root. See `docs/MOBILE.md` for UI verification and `docs/INSTALL_FROM_SCRATCH.md` for fresh LXC paths. Do not use `scripts/proxmox-setup.sh` to update an existing CTID.

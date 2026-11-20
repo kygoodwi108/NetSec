@@ -1,4 +1,4 @@
-# NetSec product release v1.1.0 (dedicated Jimmy analyst workspace / PWA)
+# NetSec product release v1.1.1 (dedicated Jimmy analyst workspace / PWA)
 # NetSec v3.8.5 netsecadmin reverse proxy authorization
 # NetSec v3.8.2 metadata token / Basic Auth separation
 # NetSec v3.8 proactive source intelligence
@@ -449,7 +449,7 @@ class Handler(BaseHTTPRequestHandler):
                 self.send_response(500)
             mime = 'application/json; charset=utf-8'
         elif path in ('/', '/index.html', '/world.svg', '/manifest.webmanifest',
-                      '/sw.js', '/jimmy-ui.js', '/offline.html', '/icon-192.png', '/icon-512.png'):
+                      '/sw.js', '/jimmy-ui.js', '/mobile-ui.js', '/mobile.css', '/offline.html', '/icon-192.png', '/icon-512.png'):
             name = 'index.html' if path in ('/', '/index.html') else path.lstrip('/')
             with open(os.path.join(DIR, name), 'rb') as f:
                 b = f.read()
@@ -461,6 +461,8 @@ class Handler(BaseHTTPRequestHandler):
                     'offline.html':'text/html; charset=utf-8',
                     'world.svg':'image/svg+xml', 'sw.js':'text/javascript; charset=utf-8',
                     'jimmy-ui.js':'text/javascript; charset=utf-8',
+                    'mobile-ui.js':'text/javascript; charset=utf-8',
+                    'mobile.css':'text/css; charset=utf-8',
                     'manifest.webmanifest':'application/manifest+json',
                     'icon-192.png':'image/png', 'icon-512.png':'image/png'}[name]
         else:

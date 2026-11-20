@@ -1,4 +1,4 @@
-# Fresh installation — NetSec v1.1.0
+# Fresh installation — NetSec v1.1.1
 
 For complete new Proxmox deployments (including the bouncer, GeoIP, services, PWA and optional Web Push), read **`docs/INSTALL_FROM_SCRATCH.md`** first. This manual guide remains available for users who already built an LXC.
 
@@ -38,21 +38,21 @@ pct exec "$CTID" -- apt-get install -y python3 curl ca-certificates socat acl
 Template and storage IDs vary. The app itself will work without CrowdSec, but CrowdSec dashboards won't report full enforcement until the detection/bouncer steps are installed. Existing CrowdSec installations must be reconciled manually to avoid duplicates.
 
 ## 2. Transfer the ZIP (workstation -> Proxmox -> LXC)
-Download `netsec-v1.1.0-source.zip` on your Mac and upload to host via SSH (if you have SSH access):
+Download `netsec-v1.1.1-source.zip` on your Mac and upload to host via SSH (if you have SSH access):
 
 ```bash
-scp ~/Downloads/netsec-v1.1.0-source.zip root@YOUR_PVE_IP:/root/
+scp ~/Downloads/netsec-v1.1.1-source.zip root@YOUR_PVE_IP:/root/
 ```
 
-**When remote without SSH:** upload from Mac to the same temporary HTTPS transfer service you normally use and copy the link; in the Proxmox web Shell run `curl -fL -o /root/netsec-v1.1.0-source.zip 'YOUR_TEMPORARY_URL'`. Temporary uploads can expose code to the provider, so don't include runtime secrets in the ZIP. Verify the release checksum printed alongside your download before installing.
+**When remote without SSH:** upload from Mac to the same temporary HTTPS transfer service you normally use and copy the link; in the Proxmox web Shell run `curl -fL -o /root/netsec-v1.1.1-source.zip 'YOUR_TEMPORARY_URL'`. Temporary uploads can expose code to the provider, so don't include runtime secrets in the ZIP. Verify the release checksum printed alongside your download before installing.
 
 On Proxmox host:
 
 ```bash
-sha256sum /root/netsec-v1.1.0-source.zip
-pct push "$CTID" /root/netsec-v1.1.0-source.zip /root/netsec-v1.1.0-source.zip
-pct exec "$CTID" -- python3 -m zipfile -e /root/netsec-v1.1.0-source.zip /root
-pct exec "$CTID" -- bash /root/netsec-v1.1.0/scripts/install-lxc.sh --fresh
+sha256sum /root/netsec-v1.1.1-source.zip
+pct push "$CTID" /root/netsec-v1.1.1-source.zip /root/netsec-v1.1.1-source.zip
+pct exec "$CTID" -- python3 -m zipfile -e /root/netsec-v1.1.1-source.zip /root
+pct exec "$CTID" -- bash /root/netsec-v1.1.1/scripts/install-lxc.sh --fresh
 ```
 
 The manual app installer checks source syntax, installs complete app modules, creates the non-root `statusdash` account and private state paths, installs the provided systemd definitions, then starts `server-status.service`. It **does not** create or change a host Nginx vhost or CrowdSec decision; it preserves existing configs and disables optional AI timers until configured.
@@ -61,7 +61,7 @@ The manual app installer checks source syntax, installs complete app modules, cr
 Edit `/opt/server-status/config.json`, particularly log glob paths and `services`; ensure private config remains root:statusdash 0640. Keep the dashboard listener on the private LXC network only. `ALLOW_REMOTE_BIND=YES` is set by the controlled systemd unit.
 
 ```bash
-cp /root/netsec-v1.1.0/config/netsec-proxy-auth.json.example /etc/netsec-proxy-auth.json
+cp /root/netsec-v1.1.1/config/netsec-proxy-auth.json.example /etc/netsec-proxy-auth.json
 nano /etc/netsec-proxy-auth.json
 chown root:statusdash /etc/netsec-proxy-auth.json
 chmod 640 /etc/netsec-proxy-auth.json
@@ -92,7 +92,7 @@ Run `nginx -t && systemctl reload nginx` **only after** a successful syntax chec
 Inside the LXC:
 
 ```bash
-cp /root/netsec-v1.1.0/config/netsec-ai.env.example /etc/netsec-ai.env
+cp /root/netsec-v1.1.1/config/netsec-ai.env.example /etc/netsec-ai.env
 nano /etc/netsec-ai.env
 chown root:statusdash /etc/netsec-ai.env
 chmod 640 /etc/netsec-ai.env
@@ -111,7 +111,7 @@ By default `sensitive_probe_mode=rotating`, `sensitive_probe_source_allowlisted=
 ## 7. Verification (inside LXC / from host)
 
 ```bash
-bash /root/netsec-v1.1.0/scripts/verify.sh
+bash /root/netsec-v1.1.1/scripts/verify.sh
 systemctl list-timers --all | grep netsec
 journalctl -u server-status.service -n 30 --no-pager
 curl -sS http://127.0.0.1:8787/api/status | python3 -m json.tool | head -30
@@ -126,7 +126,7 @@ curl -u netsecadmin -i https://YOUR_NETSEC_HOSTNAME/api/operator/session
 Confirm `ok:true` and the configured user. Test unauthenticated HTTPS gets 401 at Nginx, direct upstream privileged request gets 403, and a legitimate UI edit succeeds without another token. Test CrowdSec enforcement separately using a short-lived safe test IP if desired.
 
 
-## NetSec 1.1.0 additions for manual installs
+## NetSec 1.1.1 additions for manual installs
 
 The `--fresh` manual installer installs Jimmy chat/API, PWA static assets and systemd definitions, but **not** private provider credentials, Nginx HTTPS, CrowdSec bouncer, GeoIP database or VAPID keys. On a new test LXC after installing the app and configuring AI, a root administrator can add GeoIP with:
 
@@ -135,4 +135,4 @@ runuser -u statusdash -- python3 /opt/server-status/geoip_update.py
 systemctl enable --now netsec-geoip-update.timer
 ```
 
-For opt-in push **only after** authenticated HTTPS and a confirmed provider are functional, run inside the LXC: `bash /root/netsec-release/netsec-v1.1.0/scripts/setup-push-lxc.sh 'https://YOUR_HOSTNAME' 'YOUR_ADMIN_EMAIL'`. That installs `pywebpush==2.5.0` in a venv, generates private VAPID keys and enables the push timer. No real subscription is registered until the signed-in operator enables it on a device. Refer to the detailed guide for test/rollback; do not run manual path as a replacement for verifying the automated host wizard.
+For opt-in push **only after** authenticated HTTPS and a confirmed provider are functional, run inside the LXC: `bash /root/netsec-release/netsec-v1.1.1/scripts/setup-push-lxc.sh 'https://YOUR_HOSTNAME' 'YOUR_ADMIN_EMAIL'`. That installs `pywebpush==2.5.0` in a venv, generates private VAPID keys and enables the push timer. No real subscription is registered until the signed-in operator enables it on a device. Refer to the detailed guide for test/rollback; do not run manual path as a replacement for verifying the automated host wizard.

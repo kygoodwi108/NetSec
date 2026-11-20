@@ -1,5 +1,5 @@
 /* NetSec PWA: cache only a generic offline help page, never authenticated telemetry. */
-const CACHE='netsec-shell-1.1.0';
+const CACHE='netsec-shell-1.1.1';
 self.addEventListener('install',e=>{e.waitUntil(caches.open(CACHE).then(c=>c.add('/offline.html')));self.skipWaiting();});
 self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(names=>Promise.all(names.filter(n=>n!==CACHE).map(n=>caches.delete(n)))));self.clients.claim();});
 self.addEventListener('fetch',e=>{

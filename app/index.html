@@ -259,11 +259,11 @@ button,input{font:inherit}button{cursor:pointer}button:focus-visible,input:focus
 .jimmy-workspace .row{flex-wrap:wrap}.hub-tab-jimmy .ai-panel{margin-bottom:15px}
 @media(max-width:850px){.jimmy-evidence-grid{grid-template-columns:1fr}}
 @media(max-width:950px){.side .nav{max-width:100%;overflow-x:auto;white-space:nowrap}.side .nav button{white-space:nowrap}}
-</style></head>
+</style><link rel="stylesheet" href="/mobile.css"></head>
 <body><div class="app"><aside class="side"><div class="brand"><div class="brandmark">⬡</div><div class="brandname">NET<span>SEC</span><small>THREAT INTELLIGENCE</small></div></div>
 <nav class="nav"><a class="active" href="#overview">▦ &nbsp; Overview</a><a href="#traffic">▥ &nbsp; Traffic</a><a href="#geography">◎ &nbsp; Geography</a><a href="#events">≡ &nbsp; Event logs</a></nav>
 <div class="sidefoot"><strong><span id="pulse" class="pulse"></span> &nbsp; <span id="engineSide">MONITORING</span></strong>READ-ONLY · NGINX + CROWDSEC<br>Private dashboard</div></aside>
-<main class="main" id="overview"><div class="top"><div><div class="eyebrow">Security overview · NetSec v1.1.0</div><h1 id="headline">NetSec / Server overview</h1><p class="subtle tiny" id="updated">Connecting to the monitoring backend…</p></div><div class="row"><span class="tag" id="liveBadge">LIVE · 30S</span><span class="intel-scope"><button class="btn active" id="scopeUnknown" type="button">Unknown</button><button class="btn" id="scopeAll" type="button">All traffic</button></span><button class="btn" id="pauseBtn" type="button">Pause</button><button class="btn" id="refreshBtn" type="button">↻ Refresh</button></div></div>
+<main class="main" id="overview"><div class="top"><div><div class="eyebrow">Security overview · NetSec v1.1.1</div><h1 id="headline">NetSec / Server overview</h1><p class="subtle tiny" id="updated">Connecting to the monitoring backend…</p></div><div class="row"><span class="tag" id="liveBadge">LIVE · 30S</span><span class="intel-scope"><button class="btn active" id="scopeUnknown" type="button">Unknown</button><button class="btn" id="scopeAll" type="button">All traffic</button></span><button class="btn" id="pauseBtn" type="button">Pause</button><button class="btn" id="refreshBtn" type="button">↻ Refresh</button></div></div>
 <div class="error-banner" id="errorBanner"></div>
 <section class="grid hero"><article class="panel"><div class="panelhead"><h2>Traffic security posture</h2><span class="tag">HEURISTIC · LAST HOUR</span></div><div class="risk"><div class="stoplight" role="img" aria-label="Traffic risk indicator" id="lights"><span class="bulb red"></span><span class="bulb amber"></span><span class="bulb green"></span></div><div><div class="risk-label" id="riskLabel">ASSESSING</div><div class="risk-caption">Observed web traffic signals, not a complete network security assessment.</div></div></div><div class="reasons" id="riskReasons"><div class="reason">Awaiting traffic metrics</div></div><p class="scope" id="riskScope">This checks HTTP logs and exported CrowdSec events only.</p></article>
 <article class="panel"><div class="panelhead"><h2>Sensor & service health</h2><span class="tag">LIVE CHECKS</span></div><div class="health"><div class="healthrow"><span>Nginx log visibility</span><strong class="status muted" id="logHealth">CHECKING</strong></div><div class="healthrow"><span>CrowdSec alert feed</span><strong class="status muted" id="csHealth">CHECKING</strong></div><div class="healthrow"><span>Configured service checks</span><strong class="status muted" id="svcHealth">CHECKING</strong></div><div class="healthrow"><span>CrowdSec enforcement</span><strong class="status muted" id="bouncerHealth">CHECKING</strong></div><div class="healthrow"><span>Geolocation database</span><strong class="status muted" id="geoHealth">CHECKING</strong></div></div></article></section>
@@ -339,7 +339,7 @@ button,input{font:inherit}button{cursor:pointer}button:focus-visible,input:focus
 <article class="panel"><div class="panelhead"><h2>Suspected probes</h2><span class="subtle tiny">Heuristic path matches</span></div><div class="table-scroll"><table><thead><tr><th>Source / time</th><th>Path</th><th>Status</th></tr></thead><tbody id="recentProbes"></tbody></table></div></article>
 <article class="panel"><div class="panelhead"><h2>CrowdSec detections</h2><span class="subtle tiny">Reported alerts</span></div><div class="table-scroll"><table><thead><tr><th>Source</th><th>Scenario</th><th>Time</th></tr></thead><tbody id="crowdsecRows"></tbody></table></div></article>
 <article class="panel tablewide"><div class="panelhead"><h2>Recent HTTP requests</h2><span class="subtle tiny" id="eventCount">Most recent events (not full log archive)</span></div><div class="table-scroll"><table><thead><tr><th>Time</th><th>Source IP</th><th>Method</th><th>Requested URL</th><th>Status</th></tr></thead><tbody id="recentRows"></tbody></table></div></article></div></section>
-<footer class="footerline">NetSec v1.1.0 · Unknown-focused, operator-reviewed · Read-only Nginx HTTP(S) analytics and optional CrowdSec alerts. Risk indicator reflects configured thresholds, not a proof of safety, compromise, or complete network availability. SSH, firewall drops, and VPN attempts are not covered without additional log sources.</footer>
+<footer class="footerline">NetSec v1.1.1 · Unknown-focused, operator-reviewed · Read-only Nginx HTTP(S) analytics and optional CrowdSec alerts. Risk indicator reflects configured thresholds, not a proof of safety, compromise, or complete network availability. SSH, firewall drops, and VPN attempts are not covered without additional log sources.</footer>
 </main></div>
 <script>
 'use strict';
@@ -1001,7 +1001,7 @@ $('aiForceRefresh').addEventListener('click',aiForceRefresh);
     child.textContent=child.textContent.replace('READ-ONLY','MANUAL BANS ENABLED');
   }}}
   const footer=document.querySelector('footer.footerline');
-  if(footer)footer.textContent='NetSec v1.1.0 · Read-only traffic and diagnostics, operator-approved CrowdSec bans. IP geolocation and HTTP status codes are not proof of compromise. Nginx logs do not cover SSH or firewall traffic.';
+  if(footer)footer.textContent='NetSec v1.1.1 · Read-only traffic and diagnostics, operator-approved CrowdSec bans. IP geolocation and HTTP status codes are not proof of compromise. Nginx logs do not cover SSH or firewall traffic.';
   const previousRender=render;
   render=function(d){
     previousRender(d);aiStoplight(d.ai||{});drawChecks(d.ai||{});enhanceIntel(d);
@@ -1215,4 +1215,4 @@ $('aiForceRefresh').addEventListener('click',aiForceRefresh);
 })();
 
 refresh();
-</script><script src="/jimmy-ui.js"></script></body></html>
+</script><script src="/jimmy-ui.js"></script><script src="/mobile-ui.js"></script></body></html>

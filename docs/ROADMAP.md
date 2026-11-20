@@ -1,3 +1,5 @@
+> v1.1.1 adds a phone-first UI with a fixed bottom navigation bar and labeled mobile data cards. See `docs/MOBILE.md`.
+
 # NetSec roadmap — 1.1.0 and beyond
 
 ## 1.1.0 release-candidate features implemented (live deployment verification pending)

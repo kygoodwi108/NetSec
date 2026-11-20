@@ -5,3 +5,7 @@ Public product version begins at **v1.0.1** by explicit project decision, despit
 - Use SemVer `MAJOR.MINOR.PATCH` in tags (e.g. `v1.0.1`) and repository metadata.
 - Earlier personal releases are historical pre-consolidation development artifacts, preserved as notes in CHANGELOG, not dependencies to install.
 - Security/backward-compatible patches increment PATCH. New chat/PWA feature release is provisionally `v1.1.0` only after implemented and tested, not now.
+
+## Current release
+
+`1.1.1`: compatible mobile presentation update over `1.1.0`. In-place upgrades must back up the LXC and review systemd units; desktop and backend remain intact. This release uses a patch increment for the existing PWA's mobile usability changes, not a second security engine.

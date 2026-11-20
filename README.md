@@ -1,4 +1,4 @@
-# NetSec v1.1.0 — Proxmox security dashboard and Jimmy analyst
+# NetSec v1.1.1 — Proxmox security dashboard and Jimmy analyst
 
 **Release candidate — full fresh install and real-device Web Push tests pending.** Source includes the NetSec 3.8.5-derived security dashboard, generic server monitoring, evidence-calibrated local/cloud AI, optional independent CrowdSec engine and host bouncer, and a mobile-ready Jimmy analyst workspace.
 
@@ -7,7 +7,7 @@
 Start with **[the complete Proxmox fresh-install guide](docs/INSTALL_FROM_SCRATCH.md)**. The automated wizard runs as root on the **Proxmox host** from the extracted release source, creates a **new Debian 12 unprivileged LXC**, and refuses to overwrite an existing CT or Nginx virtual host:
 
 ```bash
-cat VERSION                 # 1.1.0
+cat VERSION                 # 1.1.1
 bash ci/check.sh
 bash scripts/proxmox-setup.sh --help
 bash scripts/proxmox-setup.sh
@@ -15,7 +15,7 @@ bash scripts/proxmox-setup.sh
 
 **Before a live replacement:** Back up the LXC and the host's Nginx/HTTPS/CrowdSec configuration separately. A bouncer cutover affects **all** Nginx sites on the host; default is leave it unchanged. Do not delete a known-good installation merely because offline tests pass.
 
-## What's in 1.1.0
+## What's in 1.1.1
 
 - Command Hub, traffic logs, source intelligence, IP connection outcomes, geography, CrowdSec telemetry and operator-controlled manual labels.
 - Independent HTTP(S) and TCP service checks for generic Proxmox, VM, LXC, container, and website deployments. No special homepage feed required.
@@ -48,4 +48,8 @@ Source ZIPs must not include private runtime state or secrets. Web Push delivery
 | `docs/INSTALL_FROM_SCRATCH.md` | Full setup, remote file transfer, checks, bouncer safety and rollback |
 | `docs/ROADMAP.md` | Implemented features, pending live verification and exclusions |
 
-Run `bash ci/check.sh` before publishing or deploying changes. **There is no representation here that v1.1.0 has passed a complete host-wide bouncer cutover or real-device Web Push test yet.**
+Run `bash ci/check.sh` before publishing or deploying changes. **There is no representation here that v1.1.1 has passed a complete host-wide bouncer cutover or real-device Web Push test yet.**
+
+## Phone layout (v1.1.1)
+
+At narrow screen widths, NetSec keeps the existing data and actions, but presents a quick telemetry summary, bottom navigation with Home/Jimmy/IPs/Events/More, and labeled event/IP cards instead of forcing seven-column tables to fit. The desktop view is unchanged. No account settings or server-side migration are needed; refresh the installed PWA after an upgrade. See `docs/MOBILE.md` for use and testing.

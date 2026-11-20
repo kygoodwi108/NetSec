@@ -1,3 +1,12 @@
+## v1.1.1 — Phone-first interface (mobile UI feature release)
+
+- Added a dedicated phone layout at widths up to 760px, keeping the existing desktop dashboard unchanged.
+- Added a fixed, accessible five-item mobile navigation bar: Home, Jimmy, IPs, Events, More (Traffic, Source Intelligence). Existing dashboard routing, authenticated actions and back/forward links are reused.
+- Added a read-only mobile quick overview of traffic signal, service-monitor status, 24-hour requests and authorization denials, mirroring existing server-derived telemetry without inventing new security conclusions.
+- Transformed major source/connection/event tables into narrow-screen labeled cards while preserving their order, content and operator actions; kept specialized advanced tables scrollable.
+- Enlarged mobile touch controls and forms, prevented iOS text-field auto-zoom, improved Jimmy chat and notification setup ergonomics, respected screen safe areas and reduced-motion preferences.
+- No API, CrowdSec, AI, push identity or database schema changes. Includes offline tests and browser viewport smoke tests; physical-device review remains recommended.
+
 ## v1.1.0 — Jimmy Analyst workspace, PWA, Web Push (release candidate)
 
 - Moved full evidence-calibrated Jimmy assessment to a separate **Jimmy Analyst** tab, preserving the Command Hub's live overview and brief analyst severity summary.

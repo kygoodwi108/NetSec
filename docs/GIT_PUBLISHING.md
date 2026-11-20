@@ -1,30 +1,23 @@
-# Publish NetSec 1.1.0 to GitHub — safe staging branch workflow
+# Publish NetSec 1.1.1 to GitHub with Finder (no Mac Terminal)
 
-Use the **complete verified source ZIP**, not a partial patch series. These steps run on a workstation or the Proxmox host with Git credentials; they do not touch running LXCs. `VERSION` must say `1.1.0`. Never push `/etc/netsec-*`, `/var/lib/server-status`, certificate files, personal Nginx logs, or push keys.
+This release upgrades `1.1.0`. Download and extract `netsec-1.1.1-github-drag-drop.zip` from the verified release attachment. **It contains only added/modified public source files**, in the repository's folder structure. Never upload private `config.json`, certificates, log archives, push VAPID keys, credentials or any `/var/lib/server-status` file.
+
+1. Open Finder → Downloads; double-click the ZIP. Open the extracted **NetSec-1.1.1-GitHub-Upload** folder.
+2. Open `https://github.com/kygoodwi108/NetSec` in a browser; select the `main` branch; choose **Add file → Upload files**.
+3. Select all the contents **inside** the extracted folder, and drag them into GitHub's upload area. Do **not** drag the outer folder itself or the ZIP. The displayed paths should start with `app/`, `docs/`, `scripts/`, `tests/`, `systemd/`, or root filenames such as `VERSION`.
+4. Confirm you see `app/mobile.css`, `app/mobile-ui.js`, `app/index.html`, `app/app.py`, `VERSION`, `scripts/install-lxc.sh`, `SOURCE_SHA256SUMS.txt`, `docs/MOBILE.md` and `tests/test_mobile_111.py` among the changes. The `VERSION` must be `1.1.1`.
+5. Commit message: `NetSec 1.1.1 - phone dashboard, bottom navigation and mobile log cards`. Commit directly to `main` only if no review branch is required. Otherwise create a branch and PR, review, then merge.
+6. Visit the GitHub `VERSION` file to confirm it reads `1.1.1`. Source upload does not upgrade any running container. On Proxmox, pull the source, verify tests and make an independently verified backup before updating a live LXC.
+
+## Git source synchronization (Proxmox host, after publication)
 
 ```bash
-# In an existing, authenticated checkout of https://github.com/kygoodwi108/NetSec
 cd /root/netsec-test-source
-# Review/commit/stash local changes first, rather than overwriting them blindly.
 git status --short
-git fetch origin
-git switch -c release/netsec-1.1.0 origin/main
-# Extract the full ZIP beside the repo:
-mkdir -p /root/netsec-1.1.0-release
-unzip -q /root/netsec-v1.1.0-source.zip -d /root/netsec-1.1.0-release
-# Copy release source into the repository, but NEVER overwrite .git:
-rsync -a --exclude=.git --exclude=__pycache__ \
-  /root/netsec-1.1.0-release/netsec-v1.1.0/ ./
+# Stop if this shows local changes: review/commit them first.
+git pull --ff-only origin main
 cat VERSION
 bash ci/check.sh
-git diff --check
-git status --short
-git add -A
-git diff --cached --stat
-# REVIEW staged files for real credentials, private IP logs and secrets before commit:
-git diff --cached --check
-git commit -m 'NetSec 1.1.0: Jimmy analyst workspace, operator feedback, PWA and push'
-git push -u origin release/netsec-1.1.0
 ```
 
-Open a pull request from `release/netsec-1.1.0` to `main`. Validate it on a **fresh staging** LXC, including bouncer and phone push opt-in, before merge/tag. Do not force-push a published `main` or automatically overwrite a working host bouncer. Once reviewed, merge and tag the immutable `v1.1.0` from the tested commit.
+The `scripts/proxmox-setup.sh` host wizard only creates **new** LXCs and deliberately refuses existing IDs. For your in-place deployment use `scripts/install-lxc.sh --upgrade` after backup and verified file transfer, not the fresh-install wizard. See `docs/MIGRATION.md`.

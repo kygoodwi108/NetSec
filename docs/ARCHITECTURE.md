@@ -1,4 +1,4 @@
-# Architecture v1.1.0
+# Architecture v1.1.1
 
 ```text
 Internet -> authenticated HTTPS Nginx (on Proxmox) -> dashboard LXC :8787
@@ -43,3 +43,7 @@ The main `app.py` listens on the private LXC address and serves `/api/status` pl
 An opt-in `netsec-push.timer` runs `netsec_push.py` through an isolated `pywebpush` venv; it reads the latest deterministic calibrated report, deduplicates verified red incidents, and sends only generic notifications through trusted Web Push service endpoints. VAPID private key and subscriber crypto material are not in the public repository.
 
 The service worker stores only an anonymous `/offline.html` page; it never caches authenticated APIs, logs, conversations or credentials.
+
+## 1.1.1 phone layout
+
+At widths up to 900 CSS pixels, same-origin `mobile.css` and `mobile-ui.js` adjust existing dashboard widgets and create a separate small-screen navigation shell using the existing tab controller. Mobile quick signals simply copy displayed DOM metrics, and mobile event table cards add visual column labels without editing backend values. No new API endpoints, storage schema or external dependency.

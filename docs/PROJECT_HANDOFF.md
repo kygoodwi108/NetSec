@@ -1,7 +1,7 @@
-# NetSec 1.1.0 — project handoff
+# NetSec 1.1.1 — project handoff
 
 ## State
-- Full standalone source archive, based on the verified 1.0.2 installer refinement and legacy 3.8.5-derived application. Version reset is deliberate: current semantic version **1.1.0**.
+- Full standalone source archive, based on the verified 1.0.2 installer refinement and legacy 3.8.5-derived application. Version reset is deliberate: current semantic version **1.1.1**.
 - **Release candidate.** Offline regression and local HTTP tests passed; live Proxmox, installed mobile app, browser push providers and host Nginx CrowdSec cutover have not yet been validated together. Do not call it production verified.
 - Never embed user keys, Nginx passwords, TLS keys, real IP histories, or VAPID private keys in published repository files.
 
@@ -23,3 +23,7 @@
 
 ## Next validation
 Run full clean Debian 12 Proxmox installation, test configured services/GeoIP, one real Open WebUI assessment + Ask Jimmy, operator feedback before/after, PWA installation and push self-test on physical phone, stable red dedup, Nginx bouncer last pull and controlled external 403 block. Then sign/tag the published GitHub release. See `docs/INSTALL_FROM_SCRATCH.md`.
+
+## v1.1.1 mobile-only follow-up
+
+Two new static assets `app/mobile.css` and `app/mobile-ui.js` provide an at-a-glance signal summary and phone bottom navigation (Home, Jimmy, IPs, Events and More), plus mobile card-form tables; `app/app.py` serves these same-origin with no-store. Existing APIs, authorization, AI and Web Push behavior remain unchanged. `scripts/install-lxc.sh --upgrade` supports the installed v1.1.0. The user prefers uploading updated files to GitHub directly with Finder and GitHub's upload page, then `git pull` on Proxmox. See `docs/MOBILE.md` and `docs/GIT_PUBLISHING.md`.
