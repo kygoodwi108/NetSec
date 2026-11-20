@@ -1,0 +1,15 @@
+[Unit]
+Description=Execute manually approved NetSec CrowdSec ban requests
+After=crowdsec.service
+[Service]
+Type=oneshot
+User=root
+Group=root
+WorkingDirectory=/opt/server-status
+ExecStart=/usr/bin/python3 /opt/server-status/netsec_ban_worker.py
+TimeoutStartSec=65
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=strict
+ReadWritePaths=/var/lib/server-status/ban-queue

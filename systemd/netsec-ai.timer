@@ -1,0 +1,9 @@
+[Unit]
+Description=Schedule Jimmy evidence-based assessments
+[Timer]
+OnBootSec=2min
+OnUnitInactiveSec=10min
+Persistent=true
+Unit=netsec-ai.service
+[Install]
+WantedBy=timers.target

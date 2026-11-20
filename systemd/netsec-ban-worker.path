@@ -1,0 +1,7 @@
+[Unit]
+Description=Watch for NetSec manually approved ban requests
+[Path]
+PathExistsGlob=/var/lib/server-status/ban-queue/requests/*.json
+Unit=netsec-ban-worker.service
+[Install]
+WantedBy=multi-user.target

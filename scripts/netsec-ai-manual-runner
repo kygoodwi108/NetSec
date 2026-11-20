@@ -1,0 +1,19 @@
+#!/bin/sh
+# Root-owned, fixed-action systemd helper. Never evaluates request file content.
+set -eu
+BASE=/var/lib/server-status/ai
+REQUEST="$BASE/refresh.request"
+RUNNING="$BASE/refresh.running"
+[ -f "$REQUEST" ] || exit 0
+# The marker directory is owned by the dedicated dashboard service account.
+# Files are metadata only, never command parameters.
+mv -f -- "$REQUEST" "$RUNNING"
+trap 'rm -f -- "$RUNNING"' EXIT HUP INT TERM
+# A manual request must run AFTER any scheduled analysis, not be swallowed by it.
+tries=0
+while /usr/bin/systemctl is-active --quiet netsec-ai.service; do
+  sleep 2
+  tries=$((tries+1))
+  [ "$tries" -le 130 ] || { echo 'AI service busy for too long' >&2; exit 1; }
+done
+/usr/bin/systemctl start netsec-ai.service

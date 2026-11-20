@@ -1,0 +1,9 @@
+[Unit]
+Description=Schedule Jimmy source intelligence
+[Timer]
+OnBootSec=3min
+OnUnitInactiveSec=10min
+Persistent=true
+Unit=netsec-source-ai.service
+[Install]
+WantedBy=timers.target

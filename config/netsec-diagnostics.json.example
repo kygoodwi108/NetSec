@@ -1,0 +1,8 @@
+{
+  "nginx_host_ip": "192.168.1.10",
+  "nginx_timezone": "UTC",
+  "https_hosts": ["netsec.example.org"],
+  "sensitive_probe_mode": "rotating",
+  "sensitive_probe_source_allowlisted": false,
+  "sensitive_probe_full_interval_minutes": 1440
+}

@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "profile": "Describe your own home lab or server infrastructure here; keep it factual",
+  "platform": "Proxmox VE host running Nginx + CrowdSec Nginx bouncer; Debian unprivileged LXC runs NetSec + CrowdSec engine",
+  "topology": [
+    "Nginx access/error logs are shared with NetSec as a read-only Proxmox bind mount",
+    "CrowdSec LAPI relay is accessible only from the reverse proxy host",
+    "No automatic firewall, Nginx or server changes are performed by Jimmy"
+  ],
+  "management_access": [],
+  "service_health": [
+    "HTTP 401/403 is not necessarily an outage"
+  ],
+  "detection_and_enforcement": [
+    "CrowdSec may be absent; do not claim bans without fresh evidence"
+  ],
+  "data_limitations": [
+    "Combined Nginx logs lack vhost attribution",
+    "This dashboard is not a host intrusion detection system"
+  ],
+  "interpretation_rules": [
+    "Scanning for /.env alone does not mean the file was exposed",
+    "Classify source-attributed 5xx separately from confirmed service downtime"
+  ],
+  "past_verified_findings": [],
+  "operator_preferences": [
+    "Prefer non-destructive investigation steps and accurate uncertainty"
+  ]
+}

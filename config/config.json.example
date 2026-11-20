@@ -1,0 +1,15 @@
+{
+  "bind": "0.0.0.0",
+  "port": 8787,
+  "access_log_globs": [
+    "/mnt/nginx-logs/access.log",
+    "/mnt/nginx-logs/access.log.*"
+  ],
+  "crowdsec_alerts_json": "/var/lib/server-status/crowdsec-alerts.json",
+  "max_log_lines": 50000,
+  "geoip_db": "/var/lib/server-status/geoip-country.sqlite3",
+  "homepage_status_file": "",
+  "homepage_max_age_seconds": 150,
+  "services": [],
+  "display_name": "NetSec"
+}

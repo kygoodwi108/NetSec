@@ -1,0 +1,1160 @@
+<!doctype html>
+<!-- NetSec v3.8.2 token header compatibility fix -->
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>NetSec · Security Intelligence</title>
+<style>
+:root{color-scheme:dark;--bg:#09111a;--sidebar:#0e1925;--panel:#101e2c;--panel2:#132438;--edge:#263b50;--muted:#96acc0;--text:#e6f1fb;--cyan:#5bd3e7;--blue:#67aaff;--green:#4cdb9a;--amber:#f5bc60;--red:#ff7182}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{background:var(--bg);color:var(--text);font:14px/1.48 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;margin:0}
+button,input{font:inherit}button{cursor:pointer}button:focus-visible,input:focus-visible{outline:2px solid var(--cyan);outline-offset:3px}a{color:var(--cyan)}.app{max-width:1720px;margin:0 auto;display:grid;grid-template-columns:218px minmax(0,1fr);min-height:100vh}.side{background:var(--sidebar);border-right:1px solid var(--edge);padding:26px 16px;position:sticky;top:0;height:100vh}.brand{display:flex;align-items:center;gap:12px;padding:3px 12px 26px;border-bottom:1px solid var(--edge)}.brandmark{width:34px;height:34px;border:1px solid #42869c;border-radius:10px;display:grid;place-items:center;background:#173a4c;color:var(--cyan)}.brandname{font-size:20px;font-weight:800;letter-spacing:.1em}.brandname span{color:var(--cyan)}.brand small{display:block;font-size:10px;font-weight:700;letter-spacing:.19em;color:var(--muted)}.nav{margin-top:26px;display:grid;gap:7px}.nav a{display:flex;gap:10px;align-items:center;padding:11px 13px;border-radius:9px;color:#a8bbce;text-decoration:none;font-size:13px}.nav a:hover,.nav a.active{background:#1d3546;color:#e8f6ff}.nav a.active{box-shadow:inset 3px 0 0 var(--cyan)}.sidefoot{position:absolute;bottom:22px;left:26px;right:18px;font-size:11px;color:var(--muted)}.sidefoot strong{display:block;color:var(--green);margin-bottom:5px;font-size:11px}
+.main{padding:27px 31px 45px;min-width:0}.top{display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:25px}.eyebrow{text-transform:uppercase;font-size:10px;letter-spacing:.19em;font-weight:800;color:var(--cyan)}h1{font-size:27px;line-height:1.15;letter-spacing:-.04em;margin:6px 0 6px}h2{font-size:15px;letter-spacing:.01em;margin:0;font-weight:730}h3{font-size:14px;margin:0}p{margin:0}.subtle{color:var(--muted)}.tiny{font-size:11px}.row{display:flex;align-items:center;gap:11px}.btn{border:1px solid var(--edge);background:#172839;color:#e1f1fa;padding:8px 13px;border-radius:9px;font-size:12px;font-weight:600}.btn:hover{border-color:#598aa6;background:#20364a}.btn.active{color:var(--cyan);border-color:var(--cyan);background:#183846}.link-btn{text-decoration:none;font-weight:650;font-size:12px;color:var(--muted)}.link-btn:hover{color:var(--cyan)}.pulse{display:inline-flex;width:8px;height:8px;background:var(--green);border-radius:50%;box-shadow:0 0 11px #42d9a385}.pulse.down{background:var(--red);box-shadow:none}.tag{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;background:#203548;border:1px solid #304f65;color:#a6cae1;padding:4px 8px;border-radius:5px}
+.grid{display:grid;gap:15px}.hero{grid-template-columns:minmax(300px,1.65fr) minmax(260px,1fr);margin-bottom:15px}.panel{min-width:0;background:linear-gradient(145deg,#112235,#101c2a);border:1px solid var(--edge);border-radius:13px;padding:20px;overflow:hidden}.panelhead{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:17px}.panelhead .subtle{font-size:11px}.risk{display:flex;gap:22px;align-items:center}.stoplight{display:flex;background:#07121d;border:2px solid #324a60;padding:9px;border-radius:19px;gap:10px;box-shadow:inset 0 3px 9px #0008}.bulb{width:36px;height:36px;border-radius:50%;background:#263342;border:1px solid #3b4653;box-shadow:inset 0 3px 5px #0006}.bulb.red.on{background:var(--red);box-shadow:0 0 22px #ff718255,inset 0 0 7px #ffec}.bulb.amber.on{background:var(--amber);box-shadow:0 0 22px #f5bc6070,inset 0 0 7px #fff8}.bulb.green.on{background:var(--green);box-shadow:0 0 22px #4cdb9a60,inset 0 0 7px #fff8}.risk-label{font-size:24px;font-weight:850;letter-spacing:-.03em;line-height:1.2}.risk-caption{margin-top:6px;color:var(--muted);font-size:12px;max-width:370px}.reasons{display:flex;flex-wrap:wrap;gap:7px;margin-top:21px}.reason{font-size:11px;border:1px solid var(--edge);border-radius:7px;padding:7px 9px;background:#172b3a;color:#c7d8e8}.scope{margin-top:17px;font-size:11px;color:var(--muted)}.health{display:grid;gap:14px}.healthrow{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--edge)}.healthrow:last-child{border-bottom:0}.healthrow span{color:var(--muted);font-size:12px}.status{font-size:12px;font-weight:800;letter-spacing:.05em}.status.ok{color:var(--green)}.status.warn{color:var(--amber)}.status.bad{color:var(--red)}.status.muted{color:var(--muted)}
+.metrics{grid-template-columns:repeat(5,minmax(0,1fr));margin-bottom:15px}.metric{min-width:0;padding:18px 20px}.metric .label{font-size:11px;color:var(--muted);font-weight:650;letter-spacing:.02em}.metric .value{font-variant-numeric:tabular-nums;font-size:29px;font-weight:800;margin-top:11px;letter-spacing:-.045em}.metric .footer{font-size:10px;color:var(--muted);margin-top:4px}.metric.emphasis .value{color:var(--cyan)}
+.charts{grid-template-columns:minmax(350px,1.95fr) minmax(250px,1fr);margin-bottom:15px}.chartarea{height:258px;position:relative}.chartarea svg{width:100%;height:100%;overflow:visible}.leg{display:flex;align-items:center;gap:14px;flex-wrap:wrap;font-size:11px;color:var(--muted)}.dot{width:7px;height:7px;display:inline-block;border-radius:50%;margin-right:6px}.codebox{display:flex;gap:23px;align-items:center;min-height:245px;flex-wrap:wrap;justify-content:space-evenly}.donut{width:166px;height:166px;border-radius:50%;background:#274052;display:grid;place-items:center;position:relative}.donut:before{content:"";position:absolute;inset:25px;border-radius:50%;background:#112235}.donutinside{position:relative;text-align:center}.donutinside strong{font-size:27px}.donutinside span{display:block;color:var(--muted);font-size:10px}.code-legend{display:grid;gap:13px;min-width:110px}.code-legend .row{justify-content:space-between;gap:12px;font-size:12px}.code-legend strong{font-variant-numeric:tabular-nums}
+.maprow{grid-template-columns:minmax(340px,1.85fr) minmax(260px,.95fr);margin-bottom:15px}.mapframe{position:relative;background:#101e2c;border:1px solid #294051;border-radius:10px;overflow:hidden;aspect-ratio:2/1;max-height:390px}.mapframe img{width:100%;height:100%;object-fit:fill;display:block;pointer-events:none}.mapframe svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}.mapnote{margin-top:9px;font-size:11px;color:var(--muted)}.country-list{display:grid;gap:14px}.country-item{display:grid;grid-template-columns:1fr auto;gap:4px 13px;font-size:12px}.country-item strong{font-variant-numeric:tabular-nums}.track{height:5px;border-radius:5px;background:#243749;grid-column:1 / -1;overflow:hidden}.track>div{height:100%;background:linear-gradient(90deg,#247e94,var(--cyan));border-radius:5px}.callout{font-size:12px;color:var(--muted);padding:13px;border:1px dashed #45617a;border-radius:9px;background:#0d1b29;line-height:1.6}
+.lower{margin-top:8px}.lowerheader{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin:22px 0 14px}.tablegrid{grid-template-columns:1fr 1fr}.tablewide{grid-column:1 / -1}.table-scroll{overflow-x:auto;max-height:390px;overflow-y:auto}table{border-collapse:collapse;width:100%;font-size:12px}th,td{padding:10px 8px;border-bottom:1px solid #263b50;vertical-align:top}th{color:#91a9c2;text-align:left;font-size:10px;letter-spacing:.045em;text-transform:uppercase;position:sticky;top:0;background:#122336;z-index:1}td{overflow-wrap:anywhere}td:last-child,th:last-child{text-align:right}tbody tr:hover{background:#172d40}.ip{font-family:ui-monospace,Consolas,monospace;font-size:11px;color:#bdd4e9}.path{font-family:ui-monospace,Consolas,monospace;font-size:11px;max-width:460px}.code{border-radius:5px;padding:3px 6px;font-size:11px;font-weight:750;background:#263c4b}.code.warn{background:#493625;color:#ffcf87}.code.err{background:#4b2938;color:#ff8d9b}.empty{padding:22px 0;text-align:center;color:var(--muted);font-size:12px}.toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.search{min-width:200px;width:260px;max-width:100%;border:1px solid var(--edge);color:var(--text);border-radius:8px;padding:9px 11px;background:#101d2a}.footerline{padding-top:20px;border-top:1px solid var(--edge);margin-top:28px;color:var(--muted);font-size:11px}.error-banner{display:none;border:1px solid #96535a;background:#3b222d;color:#ffe5e9;padding:12px 16px;border-radius:9px;margin-bottom:15px}.error-banner.show{display:block}
+@media(max-width:1230px){.app{grid-template-columns:1fr}.side{height:auto;position:static;display:flex;align-items:center;justify-content:space-between;padding:9px 20px}.brand{border:0;padding:0}.nav{margin:0;display:flex;gap:3px}.sidefoot{display:none}.main{padding:24px}.hero,.charts,.maprow{grid-template-columns:1fr}.metrics{grid-template-columns:repeat(3,minmax(0,1fr))}.tablegrid{grid-template-columns:1fr}}
+@media(max-width:650px){.main{padding:15px}.nav a{font-size:11px;padding:8px}.brandname{font-size:16px}.side{flex-wrap:wrap;gap:8px}.top{align-items:start}h1{font-size:24px}.metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.metric .value{font-size:25px}.risk{align-items:start;flex-direction:column;gap:12px}.stoplight{gap:6px}.bulb{width:30px;height:30px}.panel{padding:15px}.chartarea{height:205px}.codebox{gap:12px}.donut{width:135px;height:135px}.donut:before{inset:21px}.search{width:100%}}
+
+.ai-panel{margin:0 0 15px;border-color:#35536a;background:linear-gradient(145deg,#142a3c,#102130)}
+.ai-wrap{display:grid;grid-template-columns:minmax(150px,.65fr) minmax(280px,2.35fr);gap:20px}
+.ai-status{display:flex;gap:10px;align-items:center;margin-bottom:12px}
+.ai-light{width:15px;height:15px;border-radius:50%;background:var(--muted);box-shadow:0 0 12px #97a3ae55;flex:none}
+.ai-light.green{background:var(--green);box-shadow:0 0 13px #4cdb9a75}
+.ai-light.amber{background:var(--amber);box-shadow:0 0 13px #f5bc6075}
+.ai-light.red{background:var(--red);box-shadow:0 0 13px #ff718275}
+.ai-state{font-size:16px;font-weight:820;letter-spacing:.02em}
+.ai-details{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:15px}
+.ai-details h3{color:#c0d5e5;margin-bottom:7px}
+.ai-details ul{margin:0;padding-left:19px;color:#d6e5f1;font-size:12px}
+.ai-details li{padding:3px 0}
+.ai-summary{font-size:14px;line-height:1.65;color:#f0f7ff}
+.ai-disclaimer{font-size:11px;color:var(--muted);margin-top:14px}
+@media(max-width:800px){.ai-wrap{grid-template-columns:1fr}.ai-details{grid-template-columns:1fr}}
+
+
+/* NetSec v3 threat intelligence */
+.intel-panel{margin:15px 0;border:1px solid #35536a;background:linear-gradient(125deg,#102639,#101e2a)}
+.intel-scope{display:inline-flex;gap:5px;padding:4px;border:1px solid var(--edge);border-radius:9px}
+.intel-scope button{font-size:12px}
+.intel-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:13px;margin:12px 0}
+.intel-stat{padding:12px;border:1px solid var(--edge);border-radius:9px;background:#101f2f}
+.intel-stat b{font-size:24px;display:block;color:#d3f3fc}
+.intel-stat small{color:var(--muted);font-size:11px}
+.intel-panel .intel-columns{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.intel-panel table{width:100%;font-size:12px}
+.intel-panel th{text-align:left;color:var(--muted);font-size:11px;padding:6px}
+.intel-panel td{padding:8px 6px;border-top:1px solid var(--edge)}
+.intel-panel .btn{padding:6px 9px}
+.intel-panel .mini{font-size:11px;color:var(--muted);line-height:1.55}
+.intel-panel input[type=password]{color:#f0f7ff;background:#071623;border:1px solid #496078;border-radius:6px;padding:9px;max-width:330px;width:100%}
+@media(max-width:800px){.intel-panel .intel-columns{grid-template-columns:1fr}.intel-stats{grid-template-columns:repeat(2,1fr)}}
+
+
+.ai-force-actions{display:flex;align-items:center;justify-content:flex-end;gap:9px;flex-wrap:wrap}
+.ai-force-actions .btn{border:1px solid #496f83;background:#172f42;color:#d4f8ff;cursor:pointer;white-space:nowrap}
+.ai-force-actions .btn:disabled{opacity:.55;cursor:wait}
+.ai-refresh-feedback{font-size:11px;color:var(--muted);margin:0 0 12px}
+
+/* local homepage feed (read-only local import) */
+.homepage-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:9px}
+.homepage-item{padding:12px;border:1px solid var(--edge);border-radius:9px;background:#102034;min-width:0}
+.homepage-item strong{display:block;font-size:12px;margin:0 0 5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.homepage-item span{font-size:11px;color:var(--muted)}
+.homepage-item .up{color:var(--green)}.homepage-item .down{color:var(--red)}
+.homepage-item .stale,.homepage-item .unknown{color:var(--amber)}
+/* NetSec v3.5 Command Hub, all native CSS/SVG. */
+.hub-tab[hidden]{display:none!important}
+.hub-tab{display:block;min-width:0;animation:hubIn .16s ease-out}
+@keyframes hubIn{from{opacity:.65;transform:translateY(5px)}to{opacity:1;transform:none}}
+.nav button{border:0;width:100%;text-align:left;background:none;display:flex;gap:10px;align-items:center;padding:11px 13px;border-radius:9px;color:#a8bbce;font-size:13px;font-weight:600;cursor:pointer}
+.nav button:hover,.nav button.active{background:#1d3546;color:#e8f6ff}
+.nav button.active{box-shadow:inset 3px 0 0 var(--cyan)}
+.hub-sectionhead{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:3px 0 15px;flex-wrap:wrap}
+.hub-sectionhead h2{font-size:21px;letter-spacing:-.025em}
+.hub-kicker{font-size:10px;color:var(--cyan);font-weight:800;letter-spacing:.17em;text-transform:uppercase}
+.hub-ribbon{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin:0 0 15px}
+.hub-ribbon-card{padding:17px 19px;background:linear-gradient(155deg,#142c40,#0e1c2a);border:1px solid var(--edge);border-radius:13px;overflow:hidden;position:relative}
+.hub-ribbon-card:before{content:'';width:75px;height:75px;border:1px solid #56d4e51c;border-radius:50%;position:absolute;right:-27px;top:-35px}
+.hub-ribbon-card small{font-size:10px;display:block;color:var(--muted);letter-spacing:.07em;text-transform:uppercase;font-weight:700}
+.hub-ribbon-card strong{font-size:29px;font-variant-numeric:tabular-nums;letter-spacing:-.04em;display:block;margin-top:4px}
+.hub-ribbon-card span{font-size:10px;color:var(--muted)}
+.hub-ribbon-card:nth-child(3) strong{color:var(--amber)}
+.hub-ribbon-card:nth-child(4) strong{color:var(--green)}
+.hub-tab-command .maprow{margin-bottom:15px}
+.hub-tab-command .hero{margin-bottom:15px}
+.hub-tab-command .ai-panel{margin-bottom:15px}
+.hub-tab-command #homepageSection{margin-bottom:15px}
+.hub-tab-command .mapframe{max-height:480px}
+.hub-tab-command .homepage-item{position:relative;padding-left:21px}
+.hub-tab-command .homepage-item .up:before,.hub-tab-command .homepage-item .down:before,.hub-tab-command .homepage-item .stale:before,.hub-tab-command .homepage-item .unknown:before{content:'';position:absolute;left:11px;top:18px;width:6px;height:6px;border-radius:50%;background:var(--muted)}
+.hub-tab-command .homepage-item .up:before{background:var(--green);box-shadow:0 0 9px var(--green)}
+.hub-tab-command .homepage-item .down:before{background:var(--red);box-shadow:0 0 9px var(--red)}
+.hub-tab-command .homepage-item .stale:before{background:var(--amber);box-shadow:0 0 9px var(--amber)}
+.hub-titleline{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:2px 0 16px;flex-wrap:wrap}
+.hub-titleline h2{font-size:21px;letter-spacing:-.02em}
+.hub-titleline p{color:var(--muted);font-size:11px;max-width:780px}
+.hub-controlbar{display:flex;gap:9px;align-items:center;flex-wrap:wrap;margin-bottom:15px}
+.hub-controlbar .search{flex:1;min-width:180px;width:auto}
+.hub-chips{display:flex;gap:5px;border:1px solid var(--edge);padding:4px;border-radius:10px;background:#0c1928}
+.hub-chips button{background:none;border:0;border-radius:7px;color:var(--muted);padding:7px 12px;font-size:11px;font-weight:750;cursor:pointer}
+.hub-chips button.active{background:#214256;color:#c2f2ff}
+.hub-chips button:focus-visible{outline:2px solid var(--cyan)}
+.hub-time-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:13px;margin-bottom:15px}
+.hub-timecard{background:linear-gradient(145deg,#13273b,#101d2a);border:1px solid #284457;border-radius:12px;padding:17px;min-width:0}
+.hub-timecard.active{border-color:#54bfdf;box-shadow:inset 0 1px 0 #5cdbff45}
+.hub-timecard small{font-size:11px;font-weight:800;color:var(--muted)}
+.hub-timecard .hub-time-number{display:flex;align-items:baseline;gap:8px;margin:10px 0;font-variant-numeric:tabular-nums}
+.hub-timecard strong{font-size:29px;letter-spacing:-.04em;color:var(--cyan)}
+.hub-timecard .hub-time-number span{color:var(--muted);font-size:11px}
+.hub-meter{height:6px;border-radius:8px;background:#223648;overflow:hidden}
+.hub-meter div{height:100%;background:linear-gradient(90deg,#267eab,var(--cyan));border-radius:8px}
+.hub-time-note{font-size:10px;color:var(--muted);margin-top:8px}
+.hub-conn-grid{display:grid;grid-template-columns:1fr 1fr;gap:15px;margin-bottom:15px}
+.hub-outcome{display:grid;grid-template-columns:148px minmax(0,1fr);gap:17px;align-items:center}
+.hub-donut{width:145px;height:145px;border-radius:50%;display:grid;place-items:center;background:#233b50;position:relative}
+.hub-donut:before{content:'';position:absolute;inset:23px;border-radius:50%;background:#102030}
+.hub-donut span{z-index:1;text-align:center;font-size:11px;color:var(--muted)}
+.hub-donut strong{display:block;font-size:23px;color:var(--text)}
+.hub-outcomelegend{display:grid;gap:10px}
+.hub-outcomelegend .row{justify-content:space-between;font-size:11px}
+.hub-square{width:8px;height:8px;border-radius:2px;display:inline-block;margin-right:7px}
+.hub-toplist{display:grid;gap:9px;max-height:240px;overflow:auto}
+.hub-top-item{display:grid;grid-template-columns:150px 1fr 57px;align-items:center;gap:8px;font:11px ui-monospace,Consolas,monospace}
+.hub-top-item .hub-bar{height:6px;background:#22384b;border-radius:8px;overflow:hidden}
+.hub-top-item .hub-bar div{height:100%;background:linear-gradient(90deg,#297d95,#57d7e7)}
+.hub-top-item .hub-number{text-align:right;color:var(--muted)}
+.hub-note{color:var(--muted);font-size:11px;line-height:1.55;margin:8px 0 15px}
+.hub-conn-summary{display:flex;align-items:center;gap:7px;flex-wrap:wrap;color:var(--muted);font-size:11px;margin-bottom:12px}
+.hub-pill{display:inline-flex;align-items:center;gap:5px;font-size:10px;font-weight:780;letter-spacing:.04em;border:1px solid #355168;padding:4px 7px;border-radius:6px;color:#b6d6ed;background:#183145}
+.hub-pill.trusted{color:var(--green);background:#123b34;border-color:#245947}
+.hub-pill.flag{color:var(--amber);background:#3d3020;border-color:#67502e}
+.hub-pill.good{color:var(--cyan)}
+.hub-pill.deny{color:#ffc788;background:#433025}
+.hub-ip-button{background:transparent;border:0;color:#a7e5ef;font:600 11px ui-monospace,Consolas,monospace;cursor:pointer;text-decoration:underline;text-decoration-color:#5ba7b354;text-underline-offset:3px;padding:2px 0}
+.hub-ip-button:hover{color:white}
+.hub-table{width:100%;min-width:870px}
+.hub-table th:last-child,.hub-table td:last-child{text-align:left}
+.hub-triplet{font-variant-numeric:tabular-nums;white-space:nowrap;font-size:11px}
+.hub-triplet strong{color:var(--cyan)}
+.hub-triplet small{display:block;font-size:10px;color:var(--muted)}
+.hub-mini-track{height:4px;background:#263a4b;border-radius:9px;overflow:hidden;margin-top:4px;min-width:80px}
+.hub-mini-track i{display:block;height:100%;background:var(--cyan)}
+.hub-breakdown{display:flex;width:100%;min-width:110px;height:10px;border-radius:7px;background:#243747;overflow:hidden}
+.hub-breakdown span{height:100%}
+.hub-detail{margin:15px 0 0;padding:16px;border:1px solid #3a6078;border-radius:12px;background:#10243a;display:none}
+.hub-detail.open{display:block}
+.hub-detailhead{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:13px}
+.hub-detailhead strong{font:700 15px ui-monospace,Consolas,monospace;color:#a9e9f0}
+.hub-detail .hub-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin-bottom:14px}
+.hub-detail .hub-stats div{border:1px solid #2e4a60;border-radius:8px;padding:10px;background:#132c43}
+.hub-detail .hub-stats small{display:block;font-size:10px;color:var(--muted)}
+.hub-detail .hub-stats b{font-size:19px;font-variant-numeric:tabular-nums}
+.hub-paths{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.hub-paths h3{font-size:12px;margin-bottom:8px}
+.hub-paths li{font:11px/1.5 ui-monospace,Consolas,monospace;overflow-wrap:anywhere;margin-bottom:4px}
+@media(max-width:1240px){.hub-ribbon{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:900px){.hub-conn-grid{grid-template-columns:1fr}.hub-time-grid{grid-template-columns:1fr}.hub-outcome{grid-template-columns:145px 1fr}}
+@media(max-width:650px){.nav button{padding:8px 7px;font-size:11px}.hub-ribbon{gap:8px}.hub-ribbon-card{padding:12px}.hub-ribbon-card strong{font-size:23px}.hub-outcome{grid-template-columns:1fr}.hub-detail .hub-stats{grid-template-columns:repeat(2,1fr)}.hub-paths{grid-template-columns:1fr}.hub-top-item{grid-template-columns:120px 1fr 40px}}
+
+/* NetSec v3.6: compact dual assessments, enforcement and verification cards. */
+.v36-signals{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:0 0 15px}
+.v36-signals .panel{padding:16px 18px}
+.v36-signals .panelhead{margin-bottom:9px}.v36-signals .panelhead h2{font-size:14px}
+.v36-signals .risk{gap:13px}.v36-signals .stoplight{padding:6px;border-radius:12px;gap:6px}
+.v36-signals .bulb{width:21px;height:21px}.v36-signals .risk-label{font-size:18px}
+.v36-signals .risk-caption{font-size:10px}.v36-signals .reasons{margin-top:10px;gap:5px}
+.v36-signals .reason{font-size:10px;padding:4px 6px}.v36-signals .scope{font-size:10px;margin-top:8px}
+.v36-ai-label{font-size:18px;font-weight:800;letter-spacing:-.025em}.v36-ai-summary{font-size:11px;color:var(--muted);line-height:1.5;margin-top:7px}
+.hub-tab-command .hero{grid-template-columns:1fr}.hub-tab-command .hero>.panel{min-height:unset}
+.v36-blockpanel{margin:0 0 15px}.v36-headinfo{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+.v36-blocklist{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.v36-blockitem{border:1px solid #32495b;background:#11283a;border-radius:9px;padding:11px;min-width:0}
+.v36-blockitem strong{font:650 12px ui-monospace,Consolas,monospace;word-break:break-all;color:#e5f3fc}
+.v36-blockitem .v36-muted{font-size:10px;color:var(--muted);margin-top:6px;line-height:1.5}
+.v36-pill{display:inline-block;font-size:9px;font-weight:800;letter-spacing:.05em;padding:3px 6px;border-radius:6px;color:#ffc592;background:#442a21;margin-left:6px}
+.v36-pill.pending{color:#a9e8f7;background:#143c51}.v36-pill.good{color:#8cecc0;background:#184435}
+.v36-note{font-size:10px;color:var(--muted);margin-top:12px}
+.v36-tools{margin:16px 0;padding:17px;border:1px solid #35536a;background:#122637;border-radius:11px}
+.v36-toolrow{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:12px 0}
+.v36-toolrow input,.v36-toolrow select{background:#071623;border:1px solid #496078;border-radius:7px;color:#f0f7ff;padding:9px;max-width:100%;font:12px ui-monospace,Consolas,monospace}
+.v36-toolrow input{flex:1;min-width:190px}.v36-toolrow select{width:120px}
+.v36-warn{font-size:11px;color:#d9bf94;line-height:1.55}
+.v36-feedback{font-size:11px;margin-top:9px;color:#b0d9e4;line-height:1.5}
+.v36-verify{margin-top:15px;border-top:1px solid var(--edge);padding-top:13px}
+.v36-checks{display:grid;gap:8px;margin-top:10px}
+.v36-check{background:#0d2231;border:1px solid #2c4455;border-radius:8px;padding:10px 12px}
+.v36-checkhead{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.v36-checkhead strong{font-size:11px}.v36-check p{font-size:11px;color:#b6c7d3;margin:7px 0 0;line-height:1.5}
+.v36-inline{display:inline-flex;gap:6px;align-items:center;flex-wrap:wrap}
+.v36-hostile{color:#ff9cac;font-weight:800}.v36-controls{display:flex;gap:5px;flex-wrap:wrap}
+.v36-controls button{padding:5px 7px;font-size:10px}
+@media(max-width:1100px){.v36-blocklist{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:760px){.v36-signals,.v36-blocklist{grid-template-columns:1fr}.v36-signals .risk{flex-direction:row}.v36-toolrow select{flex:1}}
+
+/* NetSec v3.7: evidence-first autonomous investigation cards */
+.v37-panel{margin:14px 0 18px;background:linear-gradient(145deg,#0b2234,#112a3a);border:1px solid #37586b;border-radius:11px;padding:15px}
+.v37-top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+.v37-top h3{margin:0;font-size:15px;color:#d4f4fb;letter-spacing:-.02em}
+.v37-meta{color:#a3bccb;font-size:11px;margin-top:4px;line-height:1.5}
+.v37-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}
+.v37-item{border:1px solid #31536b;background:#0c1f30;border-radius:9px;padding:12px;min-width:0}
+.v37-item-top{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:9px}
+.v37-item-name{font-size:11px;font-weight:800;color:#e4f6fa}
+.v37-state{font:700 9px ui-monospace,Consolas,monospace;letter-spacing:.04em;padding:4px 7px;border-radius:20px;border:1px solid #526875;color:#ffcda4;white-space:nowrap}
+.v37-state.verified{background:#113f37;color:#86e9bb;border-color:#276a52}
+.v37-state.partial{background:#463921;color:#ffd58e;border-color:#82633c}
+.v37-item .v37-result{font-size:11px;color:#bfd2de;line-height:1.5;margin:0 0 8px;overflow-wrap:anywhere}
+.v37-item .v37-small{font-size:10px;color:#89a8b9;line-height:1.5;margin:0}
+.v37-foot{margin-top:12px;display:flex;gap:12px;align-items:center;flex-wrap:wrap;color:#a5c2d0;font-size:10px}
+.v37-followups{margin-top:10px;padding-top:10px;border-top:1px solid #29485e;font-size:11px;color:#e3d1a0;line-height:1.5}
+.v37-empty{font-size:11px;color:#9db6c7}
+@media(max-width:950px){.v37-grid{grid-template-columns:1fr}}
+
+/* NetSec v3.8: AI-assisted source inventory; informational labels only */
+.v38-hub{margin:18px 0;padding:17px;background:#10273a;border:1px solid #3b5970;border-radius:12px}
+.v38-head{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:10px}
+.v38-head h3{margin:0;font-size:17px;color:#e9f7ff}
+.v38-meta{font-size:11px;line-height:1.65;color:var(--muted);margin:8px 0 12px}
+.v38-controls{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:8px 0 12px}
+.v38-controls select,.v38-controls input,.v38-row select,.v38-jimmy-token{
+ background:#071a2b!important;border:1px solid #486b84!important;border-radius:7px!important;
+ color:#eff9ff!important;padding:8px!important;font-size:12px!important;min-width:0}
+.v38-controls input{min-width:185px;flex:1 1 185px}
+.v38-controls select{max-width:220px}
+.v38-tablewrap{max-height:540px;overflow:auto;border:1px solid #2d475b;border-radius:9px}
+.v38-table{width:100%;border-collapse:collapse;font-size:12px;min-width:760px}
+.v38-table th{position:sticky;top:0;z-index:1;background:#172e43;color:#b8cedd;text-align:left;font-size:11px;padding:10px 8px}
+.v38-table td{border-top:1px solid #2c4458;padding:10px 8px;vertical-align:middle}
+.v38-table small{display:block;color:var(--muted);margin-top:3px;line-height:1.4}
+.v38-tag{display:inline-block;padding:3px 7px;border:1px solid #49647c;border-radius:99px;font-size:10px;color:#d4e2ef;text-transform:uppercase;letter-spacing:.025em}
+.v38-tag.friendly{color:#81ecbe;border-color:#2f805e}
+.v38-tag.hostile,.v38-tag.suspicious{color:#ffd38a;border-color:#8a6642}
+.v38-tag.pending,.v38-tag.unknown{color:#ced9df;border-color:#6a8090}
+.v38-actions{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.v38-actions button{font-size:11px}
+.v38-row select{max-width:146px}
+.v38-page{display:flex;justify-content:space-between;align-items:center;gap:9px;flex-wrap:wrap;margin-top:10px}
+.v38-jimmy-credentials{display:inline-flex;align-items:center;gap:7px;flex-wrap:wrap}
+.v38-jimmy-token{width:200px;max-width:100%;background:#071a2b}
+.v38-warning{font-size:11px;color:#b9cbda;line-height:1.6}
+#intelSection>.intel-columns>div:first-child{display:none} /* old high-volume-only suggestions replaced by all-source table */
+#intelSection>.intel-columns{grid-template-columns:1fr}
+#intelSection>.intel-columns>div:last-child{width:100%}
+@media(max-width:720px){.v38-hub{padding:11px}.v38-table{min-width:690px}.v38-jimmy-credentials{width:100%}.v38-jimmy-token{flex:1}}
+
+</style></head>
+<body><div class="app"><aside class="side"><div class="brand"><div class="brandmark">⬡</div><div class="brandname">NET<span>SEC</span><small>THREAT INTELLIGENCE</small></div></div>
+<nav class="nav"><a class="active" href="#overview">▦ &nbsp; Overview</a><a href="#traffic">▥ &nbsp; Traffic</a><a href="#geography">◎ &nbsp; Geography</a><a href="#events">≡ &nbsp; Event logs</a></nav>
+<div class="sidefoot"><strong><span id="pulse" class="pulse"></span> &nbsp; <span id="engineSide">MONITORING</span></strong>READ-ONLY · NGINX + CROWDSEC<br>Private dashboard</div></aside>
+<main class="main" id="overview"><div class="top"><div><div class="eyebrow">Security overview · NetSec v1.0.1</div><h1 id="headline">NetSec / Server overview</h1><p class="subtle tiny" id="updated">Connecting to the monitoring backend…</p></div><div class="row"><span class="tag" id="liveBadge">LIVE · 30S</span><span class="intel-scope"><button class="btn active" id="scopeUnknown" type="button">Unknown</button><button class="btn" id="scopeAll" type="button">All traffic</button></span><button class="btn" id="pauseBtn" type="button">Pause</button><button class="btn" id="refreshBtn" type="button">↻ Refresh</button></div></div>
+<div class="error-banner" id="errorBanner"></div>
+<section class="grid hero"><article class="panel"><div class="panelhead"><h2>Traffic security posture</h2><span class="tag">HEURISTIC · LAST HOUR</span></div><div class="risk"><div class="stoplight" role="img" aria-label="Traffic risk indicator" id="lights"><span class="bulb red"></span><span class="bulb amber"></span><span class="bulb green"></span></div><div><div class="risk-label" id="riskLabel">ASSESSING</div><div class="risk-caption">Observed web traffic signals, not a complete network security assessment.</div></div></div><div class="reasons" id="riskReasons"><div class="reason">Awaiting traffic metrics</div></div><p class="scope" id="riskScope">This checks HTTP logs and exported CrowdSec events only.</p></article>
+<article class="panel"><div class="panelhead"><h2>Sensor & service health</h2><span class="tag">LIVE CHECKS</span></div><div class="health"><div class="healthrow"><span>Nginx log visibility</span><strong class="status muted" id="logHealth">CHECKING</strong></div><div class="healthrow"><span>CrowdSec alert feed</span><strong class="status muted" id="csHealth">CHECKING</strong></div><div class="healthrow"><span>Configured service checks</span><strong class="status muted" id="svcHealth">CHECKING</strong></div><div class="healthrow"><span>CrowdSec enforcement</span><strong class="status muted" id="bouncerHealth">CHECKING</strong></div><div class="healthrow"><span>Geolocation database</span><strong class="status muted" id="geoHealth">CHECKING</strong></div></div></article></section>
+
+<section class="panel ai-panel" id="aiSection" aria-label="AI threat analysis">
+  <div class="panelhead"><h2>Qwen · Security Analyst</h2><div class="ai-force-actions"><button class="btn" type="button" id="aiForceRefresh">↻ Refresh Jimmy</button><span class="tag" id="aiUpdated">NO ASSESSMENT YET</span></div></div><p id="aiRefreshFeedback" class="ai-refresh-feedback" role="status" aria-live="polite">Signed in as netsecadmin? Refresh Jimmy directly; no additional token required.</p>
+  <div class="ai-wrap">
+    <div><div class="ai-status"><span class="ai-light" id="aiLight"></span><span class="ai-state" id="aiState">NOT CONFIGURED</span></div>
+      <p class="subtle tiny" id="aiConfidence">Traffic rules remain the primary stoplight.</p></div>
+    <div><p class="ai-summary" id="aiSummary">The scheduled analysis is not yet configured.</p>
+      <div class="ai-details"><div><h3>Observations</h3><ul id="aiObservations"></ul></div>
+      <div><h3>Recommended checks</h3><ul id="aiActions"></ul></div></div>
+      <p class="ai-disclaimer">AI recommendations are informational; they never block traffic or reconfigure Proxmox. No Nginx log lines or external tool output should be treated as instructions.</p>
+    </div>
+  </div>
+</section>
+
+
+<section class="panel intel-panel" id="intelSection" aria-label="IP intelligence and threat history">
+  <div class="panelhead"><div><h2>Source intelligence · Review & history</h2><p class="subtle tiny">Operator-confirmed trusted IPs are excluded from default web traffic metrics, not from CrowdSec enforcement.</p></div><span class="tag" id="intelScopeBadge">UNKNOWN TRAFFIC</span></div>
+  <div class="intel-stats"><div class="intel-stat"><b id="intelUnknown">—</b><small>Unconfirmed requests / 24h</small></div><div class="intel-stat"><b id="intelFriendly">—</b><small>Confirmed friendly requests / 24h</small></div><div class="intel-stat"><b id="intelCount">—</b><small>Confirmed friendly IP addresses</small></div></div>
+  <div class="intel-columns">
+    <div><h3>Review candidates</h3><p class="mini">Automatic suggestions are NOT trusted until you approve them. High volume alone cannot establish ownership.</p><div class="table-scroll"><table><thead><tr><th>Source</th><th>Requests</th><th>Action</th></tr></thead><tbody id="intelCandidates"></tbody></table></div></div>
+    <div><h3>Operator labels</h3><p class="mini">Confirmed device ownership is metadata, not an automatic firewall whitelist.</p><div class="table-scroll"><table><thead><tr><th>Source</th><th>Label</th><th>Action</th></tr></thead><tbody id="intelLabels"></tbody></table></div></div>
+  </div>
+  <div style="margin-top:14px"><h3>Recent AI assessments</h3><div class="table-scroll" style="max-height:230px"><table><thead><tr><th>Analyzed</th><th>Verdict</th><th>Summary</th></tr></thead><tbody id="intelHistory"></tbody></table></div></div>
+  <p class="mini">Editing requires a signed-in <strong>netsecadmin</strong> session through the NetSec HTTPS proxy. No separate admin token.</p>
+</section>
+
+<section class="panel" id="homepageSection" aria-label="Homepage service status" style="margin-bottom:15px">
+<div class="panelhead"><div><h2>Infrastructure services</h2><div class="subtle tiny">Read-only data from local infrastructure status feed</div></div><span class="tag" id="homepageFeedBadge">WAITING FOR FEED</span></div>
+<div class="homepage-grid" id="homepageServiceGrid"><div class="subtle tiny">Loading service health…</div></div>
+</section>
+<section class="grid metrics" aria-label="Summary metrics"><div class="panel metric emphasis"><div class="label">Requests / 24h</div><div class="value" id="requests">—</div><div class="footer">Observed at Nginx</div></div><div class="panel metric"><div class="label">Unique source IPs</div><div class="value" id="unique">—</div><div class="footer">Not unique people</div></div><div class="panel metric"><div class="label">Probe-like hits</div><div class="value" id="probes">—</div><div class="footer">Pattern matching</div></div><div class="panel metric"><div class="label">HTTP 5xx</div><div class="value" id="errors">—</div><div class="footer" id="errorRate">Server errors / 24h</div></div><div class="panel metric"><div class="label">CrowdSec alerts</div><div class="value" id="alerts">—</div><div class="footer">Available export, not blocks</div></div></section>
+<section class="grid charts" id="traffic"><article class="panel"><div class="panelhead"><div><h2>Traffic volume</h2><div class="subtle tiny">Web requests over time</div></div><div class="toolbar"><button class="btn active" id="period24" type="button">24H</button><button class="btn" id="period7" type="button">7D</button><button class="btn" id="period14" type="button">14D</button></div></div><div class="chartarea"><svg id="trafficChart" viewBox="0 0 720 258" aria-label="Traffic line chart" role="img"></svg></div><div class="leg"><span><span class="dot" style="background:var(--cyan)"></span>Total requests</span><span><span class="dot" style="background:var(--amber)"></span>Probe-like hits</span><span><span class="dot" style="background:var(--red)"></span>HTTP 5xx</span></div></article>
+<article class="panel"><div class="panelhead"><h2>HTTP response profile</h2><span class="tag">LAST 24H</span></div><div class="codebox"><div id="donut" class="donut"><div class="donutinside"><strong id="totalResponses">—</strong><span>Total responses</span></div></div><div class="code-legend" id="statusLegend"><div class="subtle tiny">Waiting for response data</div></div></div><div class="subtle tiny">4xx responses may be routine authorization failures, not attacks.</div></article></section>
+<section class="grid maprow" id="geography"><article class="panel"><div class="panelhead"><div><h2>Geographic traffic origins</h2><p class="subtle tiny">Approximate country-level attribution from IP data</p></div><span class="tag" id="mapBadge">OFFLINE GEOIP</span></div><div class="mapframe"><img src="/world.svg" alt="Outline world map"><svg id="mapPins" viewBox="0 0 1000 500" role="img" aria-label="Country traffic markers"></svg></div><p class="mapnote" id="mapNote">Country-level locations are approximate; a proxy, VPN, or hosted service can mask the real origin.</p></article>
+<article class="panel"><div class="panelhead"><h2>Top source countries</h2><span class="subtle tiny">24h by requests</span></div><div class="country-list" id="countryList"><div class="callout">Loading geographic statistics…</div></div><p class="mapnote"><a href="https://db-ip.com/" target="_blank" rel="noopener noreferrer">IP geolocation by DB-IP.com</a> (CC BY 4.0). No visitor IPs sent to an external geolocation API.</p></article></section>
+<section class="lower" id="events"><div class="lowerheader"><div><div class="eyebrow">Detailed inspection</div><h2 style="font-size:21px;margin-top:4px">Event & access logs</h2></div><div class="toolbar"><input class="search" id="search" aria-label="Search recent logs by source IP or path" placeholder="Filter IP or URL path…"><button type="button" class="btn active" data-filter="all">All</button><button type="button" class="btn" data-filter="probes">Probes</button><button type="button" class="btn" data-filter="denied">401 / 403</button><button type="button" class="btn" data-filter="errors">5xx</button><button type="button" class="btn" id="csvBtn">Export CSV</button></div></div>
+<div class="grid tablegrid"><article class="panel"><div class="panelhead"><h2>Top source IPs</h2><span class="subtle tiny">24h</span></div><div class="table-scroll"><table><thead><tr><th>Source address</th><th>Requests</th></tr></thead><tbody id="topIps"></tbody></table></div></article>
+<article class="panel"><div class="panelhead"><h2>Most requested paths</h2><span class="subtle tiny">Query strings removed</span></div><div class="table-scroll"><table><thead><tr><th>Path</th><th>Requests</th></tr></thead><tbody id="topPaths"></tbody></table></div></article>
+<article class="panel"><div class="panelhead"><h2>Suspected probes</h2><span class="subtle tiny">Heuristic path matches</span></div><div class="table-scroll"><table><thead><tr><th>Source / time</th><th>Path</th><th>Status</th></tr></thead><tbody id="recentProbes"></tbody></table></div></article>
+<article class="panel"><div class="panelhead"><h2>CrowdSec detections</h2><span class="subtle tiny">Reported alerts</span></div><div class="table-scroll"><table><thead><tr><th>Source</th><th>Scenario</th><th>Time</th></tr></thead><tbody id="crowdsecRows"></tbody></table></div></article>
+<article class="panel tablewide"><div class="panelhead"><h2>Recent HTTP requests</h2><span class="subtle tiny" id="eventCount">Most recent events (not full log archive)</span></div><div class="table-scroll"><table><thead><tr><th>Time</th><th>Source IP</th><th>Method</th><th>Requested URL</th><th>Status</th></tr></thead><tbody id="recentRows"></tbody></table></div></article></div></section>
+<footer class="footerline">NetSec v1.0.1 · Unknown-focused, operator-reviewed · Read-only Nginx HTTP(S) analytics and optional CrowdSec alerts. Risk indicator reflects configured thresholds, not a proof of safety, compromise, or complete network availability. SSH, firewall drops, and VPN attempts are not covered without additional log sources.</footer>
+</main></div>
+<script>
+'use strict';
+const $=s=>document.getElementById(s);let data=null,period=24,paused=false,filter='all',query='';
+
+/* NetSec v3 intelligence (scope controls all Nginx-derived panels) */
+let intelScope='unknown';
+function intelBadge(ip){const rec=(data?.intel?.addresses||[]).find(x=>x.ip===ip);return rec?(ip+' · '+(rec.status==='friendly'?'✓ ':'⚑ ')+rec.label):ip}
+function intelRender(d){
+ const en=d.enforcement||{},bs=en.state||'unavailable';
+ label('bouncerHealth',({active:'PULLING',registered:'NOT PULLING',no_bouncer:'NO BOUNCER',stale:'STALE',unavailable:'NO DATA'})[bs]||'UNKNOWN',bs==='active'?'ok':bs==='no_bouncer'||bs==='registered'?'bad':'warn');
+ const m=d.intel||{};$('intelScopeBadge').textContent=intelScope==='unknown'?'UNKNOWN TRAFFIC':'ALL TRAFFIC';
+ $('intelUnknown').textContent=fmt(m.unknown_requests24);$('intelFriendly').textContent=fmt(m.friendly_requests24);$('intelCount').textContent=fmt(m.trusted_count);
+ const candidates=$('intelCandidates');candidates.replaceChildren();
+ for(const c of (m.review_candidates||[])){
+   const tr=el('tr'),tdIp=el('td','',c.ip),tdN=el('td','',fmt(c.requests_24h)),tdAction=el('td');
+   tdIp.title=c.reason||'';const a=el('button','btn','Confirm friendly');a.type='button';a.addEventListener('click',()=>intelEdit(c.ip,'friendly'));
+   tdAction.append(a);tr.append(tdIp,tdN,tdAction);candidates.append(tr);
+ }
+ if(!candidates.children.length)empty(candidates,'No suggestions. Unknown sources remain visible in the regular tables.');
+ const labels=$('intelLabels');labels.replaceChildren();
+ for(const rec of (m.addresses||[])){
+  const tr=el('tr'),ip=el('td','',rec.ip),name=el('td','',rec.label+' · '+rec.status),action=el('td');
+  const remove=el('button','btn','Remove');remove.type='button';remove.addEventListener('click',()=>intelEdit(rec.ip,'unknown'));
+  action.append(remove);tr.append(ip,name,action);labels.append(tr);
+ }
+ if(!labels.children.length)empty(labels,'No confirmed IP metadata yet.');
+ const history=$('intelHistory');history.replaceChildren();
+ for(const row of (m.history||[])){
+  const tr=el('tr');tr.append(el('td','',date(row.at)),el('td','',row.severity||'unknown'),el('td','',row.summary||''));history.append(tr);
+ }
+ if(!history.children.length)empty(history,'AI history begins with the first analysis after this upgrade.');
+}
+async function intelEdit(ip,status){
+ if(status==='friendly'&&!confirm('Confirm '+ip+' belongs to you or a known trusted source? This hides its requests from UNKNOWN traffic charts, but does not whitelist it in CrowdSec.'))return;
+ if(status==='unknown'&&!confirm('Remove the label for '+ip+'?'))return;
+ const labelText=status==='unknown'?'':prompt('Descriptive label for '+ip+' (e.g. My home internet):',ip);
+ if(labelText===null)return;
+ try{
+ const r=await fetch('/api/intel/label',{method:'POST',cache:'no-store',headers:{'X-NetSec-Action':'dashboard','Content-Type':'application/json'},body:JSON.stringify({ip,status,label:labelText})});
+ const msg=await r.json();if(!r.ok||!msg.ok)throw new Error(msg.error||('HTTP '+r.status));
+ await refresh();
+ }catch(err){alert('Cannot update source metadata: '+err.message)}
+}
+
+const fmt=n=>Number(n||0).toLocaleString();
+const date=s=>{if(!s)return '—';let d=new Date(s);return Number.isNaN(d.getTime())?'—':d.toLocaleString(undefined,{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'})};
+const svgNS='http://www.w3.org/2000/svg';
+function sEl(tag,attrs={},text=''){const e=document.createElementNS(svgNS,tag);for(const [k,v] of Object.entries(attrs))e.setAttribute(k,String(v));if(text)e.textContent=text;return e}
+function el(tag,cls='',text=''){const e=document.createElement(tag);if(cls)e.className=cls;if(text!==undefined)e.textContent=text;return e}
+function empty(tbody,message='No matching data'){tbody.replaceChildren();let tr=el('tr'),td=el('td','empty',message);td.colSpan=5;tr.append(td);tbody.append(tr)}
+function table(id,rows,fn){const tb=$(id);tb.replaceChildren();if(!rows?.length){empty(tb);return}for(const item of rows){const tr=el('tr');for(const cell of fn(item)){const td=el('td');if(typeof cell==='object'&&cell!==null){td.appendChild(cell)}else{td.textContent=String(cell??'—')}tr.appendChild(td)}tb.appendChild(tr)}}
+function code(v){let span=el('span','code'+(v>=500?' err':v===401||v===403||v===404?' warn':''),String(v));return span}
+function label(id,value,cls){const node=$(id);node.textContent=value;node.className='status '+cls}
+function risk(d){let r=d.risk||{},level=r.level||'unknown';$('riskLabel').textContent=r.label||'UNKNOWN';$('riskLabel').style.color=({red:'var(--red)',amber:'var(--amber)',green:'var(--green)',unknown:'var(--muted)'})[level];$('lights').setAttribute('aria-label','Traffic security posture: '+level);for(const bulb of $('lights').children)bulb.classList.toggle('on',bulb.classList.contains(level));const rs=$('riskReasons');rs.replaceChildren();for(const reason of (r.reasons||[])){rs.appendChild(el('div','reason',reason))}$('riskScope').textContent=r.scope||'';const t=d.traffic||{},cs=d.crowdsec||{},services=d.services||[];label('logHealth',t.log_files_readable>0?'READING':'NO LOGS',t.log_files_readable>0?'ok':'bad');label('csHealth',!cs.configured?'NOT CONFIGURED':cs.error?'EXPORT ERROR':'CONNECTED',!cs.configured?'muted':cs.error?'warn':'ok');label('svcHealth',!services.length?'NOT CONFIGURED':d.homepage&&d.homepage.state!=='fresh'?'FEED STALE':services.some(s=>s.status==='down')?'DEGRADED':services.some(s=>s.status!=='up')?'UNKNOWN':'RESPONDING',!services.length?'muted':d.homepage&&d.homepage.state!=='fresh'?'warn':services.some(s=>s.status==='down')?'warn':services.some(s=>s.status!=='up')?'warn':'ok');label('geoHealth',d.geo?.enabled?'OFFLINE ACTIVE':'NOT INSTALLED',d.geo?.enabled?'ok':'muted')}
+function chart(){if(!data)return;const t=data.traffic||{};const arr=period===24?(t.hourly||[]):(t.daily||[]).slice(period===7?-7:-14);let svg=$('trafficChart');svg.replaceChildren();const W=720,H=258,L=37,R=12,T=20,B=37;const P=W-L-R,Q=H-T-B;let max=Math.max(1,...arr.map(x=>x.requests||0));max=Math.ceil(max*1.18)||1;const x=i=>L+(arr.length<2?P/2:P*i/(arr.length-1)),y=v=>T+Q*(1-v/max);
+for(let j=0;j<=4;j++){let val=max*j/4,Y=y(val);svg.append(sEl('line',{x1:L,y1:Y,x2:W-R,y2:Y,stroke:'#2b4559','stroke-dasharray':'3 6'}));svg.append(sEl('text',{x:26,y:Y+4,fill:'#87a1b5','font-size':11,'text-anchor':'end'},Math.round(val).toString()))}
+if(!arr.length)return;
+for(let i=0;i<arr.length;i++){if(i%(period===24?4:period===7?1:2)!==0&&i!==arr.length-1)continue;let v=period===24?new Date(arr[i].time).toLocaleTimeString([],{hour:'2-digit',hour12:false}):arr[i].date?.slice(5);svg.append(sEl('text',{x:x(i),y:H-12,fill:'#8fa7be','font-size':11,'text-anchor':'middle'},v||''))}
+function plot(key,color,fill){const pts=arr.map((r,i)=>[x(i),y(r[key]||0)]);let points=pts.map(p=>p.join(',')).join(' ');if(fill){let p=`M${pts[0][0]},${T+Q} `+pts.map(p=>`L${p[0]},${p[1]}`).join(' ')+` L${pts.at(-1)[0]},${T+Q} Z`;svg.append(sEl('path',{d:p,fill:'#2ec1de','fill-opacity':'.08'}))}svg.append(sEl('polyline',{points,fill:'none',stroke:color,'stroke-width':key==='requests'?2.8:2,'stroke-linecap':'round','stroke-linejoin':'round'}));for(let i=0;i<arr.length;i++){let point=sEl('circle',{cx:pts[i][0],cy:pts[i][1],r:5,fill:color,'fill-opacity':'.02',stroke:'none'});let tip=sEl('title',{},(period===24?arr[i].time:arr[i].date)+': '+fmt(arr[i][key])+' '+key);point.append(tip);svg.append(point)}}
+plot('requests','#5bd3e7',true);plot('probes','#f5bc60',false);plot('errors','#ff7182',false)}
+function responseProfile(t){let buckets=[{name:'2xx',v:0,c:'#4cdb9a'},{name:'3xx',v:0,c:'#67aaff'},{name:'4xx',v:0,c:'#f5bc60'},{name:'5xx',v:0,c:'#ff7182'},{name:'Other',v:0,c:'#8696ac'}];for(const r of t.status_codes||[]){let g=Math.floor(r.status/100)-2;let i=g>=0&&g<=3?g:4;buckets[i].v+=r.count}let total=buckets.reduce((s,b)=>s+b.v,0);$('totalResponses').textContent=fmt(total);let pos=0,grads=[];for(const b of buckets){let end=pos+(total?b.v/total*100:0);if(end>pos)grads.push(`${b.c} ${pos.toFixed(2)}% ${end.toFixed(2)}%`);pos=end}$('donut').style.background=grads.length?'conic-gradient('+grads.join(',')+')':'#284254';let lg=$('statusLegend');lg.replaceChildren();for(const b of buckets.slice(0,4)){let rr=el('div','row');let name=el('span');let dot=el('span','dot');dot.style.background=b.c;name.append(dot,document.createTextNode(b.name));let n=el('strong','',fmt(b.v));rr.append(name,n);lg.append(rr)}}
+function map(d){let geo=d.geo||{},list=$('countryList'),pin=$('mapPins');pin.replaceChildren();list.replaceChildren();$('mapBadge').textContent=geo.enabled?'GEOLOCATION ON':'SETUP NEEDED';if(!geo.enabled){list.append(el('div','callout','Map geolocation requires the optional offline DB-IP country database. Traffic charts and other metrics work without it.'));$('mapNote').textContent='Optional: install the monthly DB-IP Country Lite database with the included update script. IP addresses stay on your server.';return}let countries=geo.countries||[],max=Math.max(1,...countries.map(c=>c.requests));for(const c of countries){let X=(Number(c.lon)+180)/360*1000,Y=(90-Number(c.lat))/180*500;let radius=5+Math.min(17,Math.sqrt(c.requests/max)*18);let dot=sEl('circle',{cx:X,cy:Y,r:radius,fill:'#5bd3e7','fill-opacity':'.27',stroke:'#8fe5f4','stroke-width':1.6});dot.append(sEl('title',{},`${c.country}: ${fmt(c.requests)} requests (approximate country)`));pin.append(dot);let small=sEl('circle',{cx:X,cy:Y,r:2,fill:'#d5fbff'});pin.append(small)}if(!countries.length){list.append(el('div','callout','No public source IPs could be located in the current traffic sample.'));return}for(const c of countries.slice(0,8)){let item=el('div','country-item'),name=el('span','',c.country),count=el('strong','',fmt(c.requests));let bar=el('div','track'),fill=el('div');fill.style.width=(100*c.requests/max).toFixed(1)+'%';bar.append(fill);item.append(name,count,bar);list.append(item)}$('mapNote').textContent=`Located ${fmt(geo.mapped_requests)} of ${fmt(geo.total_requests)} requests from approximately ${countries.length} shown countries. IP country is not a precise device location.`}
+function lower(d){let t=d.traffic||{},cs=d.crowdsec||{};table('topIps',t.top_ips||[],x=>[el('span','ip',intelBadge(x.ip)),fmt(x.requests)]);table('topPaths',t.top_paths||[],x=>[el('span','path',x.path),fmt(x.requests)]);table('recentProbes',t.recent_probes||[],x=>[date(x.time)+' · '+intelBadge(x.ip),el('span','path',x.path),code(x.status)]);table('crowdsecRows',cs.alerts||[],x=>[el('span','ip',intelBadge(x.source_ip||'Unknown')),x.scenario,date(x.time)]);logs()}
+function logs(){if(!data)return;let arr=(data.traffic?.recent_requests||[]).filter(r=>{if(query&&!((r.ip||'')+' '+(r.path||'')).toLowerCase().includes(query))return false;if(filter==='probes')return r.probe_like;if(filter==='denied')return r.status===401||r.status===403;if(filter==='errors')return r.status>=500;return true});$('eventCount').textContent=fmt(arr.length)+' displayed / '+fmt((data.traffic?.recent_requests||[]).length)+' recent loaded';table('recentRows',arr,x=>[date(x.time),el('span','ip',intelBadge(x.ip)),x.method,el('span','path',x.path),code(x.status)])}
+
+function aiInsights(d){aiShowState(d.ai||{});}
+
+function homepageRender(d){
+ const feed=d.homepage||{},items=d.services||[],grid=$('homepageServiceGrid'),badge=$('homepageFeedBadge');
+ grid.replaceChildren();
+ const state=feed.state||'not_configured';
+ const age=Number.isFinite(Number(feed.age_seconds))&&feed.age_seconds!==null
+  ?' · '+Math.max(0,Math.round(Number(feed.age_seconds)))+'s ago':'';
+ badge.textContent=(state==='fresh'?'LIVE FEED':state==='stale'?'STALE FEED':'NO FEED')+age;
+ badge.title=feed.error||'';
+ if(!items.length || state==='unavailable'){
+  grid.append(el('div','callout',feed.error||'Homepage status is unavailable. Verify the read-only feed mount.'));
+  return;
+ }
+ for(const item of items){
+  const cell=el('div','homepage-item');
+  const title=el('strong','',String(item.name||item.id||'Service'));
+  const status=['up','down','stale'].includes(item.status)?item.status:'unknown';
+  const code=Number.isInteger(item.http_code)?' · HTTP '+item.http_code:'';
+  const msg=status==='up'?'RESPONDING':status==='down'?'UNREACHABLE':status==='stale'?'STALE DATA':'UNKNOWN';
+  const line=el('span',status,msg+code);
+  cell.append(title,line);grid.append(cell);
+ }
+}
+function render(d){data=d;let t=d.traffic||{};$('headline').textContent=(d.host||'NetSec')+' / Overview';$('updated').textContent='Updated '+date(d.generated_at)+' · 30-second live refresh · '+fmt(t.log_files_readable)+' readable log file(s)';$('requests').textContent=fmt(t.requests);$('unique').textContent=fmt(t.unique_ips);$('probes').textContent=fmt(t.probe_like_requests);$('errors').textContent=fmt(t.http_5xx);$('alerts').textContent=fmt(d.crowdsec?.alerts?.length||0);$('errorRate').textContent=(t.requests?(100*t.http_5xx/t.requests).toFixed(2):'0.00')+'% of requests';risk(d);homepageRender(d);aiInsights(d);intelRender(d);chart();responseProfile(t);map(d);lower(d);let warnings=[...(t.log_errors||[])];if(warnings.length){$('errorBanner').textContent='Some log files were not readable: '+warnings.slice(0,4).join(' · ')+(warnings.length>4?' (more omitted)':'');$('errorBanner').classList.add('show')}else $('errorBanner').classList.remove('show')}
+async function refresh(){try{const r=await fetch('/api/status?scope='+intelScope,{cache:'no-store'});if(!r.ok)throw new Error('API returned HTTP '+r.status);const d=await r.json();if(d.error)throw new Error(d.error);$('pulse').classList.remove('down');$('engineSide').textContent='MONITORING';render(d)}catch(e){$('pulse').classList.add('down');$('engineSide').textContent='FEED ERROR';$('errorBanner').textContent='Monitoring feed unavailable: '+e.message;$('errorBanner').classList.add('show');$('updated').textContent='Unable to update. Previously loaded figures may be stale.'}}
+for(const p of [24,7,14])$('period'+p).addEventListener('click',()=>{period=p;for(const n of [24,7,14])$('period'+n).classList.toggle('active',n===p);chart()});
+for(const b of document.querySelectorAll('[data-filter]'))b.addEventListener('click',()=>{filter=b.dataset.filter;for(const a of document.querySelectorAll('[data-filter]'))a.classList.toggle('active',a===b);logs()});
+for(const mode of ['unknown','all'])$('scope'+(mode==='unknown'?'Unknown':'All')).addEventListener('click',()=>{
+ intelScope=mode;
+ $('scopeUnknown').classList.toggle('active',mode==='unknown');$('scopeAll').classList.toggle('active',mode==='all');
+ refresh();
+});
+$('search').addEventListener('input',e=>{query=e.target.value.toLowerCase().trim();logs()});$('refreshBtn').addEventListener('click',refresh);$('pauseBtn').addEventListener('click',()=>{paused=!paused;$('pauseBtn').textContent=paused?'Resume':'Pause';$('liveBadge').textContent=paused?'PAUSED':'LIVE · 30S';if(!paused)refresh()});setInterval(()=>{if(!paused)refresh()},30000);
+$('csvBtn').addEventListener('click',()=>{if(!data)return;const arr=(data.traffic?.recent_requests||[]).filter(r=>(!query||((r.ip||'')+' '+(r.path||'')).toLowerCase().includes(query))&&(filter==='all'||(filter==='probes'&&r.probe_like)||(filter==='denied'&&(r.status===401||r.status===403))||(filter==='errors'&&r.status>=500)));const csv=x=>'"'+String(x??'').replaceAll('"','""')+'"';let lines=['"time","ip","method","path","status","probe_like"',...arr.map(r=>[r.time,r.ip,r.method,r.path,r.status,r.probe_like].map(csv).join(','))];let blob=new Blob([lines.join('\r\n')],{type:'text/csv;charset=utf-8'});let a=document.createElement('a'),url=URL.createObjectURL(blob);a.href=url;a.download='netsec-recent-'+new Date().toISOString().slice(0,10)+'.csv';document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000)});
+
+/* NetSec v3.2 manual Jimmy refresh. Token remains in memory only. */
+let netsecManualInFlight=false;
+function aiRefreshMessage(message){
+  const n=$('aiRefreshFeedback');if(n)n.textContent=message;
+}
+function aiShowState(a){
+  const old=a?.last_attempt||{},has=a?.state==='ready'||a?.state==='stale';
+  let level=has?a.severity:'unknown';
+  if(!['red','amber','green'].includes(level))level='unknown';
+  $('aiLight').className='ai-light '+(a?.state==='ready'?level:'');
+  $('aiState').textContent=a?.state==='ready'?level.toUpperCase()+' · ADVISORY':
+    a?.state==='stale'?'STALE · LAST '+level.toUpperCase():
+    'NOT AVAILABLE';
+  $('aiConfidence').textContent=has?('Model: '+(a.model||'Jimmy')+' · Confidence: '+(a.confidence||'unknown')):
+    'The independent traffic stoplight remains operational.';
+  $('aiSummary').textContent=a?.summary||'No completed AI assessment.';
+  $('aiUpdated').textContent=a?.updated_at?'ANALYZED '+date(a.updated_at):'NOT RUN YET';
+  for(const [target,values] of [['aiObservations',has?a.observations:[]],['aiActions',has?a.recommended_actions:[]]]){
+    const node=$(target);node.replaceChildren();
+    if(!Array.isArray(values)||!values.length){node.append(el('li','','No items to display'));continue}
+    for(const value of values.slice(0,4))node.append(el('li','',String(value)));
+  }
+  const err=old.state==='error'&&old.error?('Last attempt failed: '+old.error):'';
+  if(err&&!netsecManualInFlight)aiRefreshMessage(err+' · Last valid assessment retained.');
+  else if(!netsecManualInFlight&&old.state==='ready')aiRefreshMessage('Last AI run completed successfully.');
+}
+async function aiForceRefresh(){
+  const button=$('aiForceRefresh');
+  if(netsecManualInFlight)return;
+  let queuedAt=Date.now();
+  button.disabled=true;
+  netsecManualInFlight=true;
+  button.textContent='Requesting…';
+  aiRefreshMessage('Submitting an authenticated analysis request…');
+  try{
+    const r=await fetch('/api/ai/refresh',{
+      method:'POST',cache:'no-store',credentials:'same-origin',
+      headers:{'X-NetSec-Action':'dashboard'}
+    });
+    const response=await r.json();
+    if(!r.ok||!response.ok)throw new Error(response.error||('HTTP '+r.status));
+    queuedAt=Date.parse(response.queued_at)||Date.now();
+    button.textContent='Jimmy analyzing…';
+    aiRefreshMessage('Queued. Running the existing NetSec analyst; your dashboard remains usable.');
+    let complete=false;
+    for(let i=0;i<270;i++){
+      await new Promise(resolve=>setTimeout(resolve,3000));
+      const sr=await fetch('/api/ai/refresh-state',{cache:'no-store',credentials:'same-origin'});
+      if(!sr.ok)throw new Error('Unable to read AI run status (HTTP '+sr.status+')');
+      const s=await sr.json();
+      if(s.ai)aiShowState(s.ai);
+      const at=Date.parse(s.last_attempt?.at||'')||0;
+      if(at>=queuedAt-1000 && !s.busy && ['ready','error'].includes(s.last_attempt?.state)){
+        complete=true;
+        aiRefreshMessage(s.last_attempt.state==='ready'?
+          'Jimmy finished the new assessment.':
+          'The attempt failed; last successful findings remain available.');
+        break;
+      }
+      aiRefreshMessage(s.running?'Jimmy is analyzing the traffic…':
+        s.queued?'Refresh queued…':'Waiting for the analysis to start…');
+    }
+    if(!complete)aiRefreshMessage('Analysis still pending. Check its status in a moment.');
+  }catch(err){
+    aiRefreshMessage('Cannot refresh Jimmy: '+err.message);
+  }finally{
+    netsecManualInFlight=false;
+    button.disabled=false;
+    button.textContent='↻ Refresh Jimmy';
+    // A normal dashboard refresh may be cached briefly; the live AI poll above
+    // already updated the assessment without making the whole page wait.
+  }
+}
+$('aiForceRefresh').addEventListener('click',aiForceRefresh);
+
+/* NetSec v3.5 Command Hub + Connections: in-place UI enhancement. */
+(() => {
+  'use strict';
+  const H = id => document.getElementById(id);
+  const fmtH = x => Number(x||0).toLocaleString();
+  const numH = (x,k) => Number(x?.[k] || 0);
+  const makeH = (tag,cls,txt) => {
+    const n=document.createElement(tag);
+    if(cls)n.className=cls;
+    if(txt!==undefined && txt!==null)n.textContent=String(txt);
+    return n;
+  };
+  const hubTitles={command:'Command Hub',connections:'IP Connections',traffic:'Traffic Analytics',investigate:'Event Investigations',intel:'Source Intelligence'};
+  let activeHub='command';
+  let connWindow='24h',connScope='all',connSearch='',connSuspicious=false;
+  let connData=null,connFetching=false,connSerial=0,connFetchedAt=0;
+  let expandedIP=null;
+
+  function initHub(){
+    const main=document.querySelector('main.main'), banner=H('errorBanner');
+    if(!main||!banner||!H('homepageSection')||!H('aiSection')){
+      console.error('NetSec v3.5: expected v3.3+ panels missing; leaving original sections visible');
+      return false;
+    }
+    const tabs={};
+    for(const key of Object.keys(hubTitles)){
+      const n=makeH('div','hub-tab hub-tab-'+key);
+      n.id='hub-tab-'+key;
+      n.hidden=key!=='command';
+      n.setAttribute('role','tabpanel');
+      n.setAttribute('aria-label',hubTitles[key]);
+      tabs[key]=n;
+    }
+    banner.after(...Object.values(tabs));
+    const analystHeading=H('aiSection').querySelector('.panelhead h2');
+    if(analystHeading)analystHeading.textContent='Jimmy · AI Security Assessment';
+    const command=tabs.command;
+    command.innerHTML=`<div class="hub-sectionhead"><div><div class="hub-kicker">Operations / Live telemetry</div><h2>Command Hub</h2></div><button type="button" class="btn" id="hubOpenConnections">◎ Inspect source IPs</button></div>
+      <section class="hub-ribbon" aria-label="Live security signals">
+        <div class="hub-ribbon-card"><small>HTTP requests / 24h</small><strong id="hubRequests">—</strong><span>Current traffic scope</span></div>
+        <div class="hub-ribbon-card"><small>Unique source IPs</small><strong id="hubSources">—</strong><span>Observed / 24h</span></div>
+        <div class="hub-ribbon-card"><small>HTTP 401 + 403</small><strong id="hubDenied">—</strong><span>Auth challenges or denials</span></div>
+        <div class="hub-ribbon-card"><small>Services responding</small><strong id="hubServices">—</strong><span id="hubServiceCaption">Waiting for health feed</span></div>
+      </section>`;
+    const sections={
+      command:['#geography','section.grid.hero','#homepageSection','#aiSection'],
+      traffic:['section.grid.metrics','#traffic'],
+      investigate:['#events'],
+      intel:['#intelSection']
+    };
+    for(const [key,selectors] of Object.entries(sections)){
+      for(const selector of selectors){
+        const element=main.querySelector(selector);
+        if(element)tabs[key].append(element);
+      }
+    }
+    tabs.traffic.prepend(makeH('div','hub-titleline'));
+    tabs.traffic.firstChild.innerHTML='<div><div class="hub-kicker">Traffic / Patterns</div><h2>HTTP traffic analytics</h2><p>Request volumes, status classes and trends from your existing Nginx feed.</p></div>';
+    tabs.investigate.prepend(makeH('div','hub-titleline'));
+    tabs.investigate.firstChild.innerHTML='<div><div class="hub-kicker">Investigation / Evidence</div><h2>Requests, alerts and log details</h2></div>';
+    tabs.intel.prepend(makeH('div','hub-titleline'));
+    tabs.intel.firstChild.innerHTML='<div><div class="hub-kicker">Administration / Source metadata</div><h2>Trusted IPs and assessment history</h2></div>';
+    initConnections(tabs.connections);
+    const nav=document.querySelector('.nav');
+    nav.replaceChildren();
+    for(const [key,label] of Object.entries({command:'⌘  Command Hub',connections:'◎  IP Connections',traffic:'▥  Traffic Analytics',investigate:'≡  Investigations',intel:'◈  Source Intelligence'})){
+      const b=makeH('button','',label);
+      b.type='button'; b.dataset.hubTab=key;b.setAttribute('role','tab');
+      b.setAttribute('aria-controls','hub-tab-'+key);
+      b.addEventListener('click',()=>showHub(key));
+      nav.append(b);
+    }
+    nav.setAttribute('role','tablist');nav.setAttribute('aria-label','Dashboard pages');
+    H('hubOpenConnections').addEventListener('click',()=>showHub('connections'));
+    const hash=location.hash.slice(1);
+    showHub(hubTitles[hash]?hash:'command',false);
+    window.addEventListener('hashchange',()=>{
+      const h=location.hash.slice(1);
+      if(hubTitles[h])showHub(h,false);
+    });
+    const oldRender=render;
+    render=function(d){oldRender(d);hubUpdate(d);};
+    setInterval(()=>{
+      if(activeHub==='connections' && Date.now()-connFetchedAt>=90000&&!connFetching)loadConnections();
+    },15000);
+    return true;
+  }
+  function showHub(key,updateUrl=true){
+    if(!hubTitles[key])return;
+    activeHub=key;
+    for(const tab of Object.keys(hubTitles)){
+      H('hub-tab-'+tab).hidden=tab!==key;
+      const btn=document.querySelector('.nav [data-hub-tab="'+tab+'"]');
+      if(btn){btn.classList.toggle('active',tab===key);btn.setAttribute('aria-selected',tab===key?'true':'false');}
+    }
+    if(updateUrl && location.hash!=='#'+key)history.replaceState(null,'','#'+key);
+    H('headline').textContent='NetSec / '+hubTitles[key];
+    window.scrollTo({top:0,behavior:'instant'});
+    if(key==='connections'&&(connData===null||Date.now()-connFetchedAt>90000))loadConnections();
+  }
+  function hubUpdate(d){
+    const t=d.traffic||{};
+    H('hubRequests').textContent=fmtH(t.requests);
+    H('hubSources').textContent=fmtH(t.unique_ips);
+    H('hubDenied').textContent=fmtH((t.http_401||0)+(t.http_403||0));
+    const svc=d.services||[],up=svc.filter(x=>x.status==='up').length;
+    const state=d.homepage?.state;
+    H('hubServices').textContent=svc.length?up+' / '+svc.length:'—';
+    H('hubServiceCaption').textContent=state==='fresh'?'LIVE HOMEPAGE TELEMETRY':state==='stale'?'STALE DATA — NOT LIVE':state==='unavailable'?'HEALTH FEED UNAVAILABLE':svc.length?'Configured service checks':'No services configured';
+    H('headline').textContent=(d.host||'NetSec')+' / '+hubTitles[activeHub];
+  }
+
+  function initConnections(target){
+    target.innerHTML=`
+      <div class="hub-titleline"><div><div class="hub-kicker">Connections / Observable outcomes</div><h2>Who connected, and what did Nginx return?</h2>
+        <p>Compare IP responses across 1 hour, 24 hours and 7 days. HTTP 2xx means a response was served—not a successful login or intrusion.</p></div>
+        <span class="tag" id="hubConnAge">AWAITING DATA</span></div>
+      <div class="hub-controlbar">
+        <div class="hub-chips" aria-label="Detailed analysis window" id="hubConnPeriods">
+          <button type="button" data-window="1h">1 hour</button><button type="button" data-window="24h" class="active">24 hours</button><button type="button" data-window="7d">7 days</button>
+        </div>
+        <div class="hub-chips" aria-label="Source classification" id="hubConnScopes">
+          <button type="button" data-scope="all" class="active">All IPs</button><button type="button" data-scope="unknown">Unknown</button><button type="button" data-scope="friendly">Friendly</button>
+        </div>
+        <button class="btn" type="button" id="hubConnSuspects">Review flags only</button>
+        <input class="search" id="hubConnSearch" type="search" placeholder="Filter source IP or country…" aria-label="Filter connections">
+        <button class="btn" type="button" id="hubConnRefresh">↻ Refresh</button>
+      </div>
+      <section class="hub-time-grid" id="hubConnTimeCards" aria-label="HTTP 2xx across three windows"></section>
+      <div class="hub-conn-grid">
+        <article class="panel"><div class="panelhead"><div><h2>HTTP response outcomes</h2><p class="subtle tiny">Selected time range · all visible IPs</p></div><span class="tag" id="hubConnTotal">—</span></div>
+          <div class="hub-outcome"><div class="hub-donut" id="hubConnDonut"><span><strong id="hubConnDonutVal">—</strong>total requests</span></div>
+          <div class="hub-outcomelegend" id="hubConnLegend"></div></div>
+        </article>
+        <article class="panel"><div class="panelhead"><h2>Highest-volume sources</h2><span class="subtle tiny">Selected window</span></div>
+          <div class="hub-toplist" id="hubConnTop"><p class="subtle tiny">Loading sources…</p></div></article>
+      </div>
+      <article class="panel"><div class="panelhead"><div><h2>Source IP outcomes</h2><p class="subtle tiny" id="hubConnCount">Loading…</p></div><span class="tag" id="hubConnWarnings">OBSERVED TRAFFIC</span></div>
+        <p class="hub-note">Each time column shows <b>2xx HTTP responses / total requests</b>. Blue bars are the share of requests that received 2xx—not evidence of a successful exploit. Yellow <b>REVIEW 2XX</b> means a probe-like path received a 2xx response and warrants inspection. 401/403 are auth challenges/denials, not necessarily CrowdSec bans.</p>
+        <div class="table-scroll" style="max-height:550px"><table class="hub-table"><thead><tr>
+          <th>Source IP</th><th>Classification</th><th>1 hour</th><th>24 hours</th><th>7 days</th><th>Selected outcome</th><th>Last observed</th>
+        </tr></thead><tbody id="hubConnRows"></tbody></table></div>
+        <div id="hubConnDetail" class="hub-detail" aria-live="polite"></div>
+        <p class="hub-note" id="hubConnCoverage"></p>
+      </article>`;
+    for(const b of document.querySelectorAll('#hubConnPeriods [data-window]')){
+      b.addEventListener('click',()=>{connWindow=b.dataset.window;expandedIP=null;loadConnections();});
+    }
+    for(const b of document.querySelectorAll('#hubConnScopes [data-scope]')){
+      b.addEventListener('click',()=>{connScope=b.dataset.scope;expandedIP=null;loadConnections();});
+    }
+    H('hubConnSearch').addEventListener('input',e=>{connSearch=e.target.value.trim().toLowerCase();renderConnections();});
+    H('hubConnSuspects').addEventListener('click',()=>{connSuspicious=!connSuspicious;H('hubConnSuspects').classList.toggle('active',connSuspicious);renderConnections();});
+    H('hubConnRefresh').addEventListener('click',()=>loadConnections());
+  }
+
+  async function loadConnections(){
+    if(connFetching){connSerial++;}
+    const seq=++connSerial;
+    connFetching=true;
+    H('hubConnAge').textContent='SCANNING LOGS…';
+    const controller=new AbortController();
+    const timer=setTimeout(()=>controller.abort(),30000);
+    try{
+      const r=await fetch('/api/connections?window='+encodeURIComponent(connWindow)+'&scope='+encodeURIComponent(connScope)+'&limit=300',{
+        cache:'no-store',credentials:'same-origin',signal:controller.signal
+      });
+      if(!r.ok)throw new Error('HTTP '+r.status);
+      const d=await r.json();
+      if(seq!==connSerial)return;
+      connData=d;connFetchedAt=Date.now();
+      H('hubConnAge').textContent='LIVE · '+new Date(d.generated_at).toLocaleTimeString();
+      renderConnections();
+    }catch(err){
+      if(seq!==connSerial)return;
+      H('hubConnAge').textContent='CONNECTION FEED ERROR';
+      H('hubConnCount').textContent='Unable to load connection analytics: '+err.message;
+    }finally{clearTimeout(timer);if(seq===connSerial)connFetching=false;}
+  }
+
+  function meterH(value,total){
+    const track=makeH('div','hub-mini-track');
+    const fill=makeH('i'); fill.style.width=(total?Math.min(100,100*value/total):0).toFixed(1)+'%';
+    track.append(fill);return track;
+  }
+  function timeCellH(counts){
+    const n=makeH('div','hub-triplet');
+    const served=numH(counts,'http_2xx'),total=numH(counts,'requests');
+    const txt=makeH('span');
+    const emphasis=makeH('strong','',fmtH(served));
+    txt.append(emphasis,document.createTextNode(' / '+fmtH(total)));
+    n.append(txt,meterH(served,total));return n;
+  }
+  function tdTimeH(counts){const td=makeH('td');td.append(timeCellH(counts));return td;}
+  function breakdownH(counts){
+    const total=numH(counts,'requests');
+    const n=makeH('div','hub-breakdown');
+    const segments=[['http_2xx','#5bd3e7'],['http_3xx','#719af5'],['denied_401_403','#f5bc60'],['not_found_404','#8697ab'],['http_5xx','#ff7182'],['other','#596c81']];
+    for(const [key,color] of segments){
+      const amt=numH(counts,key);
+      if(!amt||!total)continue;
+      const span=makeH('span');span.style.width=(100*amt/total).toFixed(2)+'%';span.style.background=color;
+      n.append(span);
+    }
+    n.title='2xx '+numH(counts,'http_2xx')+' · 3xx '+numH(counts,'http_3xx')+' · 401/403 '+numH(counts,'denied_401_403')+' · 404 '+numH(counts,'not_found_404')+' · 5xx '+numH(counts,'http_5xx');
+    return n;
+  }
+  function renderConnections(){
+    if(!connData)return;
+    const d=connData, windowKey=d.window, summaries=d.windows||{}, t=summaries[windowKey]||{}, total=numH(t,'requests');
+    for(const b of document.querySelectorAll('#hubConnPeriods [data-window]'))b.classList.toggle('active',b.dataset.window===windowKey);
+    for(const b of document.querySelectorAll('#hubConnScopes [data-scope]'))b.classList.toggle('active',b.dataset.scope===d.scope);
+    const cards=H('hubConnTimeCards');cards.replaceChildren();
+    for(const [name,label] of [['1h','LAST HOUR'],['24h','LAST 24 HOURS'],['7d','LAST 7 DAYS']]){
+      const counts=summaries[name]||{},served=numH(counts,'http_2xx'),totalC=numH(counts,'requests');
+      const card=makeH('div','hub-timecard'+(name===windowKey?' active':''));
+      const top=makeH('small','',label),nums=makeH('div','hub-time-number');
+      nums.append(makeH('strong','',fmtH(served)),makeH('span','','2xx / '+fmtH(totalC)+' requests'));
+      const bar=makeH('div','hub-meter');const fill=makeH('div');
+      fill.style.width=(totalC?100*served/totalC:0).toFixed(1)+'%';bar.append(fill);
+      card.append(top,nums,bar,makeH('p','hub-time-note',fmtH(numH(counts,'probe_2xx'))+' sensitive/probe-like 2xx responses for review'));
+      cards.append(card);
+    }
+    H('hubConnTotal').textContent=fmtH(total)+' REQUESTS';
+    H('hubConnDonutVal').textContent=fmtH(total);
+    const segments=[['http_2xx','2xx served','#5bd3e7'],['http_3xx','3xx redirected','#719af5'],['denied_401_403','401 / 403 denied','#f5bc60'],['not_found_404','404 not found','#8697ab'],['http_5xx','5xx errors','#ff7182'],['other','Other','#596c81']];
+    const stops=[];let running=0;
+    for(const [key,label,color] of segments){
+      const portion=total?numH(t,key)/total*100:0;
+      if(portion){stops.push(color+' '+running.toFixed(2)+'% '+(running+portion).toFixed(2)+'%');running+=portion;}
+    }
+    H('hubConnDonut').style.background=stops.length?'conic-gradient('+stops.join(',')+')':'#274052';
+    const legend=H('hubConnLegend');legend.replaceChildren();
+    for(const [key,label,color] of segments){
+      if(key==='other'&&!numH(t,'other'))continue;
+      const r=makeH('div','row'),text=makeH('span');
+      const sq=makeH('span','hub-square');sq.style.background=color;
+      text.append(sq,document.createTextNode(label));r.append(text,makeH('strong','',fmtH(numH(t,key))));legend.append(r);
+    }
+    const raw=d.ips||[];
+    let rows=raw.filter(r=>{
+      if(connSearch&&!((r.ip||'')+' '+(r.country||'')).toLowerCase().includes(connSearch))return false;
+      if(connSuspicious&&!numH(r.windows?.[windowKey],'probe_2xx'))return false;
+      return true;
+    });
+    const list=H('hubConnTop');list.replaceChildren();
+    const max=Math.max(1,...rows.slice(0,8).map(r=>numH(r.windows?.[windowKey],'requests')));
+    for(const r of rows.slice(0,8)){
+      const amt=numH(r.windows?.[windowKey],'requests');
+      const line=makeH('div','hub-top-item'),bar=makeH('div','hub-bar'),fill=makeH('div');
+      fill.style.width=(amt/max*100).toFixed(1)+'%';bar.append(fill);
+      line.append(makeH('span','',r.ip),bar,makeH('span','hub-number',fmtH(amt)));list.append(line);
+    }
+    if(!rows.length)list.append(makeH('div','subtle tiny','No matching IPs in this log sample.'));
+    const body=H('hubConnRows');body.replaceChildren();
+    for(const r of rows){
+      const counts=r.windows?.[windowKey]||{},tr=makeH('tr');
+      const ipcell=makeH('td'),ipbutton=makeH('button','hub-ip-button',r.ip);
+      ipbutton.type='button';ipbutton.addEventListener('click',()=>showIP(r));
+      ipcell.append(ipbutton);
+      if(r.country)ipcell.append(makeH('div','subtle tiny',r.country));
+      const classification=makeH('td');
+      classification.append(makeH('span','hub-pill '+(r.friendly?'trusted':''),r.friendly?'CONFIRMED FRIENDLY':'UNCONFIRMED'));
+      if(numH(counts,'probe_2xx'))classification.append(makeH('span','hub-pill flag','REVIEW 2XX'));
+      const outcome=makeH('td');outcome.append(breakdownH(counts));
+      const readable=makeH('div','subtle tiny','2xx '+fmtH(numH(counts,'http_2xx'))+' · 403/401 '+fmtH(numH(counts,'denied_401_403'))+' · 5xx '+fmtH(numH(counts,'http_5xx')));
+      outcome.append(readable);
+      const last=makeH('td','subtle tiny');
+      const time=new Date(r.last_seen);last.textContent=Number.isNaN(time.getTime())?'—':time.toLocaleString();
+      tr.append(ipcell,classification,tdTimeH(r.windows?.['1h']),tdTimeH(r.windows?.['24h']),tdTimeH(r.windows?.['7d']),outcome,last);
+      body.append(tr);
+    }
+    H('hubConnCount').textContent='Showing '+fmtH(rows.length)+' IPs of '+fmtH(d.matching_ips)+' with traffic in '+windowKey+' · '+(d.scope==='all'?'all sources':d.scope+' sources');
+    H('hubConnWarnings').textContent=fmtH(numH(t,'probe_2xx'))+' PROBE 2xx TO REVIEW';
+    const coverage=d.coverage||{};
+    H('hubConnCoverage').textContent='Log coverage: '+fmtH(coverage.log_files)+' files · earliest observed '+(coverage.earliest_observed?new Date(coverage.earliest_observed).toLocaleString():'none')+'. '+(coverage.note||'')+(coverage.warnings?.length?' Warnings: '+coverage.warnings.join(', '):'')+(d.truncated?' Only the top '+d.rows_returned+' source IPs are displayed.':'');
+    if(expandedIP){const found=rows.find(r=>r.ip===expandedIP);if(found)showIP(found);else{H('hubConnDetail').classList.remove('open');expandedIP=null;}}
+  }
+  function showIP(r){
+    expandedIP=r.ip;
+    const node=H('hubConnDetail'), w=r.windows?.[connWindow]||{};
+    node.replaceChildren();node.classList.add('open');
+    const head=makeH('div','hub-detailhead');head.append(makeH('strong','',r.ip),makeH('span','hub-pill '+(r.friendly?'trusted':''),r.friendly?'CONFIRMED FRIENDLY':'UNCONFIRMED'));
+    const close=makeH('button','btn','Close');close.type='button';close.addEventListener('click',()=>{node.classList.remove('open');expandedIP=null;});head.append(close);
+    const stats=makeH('div','hub-stats');
+    for(const [label,key] of [['2xx served','http_2xx'],['3xx redirects','http_3xx'],['401 / 403','denied_401_403'],['5xx errors','http_5xx']]){
+      const card=makeH('div');card.append(makeH('small','',label),makeH('b','',fmtH(numH(w,key))));stats.append(card);
+    }
+    const blocks=makeH('div','hub-paths');
+    for(const [title,items] of [['Most requested paths (up to 7d)',r.top_paths||[]],['Probe-like 2xx paths (up to 7d)',r.probe_2xx_paths||[]]]){
+      const section=makeH('div');section.append(makeH('h3','',title));
+      const list=makeH('ol');
+      if(!items.length)list.append(makeH('li','subtle','None in sampled logs'));
+      for(const v of items.slice(0,5))list.append(makeH('li','',v.path+' ('+fmtH(v.requests)+')'));
+      section.append(list);blocks.append(section);
+    }
+    node.append(head,stats,makeH('p','hub-note','Window: '+connWindow+' · IP geolocation: '+(r.country||'unknown')+'. A 2xx response is not evidence of authenticated access or successful exploitation.'),blocks);
+    node.scrollIntoView({behavior:'smooth',block:'nearest'});
+  }
+  initHub();
+})();
+
+/* NetSec v3.6: manual CrowdSec decisions + automated verification displays. */
+(() => {
+  'use strict';
+  const H=id=>document.getElementById(id);
+  const node=(tag,cls,text)=>{const a=document.createElement(tag);if(cls)a.className=cls;if(text!==undefined)a.textContent=String(text);return a};
+  const cmd=H('hub-tab-command'), intel=H('hub-tab-intel');
+  if(!cmd||!intel){console.error('v3.6 requires installed v3.5 Command Hub');return;}
+  // The existing traffic light is moved, never duplicated, so its original render code still works.
+  const signalRow=node('section','v36-signals');signalRow.setAttribute('aria-label','Security assessments');
+  const hero=cmd.querySelector('section.grid.hero');
+  const trafficCard=hero?.querySelector('article.panel:first-child');
+  if(!hero||!trafficCard){console.error('v3.6: original traffic light missing');return;}
+  trafficCard.classList.add('v36-compact-signal');
+  signalRow.append(trafficCard);
+  const jimmyCard=node('article','panel');
+  jimmyCard.innerHTML=`<div class="panelhead"><h2>Jimmy · AI assessment</h2><span class="tag" id="v36AiAge">NOT RUN</span></div>
+    <div class="risk"><div class="stoplight" id="v36AiLights" role="img" aria-label="Jimmy assessment status">
+      <span class="bulb red"></span><span class="bulb amber"></span><span class="bulb green"></span></div>
+      <div><div class="v36-ai-label" id="v36AiLabel">AWAITING AI</div><div class="risk-caption">Independent advisory based on live evidence.</div></div></div>
+    <p class="v36-ai-summary" id="v36AiSummary">Waiting for Jimmy's verified report.</p>`;
+  signalRow.append(jimmyCard);
+  const ribbon=cmd.querySelector('.hub-ribbon');
+  ribbon.before(signalRow);
+  // The map remains the principal visualization. The blocked-IP panel follows it directly.
+  const map=cmd.querySelector('#geography');
+  const blocked=node('section','panel v36-blockpanel');blocked.id='v36Blocked';
+  blocked.innerHTML='<div class="panelhead"><div><h2>Recently blocked IPs</h2><p class="subtle tiny">Observed Nginx CrowdSec denials and active decisions. A decision does not prove a request was denied.</p></div><span class="tag" id="v36BlockAge">LOADING</span></div><div class="v36-blocklist" id="v36BlockRows"></div><p class="v36-note" id="v36BlockNote"></p>';
+  if(map)map.after(blocked);else cmd.append(blocked);
+
+  const tools=node('section','v36-tools');
+  tools.innerHTML=`<h3>Operator IP controls · manual CrowdSec ban</h3>
+    <p class="v36-warn">Marking an IP hostile is a label only. Ban IP creates a real, temporary CrowdSec decision; Nginx enforces it after the next bouncer pull. Confirm the target carefully to avoid locking yourself out.</p>
+    <div class="v36-toolrow"><input type="text" id="v36BanIP" placeholder="Public IPv4 / IPv6 to ban" aria-label="IP address to ban" spellcheck="false">
+      <select id="v36BanDuration" aria-label="Ban duration"><option value="1h">1 hour</option><option value="4h" selected>4 hours</option><option value="24h">24 hours</option></select>
+      <button class="btn" id="v36MarkHostile" type="button">Mark Hostile</button>
+      <button class="btn" id="v36BanNow" type="button">Ban IP via CrowdSec</button></div>
+    <div id="v36BanMessage" class="v36-feedback" role="status" aria-live="polite">Requires your netsecadmin login. No automatic bans from Jimmy.</div>`;
+  intel.querySelector('.intel-columns')?.after(tools);
+  const checks=node('section','v36-verify');
+  checks.innerHTML='<h3>Jimmy · checks already performed</h3><p class="subtle tiny">Fixed, read-only checks run before each scheduled or manual AI analysis. Manual CrowdSec ban tests are not performed silently.</p><div class="v36-checks" id="v36Checks"></div>';
+  H('aiSection')?.append(checks);
+
+  function aiStoplight(ai){
+    const ready=ai?.state==='ready',severity=ready?ai?.severity:'unknown';
+    H('v36AiLabel').textContent=ready?(severity==='red'?'HIGH PRIORITY':severity==='amber'?'ATTENTION':severity==='green'?'LOW OBSERVED RISK':'UNKNOWN'):
+      ai?.state==='stale'?'REPORT STALE':'AWAITING AI';
+    H('v36AiLabel').style.color=({red:'var(--red)',amber:'var(--amber)',green:'var(--green)'})[severity]||'var(--muted)';
+    H('v36AiAge').textContent=ready?'LIVE REPORT':ai?.state==='stale'?'STALE':'NO REPORT';
+    H('v36AiSummary').textContent=String(ai?.summary||'No verified report yet.').slice(0,225);
+    for(const bulb of H('v36AiLights').children)bulb.classList.toggle('on',bulb.classList.contains(severity));
+    H('v36AiLights').setAttribute('aria-label','Jimmy AI assessment: '+severity);
+  }
+  function drawChecks(ai){
+    const target=H('v36Checks');target.replaceChildren();
+    const verification=ai?.verification_results;
+    const list=verification?.checks||[];
+    if(!list.length){target.append(node('p','subtle tiny','No completed automated checks in the latest report. Refresh Jimmy after installing v3.6.'));return;}
+    for(const item of list){
+      const card=node('div','v36-check'),heading=node('div','v36-checkhead');
+      const labels={crowdsec_enforcement:'CrowdSec enforcement',nginx_upstreams:'Nginx backend errors',sensitive_paths:'Sensitive file HTTPS tests'};
+      const state=item.state||'unavailable';
+      heading.append(node('strong','',labels[item.id]||item.id),node('span','v36-pill '+(state==='verified'?'good':state==='partial'?'pending':''),state.toUpperCase()));
+      card.append(heading,node('p','',item.result||'No result'),node('p','subtle tiny',item.limits||''));target.append(card);
+    }
+    const details=verification?.sensitive_path_details||[];
+    if(details.length){const detail=node('details');detail.append(node('summary','subtle tiny','Show tested HTTPS paths and status codes'));
+      const pre=node('pre','subtle tiny');pre.style.whiteSpace='pre-wrap';
+      pre.textContent=details.map(x=>[x.host,x.path,x.http_status??'—',x.outcome,x.at_epoch?new Date(x.at_epoch*1000).toLocaleString():''].join('  |  ')).join('\n');detail.append(pre);target.append(detail);}
+  }
+  function drawBlockList(active,observed){
+    const rows=H('v36BlockRows');rows.replaceChildren();
+    const matching=[];const seen=new Set();
+    for(const e of (observed||[]).slice(0,9)){
+      if(!e?.ip||seen.has(e.ip))continue;
+      matching.push({ip:e.ip,status:'OBSERVED DENIAL',meta:`${e.blocked_requests_sample||0} recent blocked request(s) · ${new Date(e.last_seen).toLocaleString()}`,observed:true});seen.add(e.ip);
+    }
+    for(const e of (active||[])){
+      const ip=e?.value;if(!ip||seen.has(ip)||String(e.type).toLowerCase()!=='ban'||String(e.scope).toLowerCase()!=='ip')continue;
+      matching.push({ip,status:'ACTIVE BAN',meta:(e.reason||'CrowdSec decision')+(e.duration?' · '+e.duration:'')});seen.add(ip);
+    }
+    for(const item of matching.slice(0,12)){
+      const card=node('div','v36-blockitem');
+      const top=node('div');top.append(node('strong','',item.ip),node('span','v36-pill'+(item.observed?'':' pending'),item.status));
+      card.append(top,node('div','v36-muted',item.meta));
+      const b=node('button','btn','Inspect / Ban');b.type='button';b.style.marginTop='8px';b.style.fontSize='10px';
+      b.addEventListener('click',()=>openIP(item.ip));card.append(b);rows.append(card);
+    }
+    if(!matching.length)rows.append(node('p','subtle tiny','No recent bouncer denials or active ban decisions in the available telemetry.'));
+    H('v36BlockAge').textContent=(observed?.length||0)+' DENIAL SOURCES · '+(active?.length||0)+' DECISIONS';
+    H('v36BlockNote').textContent='Denials are identified from Nginx CrowdSec messages in bounded error logs. Active decisions come from the CrowdSec exporter and may not yet have reached the Nginx bouncer.';
+  }
+  let activeDecisions=[],recentDenials=[],lastBlockFetch=0;
+  async function fetchBlocked(){
+    if(Date.now()-lastBlockFetch<90000)return;
+    lastBlockFetch=Date.now();
+    try{
+      const r=await fetch('/api/defense/recent',{cache:'no-store',credentials:'same-origin'});
+      if(!r.ok)throw new Error('HTTP '+r.status);
+      const d=await r.json();recentDenials=d.denials||[];
+      if(Array.isArray(d.decisions))activeDecisions=d.decisions;
+      drawBlockList(activeDecisions,recentDenials);
+    }catch(e){H('v36BlockNote').textContent='Recent denial evidence unavailable: '+e.message+'; active decision list remains visible.';}
+  }
+  function showMessage(s){H('v36BanMessage').textContent=s}
+  function openIP(ip){H('v36BanIP').value=ip;document.querySelector('.nav [data-hub-tab="intel"]')?.click();H('v36BanIP').focus();}
+  async function labelHostile(ip){
+    if(!ip){showMessage('Enter an IP address first.');return;}
+    if(!confirm('Mark '+ip+' as HOSTILE? This is a dashboard label, not a CrowdSec ban.'))return;
+    const label=prompt('Optional descriptive hostile-IP label', 'Operator-confirmed hostile');
+    if(label===null)return;
+    try{
+      const r=await fetch('/api/intel/label',{method:'POST',cache:'no-store',credentials:'same-origin',
+        headers:{'X-NetSec-Action':'dashboard','Content-Type':'application/json'},
+        body:JSON.stringify({ip,status:'hostile',label})});
+      const v=await r.json();if(!r.ok||!v.ok)throw new Error(v.error||('HTTP '+r.status));
+      showMessage(ip+' marked HOSTILE. No automatic ban created.');await refresh();
+    }catch(e){showMessage('Cannot label IP: '+e.message);}
+  }
+  async function banIP(ip){
+    if(!ip){showMessage('Enter an IP address first.');return;}
+    const duration=H('v36BanDuration').value;
+    if(!confirm('Ban '+ip+' through CrowdSec for '+duration+'? This can interrupt access from that IP.'))return;
+    const button=H('v36BanNow');button.disabled=true;
+    try{
+      const r=await fetch('/api/ban',{method:'POST',cache:'no-store',credentials:'same-origin',
+        headers:{'X-NetSec-Action':'dashboard','Content-Type':'application/json'},
+        body:JSON.stringify({ip,duration})});
+      const v=await r.json();if(!r.ok||!v.ok)throw new Error(v.error||('HTTP '+r.status));
+      showMessage('Queued ban request. Checking root worker…');
+      let completed=false;
+      for(let i=0;i<25;i++){
+        await new Promise(resolve=>setTimeout(resolve,1000));
+        const q=await fetch('/api/ban/job?id='+encodeURIComponent(v.job_id),{
+          cache:'no-store',credentials:'same-origin',headers:{'X-NetSec-Action':'dashboard'}});
+        const info=await q.json();if(!q.ok)throw new Error(info.error||('HTTP '+q.status));
+        if(info.state==='added'){showMessage('CrowdSec accepted a '+duration+' ban for '+ip+'. Nginx stream bouncer will synchronize shortly.');completed=true;break;}
+        if(info.state==='failed')throw new Error(info.error||'CrowdSec rejected decision');
+      }
+      if(!completed)showMessage('Decision still pending. Check systemctl status netsec-ban-worker.service.');
+      lastBlockFetch=0;fetchBlocked();
+    }catch(e){showMessage('BAN FAILED: '+e.message);}
+    finally{button.disabled=false;}
+  }
+  H('v36MarkHostile').addEventListener('click',()=>labelHostile(H('v36BanIP').value.trim()));
+  H('v36BanNow').addEventListener('click',()=>banIP(H('v36BanIP').value.trim()));
+
+  function enhanceIntel(d){
+    const m=d.intel||{};
+    const all=H('intelLabels')?.children||[];
+    (m.addresses||[]).forEach((entry,i)=>{
+      const tr=all[i];if(!tr||!tr.children[2])return;
+      if(entry.status==='hostile')tr.children[1].classList.add('v36-hostile');
+      const actions=node('span','v36-controls');
+      if(entry.status!=='hostile'){
+        const hostile=node('button','btn','Hostile');hostile.type='button';hostile.addEventListener('click',()=>labelHostile(entry.ip));actions.append(hostile);
+      }
+      const ban=node('button','btn','Ban…');ban.type='button';ban.addEventListener('click',()=>openIP(entry.ip));actions.append(ban);
+      tr.children[2].append(actions);
+    });
+    const others=H('intelCandidates')?.children||[];
+    (m.review_candidates||[]).forEach((entry,i)=>{
+      const tr=others[i];if(!tr||!tr.children[2])return;
+      const actions=node('span','v36-controls');
+      const hostile=node('button','btn','Hostile');hostile.type='button';hostile.addEventListener('click',()=>labelHostile(entry.ip));
+      const ban=node('button','btn','Ban…');ban.type='button';ban.addEventListener('click',()=>openIP(entry.ip));
+      actions.append(hostile,ban);tr.children[2].append(actions);
+    });
+  }
+  const sideNote=document.querySelector('.sidefoot');
+  if(sideNote){for(const child of sideNote.childNodes){if(child.nodeType===3 && child.textContent.includes('READ-ONLY')){
+    child.textContent=child.textContent.replace('READ-ONLY','MANUAL BANS ENABLED');
+  }}}
+  const footer=document.querySelector('footer.footerline');
+  if(footer)footer.textContent='NetSec v1.0.1 · Read-only traffic and diagnostics, operator-approved CrowdSec bans. IP geolocation and HTTP status codes are not proof of compromise. Nginx logs do not cover SSH or firewall traffic.';
+  const previousRender=render;
+  render=function(d){
+    previousRender(d);aiStoplight(d.ai||{});drawChecks(d.ai||{});enhanceIntel(d);
+    activeDecisions=(d.enforcement?.decisions||[]).filter(x=>x.type==='ban');
+    drawBlockList(activeDecisions,recentDenials);fetchBlocked();
+  };
+})();
+
+/* NetSec v3.7: render independently verified evidence BEFORE Jimmy's model prose. */
+(() => {
+  'use strict';
+  const aiSection=document.getElementById('aiSection');
+  if(!aiSection || typeof render!=='function')return;
+  const el=(tag,cls,text)=>{const o=document.createElement(tag);if(cls)o.className=cls;if(text!=null)o.textContent=String(text);return o;};
+  const panel=el('section','v37-panel');panel.id='v37Review';
+  panel.setAttribute('aria-label','Autonomous investigation results');
+  const detail=aiSection.querySelector('.ai-details')||aiSection.querySelector('#v36Checks');
+  if(detail)detail.before(panel);else aiSection.append(panel);
+  const names={crowdsec_enforcement:'CrowdSec · Ban enforcement',nginx_upstreams:'Nginx · Backend analysis',sensitive_paths:'Sensitive-file protection'};
+  const when=v=>{
+    if(!v)return 'TIME UNKNOWN';
+    const date=new Date(v);return Number.isNaN(date.getTime())?'TIME UNKNOWN':date.toLocaleString();
+  };
+  function redraw(ai){
+    panel.replaceChildren();
+    const review=ai?.evidence_review;
+    const previousChecks=document.getElementById('v36Checks')?.closest('.v36-verify');
+    if(previousChecks)previousChecks.hidden=!!(review?.checks?.length);
+    const top=el('div','v37-top');
+    const title=el('div');title.append(el('h3','','Jimmy · Investigations completed'),
+      el('p','v37-meta','Deterministic checks performed before the AI narrative · No model-generated server commands'));
+    const freshness=el('span','v37-state '+(ai?.state==='ready'?'verified':'partial'),
+      ai?.state==='ready'?'LATEST REPORT':ai?.state==='stale'?'HISTORICAL REPORT':'NO REPORT');
+    top.append(title,freshness);panel.append(top);
+    if(!review?.checks?.length){panel.append(el('p','v37-empty','Evidence results will appear after the next successful Jimmy assessment.'));return;}
+    const grid=el('div','v37-grid');
+    for(const c of review.checks.slice(0,6)){
+      const item=el('article','v37-item');const head=el('div','v37-item-top');
+      head.append(el('span','v37-item-name',names[c.id]||c.id||'Automated check'),
+        el('span','v37-state '+(c.state||''),String(c.state||'UNKNOWN').toUpperCase()));
+      item.append(head,el('p','v37-result',c.result||'No results recorded.'),
+        el('p','v37-small','CHECKED '+when(c.observed_at)),el('p','v37-small',c.limits||''));grid.append(item);
+    }
+    panel.append(grid);
+    const scoring=ai?.risk_assessment;
+    if(scoring?.severity){
+      panel.append(el('p','v37-meta','Evidence-calibrated risk: '+String(scoring.severity).toUpperCase()+
+        (scoring.model_severity_adjusted?' (adjusted from Jimmy’s '+String(scoring.model_severity_before_calibration||'unknown')+')':'')+
+        '. '+(scoring.reasons||[]).slice(0,2).join(' · ')));
+    }
+    const tested=(review.sensitive_paths?.last_results||[]);
+    if(tested.length){
+      const last=el('p','v37-meta', 'Sensitive-path coverage: '+tested.length+' recorded result(s); most recent actual HTTP test: '+when(tested.map(x=>x.tested_at).filter(Boolean).sort().slice(-1)[0]));
+      panel.append(last);
+    }
+    const ng=review.nginx||{}, cs=review.crowdsec||{};
+    const facts=el('div','v37-foot');
+    facts.append(el('span','','Observed public-source bans: '+(cs.public_denial_sources_sample??'—')),
+      el('span','','CrowdSec timer errors: '+(ng.crowdsec_timer_connectivity_sample??'—')),
+      el('span','','True upstream errors (sample): '+(ng.real_upstream_errors_sample??'—')));
+    panel.append(facts);
+    const follow=review.follow_up_states||[];
+    if(follow.length){
+      const line=el('div','v37-followups');line.append(el('strong','','Unresolved / scheduled: '));
+      line.append(el('span','',follow.map(x=>x.description).filter(Boolean).join(' · ')));
+      panel.append(line);
+    }
+    if(ai?.suppressed_duplicate_actions){
+      panel.append(el('p','v37-meta',ai.suppressed_duplicate_actions+' redundant model-generated recommendation(s) filtered out.'));
+    }
+    const actions=document.getElementById('aiActions');
+    if(actions && Array.isArray(ai?.recommended_actions) && !ai.recommended_actions.length){
+      actions.replaceChildren(el('li','','No additional manual action established. Scheduled read-only checks continue automatically.'));
+    }
+    const heading=actions?.parentElement?.querySelector('h3');
+    // Existing template may use different nesting. Do not assume this heading exists.
+    if(heading && /recommended checks/i.test(heading.textContent))heading.textContent='Outstanding actions';
+  }
+  const footer=document.querySelector('footer.footerline');
+  if(footer)footer.textContent=footer.textContent.replace('NetSec v3.6','NetSec v3.7');
+  const oldRender=render;
+  render=function(d){oldRender(d);redraw(d.ai||{});};
+})();
+
+/* NetSec v3.8: proactive Jimmy IP labels; manual metadata wins and never causes bans. */
+(() => {
+  'use strict';
+  const byId=id=>document.getElementById(id);
+  const mk=(tag,cls,text)=>{const e=document.createElement(tag);if(cls)e.className=cls;if(text!==undefined)e.textContent=String(text);return e;};
+  const intel=byId('intelSection'),cmd=byId('hub-tab-command');
+  if(!intel||!cmd||!byId('aiForceRefresh'))return;
+  let offset=0,filter='all',sort='requests_desc',windowKey='24h',term='',busy=false,loadedAt=0,requestSerial=0;
+  let lastData=null;
+
+  const oldPrompt=byId('aiRefreshFeedback');
+  if(oldPrompt)oldPrompt.textContent='Logged in as netsecadmin? Refresh Jimmy without a separate token.';
+
+  const hub=mk('section','v38-hub');hub.id='v38Hub';
+  const head=mk('div','v38-head');head.append(mk('h3','','All observed traffic sources · Jimmy classifications'));
+  const sync=mk('span','tag','AI pending');sync.id='v38Sync';head.append(sync);
+  hub.append(head,mk('p','v38-meta','Jimmy proactively applies advisory labels based on observed HTTP evidence. Only you can confirm Friendly/Trusted ownership. Labels do not ban, whitelist, or change CrowdSec enforcement. All IPs in the available bounded log sample can be manually classified, even after one request.'));
+  const controls=mk('div','v38-controls');
+  const options=(id,items,change)=>{
+    const s=mk('select');s.id=id;
+    for(const [value,label] of items){const op=mk('option','',label);op.value=value;s.append(op)}
+    s.addEventListener('change',()=>change(s.value));controls.append(s);return s;
+  };
+  options('v38Sort', [['requests_desc','Most traffic first'],['requests_asc','Least traffic first'],['suspicion_desc','Most suspicious first'],['unclassified','Unclassified first'],['last_seen','Most recently seen']],v=>{sort=v;offset=0;load();});
+  options('v38Filter', [['all','All IPs'],['trusted','My trusted IPs'],['unreviewed','Awaiting Jimmy'],['ai_labeled','AI-classified'],['manual','Manually classified'],['suspicious','Suspicious evidence'],['low_volume','Under 100 requests']],v=>{filter=v;offset=0;load();});
+  options('v38Window', [['24h','Last 24 hours'],['1h','Last hour'],['7d','Last 7 days']],v=>{windowKey=v;offset=0;load();});
+  const search=mk('input');search.type='search';search.placeholder='Search IP or manual label';
+  search.setAttribute('aria-label','Search source addresses and labels');
+  let searchSerial=0;
+  search.addEventListener('input',()=>{
+    term=search.value.trim();offset=0;
+    // Debounce without external libraries.
+    const id=++searchSerial;setTimeout(()=>{if(id===searchSerial)load();},350);
+  });controls.append(search);
+  const reload=mk('button','btn','↻ Reload');reload.type='button';reload.addEventListener('click',load);controls.append(reload);
+  hub.append(controls);
+  const tablewrap=mk('div','v38-tablewrap');const table=mk('table','v38-table');
+  const thead=mk('thead'),tr=mk('tr');
+  for(const label of ['Source IP','Observed requests','Jimmy / manual classification','Evidence','Change classification'])tr.append(mk('th','',label));
+  thead.append(tr);table.append(thead);
+  const tbody=mk('tbody');tbody.id='v38Rows';table.append(tbody);tablewrap.append(table);hub.append(tablewrap);
+  const page=mk('div','v38-page');
+  const prev=mk('button','btn','← Previous');prev.type='button';
+  const next=mk('button','btn','Next →');next.type='button';
+  const summary=mk('span','v38-warning','Loading observed sources…');summary.id='v38Summary';
+  prev.addEventListener('click',()=>{offset=Math.max(0,offset-100);load();});
+  next.addEventListener('click',()=>{if(lastData?.next_offset!=null){offset=lastData.next_offset;load();}});
+  page.append(prev,summary,next);hub.append(page);
+  const status=mk('p','v38-warning','');status.id='v38Status';status.setAttribute('role','status');status.setAttribute('aria-live','polite');hub.append(status);
+  const existing=intel.querySelector('.intel-columns');intel.insertBefore(hub,existing);
+  if(existing){const title=existing.lastElementChild?.querySelector('h3');if(title)title.textContent='Saved operator overrides';}
+
+  function message(text){status.textContent=String(text).slice(0,270);}
+  function isViewing(){return !byId('hub-tab-intel')?.hidden;}
+  function render(d){
+    lastData=d;const a=d.ai_state||{};tbody.replaceChildren();
+    const state=a.state||'not_run';
+    byId('v38Sync').textContent='Jimmy · '+state.toUpperCase()+(Number.isFinite(Number(a.pending))?' · '+a.pending+' pending':'');
+    byId('v38Sync').title=a.at||'';
+    for(const row of d.rows||[]){
+      const tr=mk('tr','v38-row'),ip=mk('td');
+      ip.append(mk('strong','',row.ip),mk('small','',row.country||'Country unavailable'));
+      const count=mk('td');
+      count.append(mk('strong','',Number(row.requests||0).toLocaleString()),mk('small','','Last '+d.window));
+      const classification=mk('td');
+      classification.append(mk('span','v38-tag '+row.label,row.label));
+      classification.append(mk('small','',row.source==='manual'?'MANUALLY SET':row.source==='ai'?'JIMMY · '+(row.confidence||'low')+' CONFIDENCE':'AWAITING JIMMY'));
+      if(row.manual_label)classification.append(mk('small','',row.manual_label));
+      const evidence=mk('td');
+      evidence.append(mk('span','',Number(row.probe_like||0)+' probes · '+Number(row.denied_401_403||0)+' 401/403'));
+      evidence.append(mk('small','',row.reason||((row.top_paths||[]).map(x=>x.path).slice(0,2).join(', ')||'Limited evidence')));
+      if(row.source==='manual' && row.ai_label) evidence.append(mk('small','','Previous Jimmy label: '+row.ai_label));
+      const actions=mk('td');const tools=mk('div','v38-actions');
+      const trust=mk('button','btn',row.label==='friendly'?'Trusted ✓':'Mark friendly');trust.type='button';
+      trust.disabled=row.label==='friendly';trust.addEventListener('click',()=>setManual(row.ip,'friendly'));
+      tools.append(trust);
+      const choose=mk('select');choose.setAttribute('aria-label','Manually classify '+row.ip);
+      for(const [value,label] of [['','Classify…'],['routine','Routine'],['scanner','Scanner'],['suspicious','Suspicious'],['hostile','Hostile'],['watch','Watch'],['friendly','Friendly'],['unknown','Clear manual label']]){
+        const opt=mk('option','',label);opt.value=value;choose.append(opt);
+      }
+      choose.addEventListener('change',()=>{if(choose.value)setManual(row.ip,choose.value).finally(()=>{choose.value='';});});
+      tools.append(choose);actions.append(tools);
+      tr.append(ip,count,classification,evidence,actions);tbody.append(tr);
+    }
+    if(!d.rows?.length){const tr=mk('tr'),td=mk('td','', 'No observed sources match these filters.');td.colSpan=5;tr.append(td);tbody.append(tr);}
+    prev.disabled=offset===0;next.disabled=d.next_offset==null;
+    summary.textContent=d.total?`Showing ${offset+1}–${offset+(d.rows||[]).length} of ${d.total.toLocaleString()} matched sources`:'No matching traffic';
+    const warn=(d.coverage?.warnings||[]).join(' · ');
+    message('Log coverage: '+(d.coverage?.log_files||0)+' files. '+(warn||'Bounded log snapshot; older records may be absent.')+(a.error?' · Last AI error: '+a.error:''));
+  }
+  async function load(){
+    if(busy){requestSerial++;}
+    const serial=++requestSerial;busy=true;reload.disabled=true;
+    byId('v38Sync').textContent='Loading…';
+    const qs=new URLSearchParams({window:windowKey,sort,filter,search:term,limit:'100',offset:String(offset)});
+    try{
+      const response=await fetch('/api/source-hub?'+qs.toString(),{cache:'no-store',credentials:'same-origin'});
+      if(!response.ok)throw new Error('HTTP '+response.status);
+      const result=await response.json();if(serial!==requestSerial)return;
+      if(!result.ok)throw new Error(result.error||'Source inventory unavailable');
+      loadedAt=Date.now();render(result);
+    }catch(e){if(serial===requestSerial){message('Source inventory unavailable: '+e.message);byId('v38Sync').textContent='FEED ERROR';}}
+    finally{if(serial===requestSerial){busy=false;reload.disabled=false;}}
+  }
+  async function setManual(ip,label){
+    if(label==='friendly' && !confirm('Confirm '+ip+' is yours or explicitly trusted? This changes dashboard filtering, NOT CrowdSec enforcement.'))return;
+    if(label==='hostile' && !confirm('Label '+ip+' hostile? This does not create a CrowdSec ban.'))return;
+    const text=label==='unknown'?'':prompt('Optional name for '+ip+':',label==='friendly'?'Known friendly source':ip);
+    if(text===null)return;
+    try{
+      const response=await fetch('/api/intel/label',{method:'POST',cache:'no-store',credentials:'same-origin',
+        headers:{'X-NetSec-Action':'dashboard','Content-Type':'application/json'},
+        body:JSON.stringify({ip,status:label,label:text})});
+      const result=await response.json();if(!response.ok||!result.ok)throw new Error(result.error||'HTTP '+response.status);
+      message(ip+' manually classified '+label+'. This is metadata only; CrowdSec unchanged.');
+      await load();await refresh();
+    }catch(e){message('Classification not saved: '+e.message);}
+  }
+  document.querySelector('.nav [data-hub-tab="intel"]')?.addEventListener('click',()=>{
+    if(Date.now()-loadedAt>45000)load();
+  });
+  const olderRender=render; // local render bound only; regular 30s refresh handled separately
+  void olderRender;
+  setInterval(()=>{if(isViewing()&&!busy&&Date.now()-loadedAt>90000)load();},30000);
+  // Initialize once so opening the tab is immediate.
+  load();
+})();
+
+refresh();
+</script></body></html>

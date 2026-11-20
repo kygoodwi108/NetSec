@@ -1,0 +1,22 @@
+[Unit]
+Description=Jimmy AI source intelligence labeling (no automatic bans)
+Wants=network-online.target
+After=network-online.target server-status.service
+[Service]
+Type=oneshot
+User=statusdash
+Group=statusdash
+WorkingDirectory=/opt/server-status
+EnvironmentFile=/etc/netsec-ai.env
+Environment=ALLOW_REMOTE_BIND=YES
+Environment=STATUS_CONFIG=/opt/server-status/config.json
+ExecStart=/usr/bin/python3 /opt/server-status/netsec_source_ai.py
+TimeoutStartSec=850
+UMask=0027
+NoNewPrivileges=true
+ProtectHome=true
+PrivateTmp=true
+ProtectSystem=strict
+ReadWritePaths=/var/lib/server-status/intel
+CapabilityBoundingSet=
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX

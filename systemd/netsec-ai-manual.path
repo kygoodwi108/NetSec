@@ -1,0 +1,7 @@
+[Unit]
+Description=Watch for NetSec Jimmy assessment refresh markers
+[Path]
+PathExists=/var/lib/server-status/ai/refresh.request
+Unit=netsec-ai-manual.service
+[Install]
+WantedBy=multi-user.target

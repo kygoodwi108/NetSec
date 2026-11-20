@@ -1,0 +1,8 @@
+[Unit]
+Description=Refresh CrowdSec alert export every minute
+[Timer]
+OnBootSec=30s
+OnUnitActiveSec=60s
+Unit=netsec-alert-export.service
+[Install]
+WantedBy=timers.target

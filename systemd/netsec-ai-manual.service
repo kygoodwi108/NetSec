@@ -1,0 +1,15 @@
+[Unit]
+Description=Run authorized on-demand Jimmy assessment
+Wants=network-online.target
+After=network-online.target
+[Service]
+Type=oneshot
+User=root
+Group=root
+ExecStart=/usr/local/sbin/netsec-ai-manual-runner
+TimeoutStartSec=820
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=strict
+ReadWritePaths=/var/lib/server-status/ai

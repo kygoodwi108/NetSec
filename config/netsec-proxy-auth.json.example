@@ -1,0 +1,5 @@
+{
+  "trusted_proxy_ip": "192.0.2.10",
+  "username": "netsecadmin",
+  "origin": "https://netsec.example.org"
+}
