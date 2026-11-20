@@ -1,7 +1,7 @@
 # Recovery, migrations and upgrades
 
 ## What the public source ZIP does and does not contain
-The ZIP contains **every reconstructed v1.0.1 application module, static asset, service file and setup script**. It is re-installable on a new Debian LXC with external Proxmox/Nginx/CrowdSec configuration.
+The ZIP contains **every reconstructed v1.0.2 application module, static asset, service file and setup script**. It is re-installable on a new Debian LXC with external Proxmox/Nginx/CrowdSec configuration.
 
 It deliberately **does not** contain your live IP labels, history SQLite databases, source AI classifications, CrowdSec ban decisions, private API keys, the `netsecadmin` password file, certificates, Nginx site files or personal runtime configs. These are operational state and secrets and must **never** go into Git.
 
@@ -24,5 +24,5 @@ bash scripts/install-lxc.sh --upgrade
 
 `--upgrade` backs up current `/opt/server-status` and key config files to a root-only directory and does not overwrite existing `config.json`, operator profile or secret env files. It **does not** snapshot your ongoing SQLite state or host Nginx configuration. It replaces the installed systemd unit definitions and restarts the app; inspect existing site-specific drop-ins first. Keep the full Proxmox backup as the primary rollback method.
 
-## NetSec v1.0.1 release handoff
-A new chat can start by uploading this ZIP and saying: "Continue NetSec v1.0.1; read docs/PROJECT_HANDOFF.md and docs/ROADMAP.md. Do not build the PWA/chat until instructed." The next chat does not require the entire old conversation to understand the project structure. For any new release, provide a complete Mac-to-Proxmox-to-LXC remote installation and rollback procedure.
+## NetSec v1.0.2 release handoff
+A new chat can start by uploading this ZIP and saying: "Continue NetSec v1.0.2; read docs/PROJECT_HANDOFF.md and docs/ROADMAP.md. Do not build the PWA/chat until instructed." The next chat does not require the entire old conversation to understand the project structure. For any new release, provide a complete Mac-to-Proxmox-to-LXC remote installation and rollback procedure.

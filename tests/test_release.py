@@ -1,4 +1,4 @@
-"""Offline regression tests for NetSec v1.0.1 consolidated source."""
+"""Offline regression tests for NetSec v1.0.2 consolidated source."""
 import ast
 import importlib.util
 import json
@@ -62,6 +62,6 @@ class Release(unittest.TestCase):
         self.assertNotIn('cscli decisions add',s)
     def test_roadmap_not_implemented(self):
         txt=(ROOT/'docs'/'ROADMAP.md').read_text()
-        self.assertIn('Not implemented in v1.0.1',txt)
+        self.assertIn('Not implemented in v1.0.1 or v1.0.2',txt)
 
 if __name__=='__main__':unittest.main()

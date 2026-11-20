@@ -1,0 +1,118 @@
+# NetSec v1.0.2 — From-scratch Proxmox installer
+
+The **v1.0.2 setup wizard** installs NetSec in a **new unprivileged Debian 12 LXC**, optionally provisions a separate HTTPS Nginx site, mounts Nginx logs read-only, optionally installs an independent CrowdSec detection engine, and configures an AI provider and assistant name. The wizard is for the **Proxmox host shell**. It is not meant to run inside an existing LXC.
+
+> **Do not use this on a live NetSec container.** It refuses to replace an existing container ID or Nginx hostname, but Proxmox administrators must review commands and take backups before executing third-party scripts.
+
+## 1. Prerequisites
+
+- Existing supported Proxmox VE host with root shell access, functioning `vmbr0` or another bridge, Internet access, and enough disk space for a new LXC (at least 8 GiB).
+- A **free private static IPv4 address** on your LAN, with CIDR prefix (for example `192.168.1.50/24`), gateway and DNS server. Reserve the address in your router and make sure it is not used by another device. Ping alone cannot reliably detect IP conflicts.
+- Two active Proxmox storage locations (e.g., `local` for Debian template and `local-lvm` for LXC root disk). A new container ID, e.g. `150`.
+- For HTTPS setup: Nginx on the Proxmox host, publicly resolvable hostname pointed at the host, reachable inbound TCP/80 and TCP/443, and `certbot` plus `apache2-utils` on the host. The wizard uses the **HTTP-01 webroot challenge**. When using Cloudflare, set the new record to DNS-only temporarily for issuance, then optionally proxy it using **Full (strict)** TLS.
+- For security telemetry: Nginx should write combined-format access logs to `/var/log/nginx/access.log` on the host. This location is mounted **read-only** into the LXC. If you use another path, adapt the config after installation.
+- A personal provider credential, if you want AI: an **OpenAI project API key** from https://platform.openai.com/api-keys, or an Open WebUI API key and reachable self-hosted model. **A ChatGPT subscription is not an OpenAI API key or credit.**
+
+### Prepare tools on Proxmox host
+
+```bash
+apt-get update
+apt-get install -y git nginx certbot apache2-utils acl
+```
+
+If your host already has Nginx and TLS configured, the wizard will create a **separate server block and password file**, not overwrite an existing site. It does not install or reconfigure the production CrowdSec Nginx bouncer.
+
+## 2. Get the source and run the wizard
+
+```bash
+cd /root
+git clone https://github.com/kygoodwi108/NetSec.git netsec-source
+cd netsec-source
+# After v1.0.2 is published, prefer the immutable v1.0.2 tag:
+git checkout v1.0.2
+bash scripts/proxmox-setup.sh --help
+bash scripts/proxmox-setup.sh
+```
+
+If v1.0.2 has **not** yet been tagged or merged, use the reviewed v1.0.2 release-candidate archive/branch instead; **do not** run the older v1.0.1 installer expecting these new features.
+
+The wizard asks:
+
+| Setting | Example | Notes |
+|---|---|---|
+| Container ID / hostname | `150` / `netsec` | Must be unused |
+| Static IP/CIDR, gateway, DNS | `192.168.1.50/24`, `192.168.1.1`, `192.168.1.1` | Must match your actual network, not copied blindly |
+| Bridge and storage | `vmbr0`, `local`, `local-lvm` | Actual Proxmox resources |
+| Assistant name | `Jimmy`, `Sentinel`, `Guardian AI` | Used in UI and AI prompts; 1–32 safe characters |
+| AI provider | OpenAI / Open WebUI / None | Cloud provider explicitly opted into |
+| AI model | `gpt-4.1-mini` or local model name | Must support Chat Completions with JSON output |
+| API key | Private input | **Not printed**; never hard-code a key into GitHub |
+| Public hostname and admin login | `netsec.example.org`, `netsecadmin` | Distinct Nginx site and password file |
+| Log mount / CrowdSec / timers | opt-in prompts | No host bouncer changes; AI timers may incur recurring charges |
+
+**Do not paste an API key into GitHub, shell commands, an issue, a chat, or a public configuration.** The installer reads it through a hidden prompt, transfers it via a short-lived root-only file in `/run`, and stores it as `/etc/netsec-ai.env` with group access restricted to `statusdash`. The app reads it as a systemd environment file. On a compromised Proxmox root account secrets can still be read.
+
+## 3. What the installer actually does
+
+1. Validates the requested new LXC ID, private IPv4/CIDR, gateway, disk settings, hostname, assistant name and model.
+2. Downloads Debian 12 template; provisions a **new** unprivileged container with your static IP; installs Python prerequisites.
+3. Deploys the exact local source checkout, executes `ci/check.sh`, then runs `scripts/install-lxc.sh --fresh` in the new LXC.
+4. Writes user-specific `assistant_name` into `/opt/server-status/config.json`.
+5. If AI is selected, stores **your** API key and provider/model details under `/etc/netsec-ai.env`. API requests use either Open WebUI's `/api/chat/completions` or OpenAI's official `/v1/chat/completions` with provider-specific request shaping.
+6. Optionally grants read-only access to existing Nginx logs, and installs an independent CrowdSec detection engine **without** attaching a host bouncer.
+7. Optionally provisions a separate HTTP/HTTPS Nginx virtual host, a new Basic Auth password file, an HTTP-01 Let's Encrypt certificate, and `/etc/netsec-proxy-auth.json` with IP-pinned proxy authentication.
+8. Only enables automated AI timers if explicitly selected. The manual-ban worker is disabled for a fresh setup pending separate remediation review.
+
+**The installation can partially succeed before a later step fails** (for example, certificate issuance). Fix DNS, routing or credentials, then complete the remaining steps manually rather than running the new-container wizard again with the same ID. The installer deliberately does not destroy a partially configured LXC.
+
+## 4. AI privacy, usage and provider choice
+
+**OpenAI:** You provide **your own** API key. NetSec sends bounded security metrics for assessments and source IP/path evidence for auto-labeling to OpenAI, which means some infrastructure information leaves your LAN. The user must explicitly consent. API usage is billed separately from ChatGPT. Choose an appropriate model and monitor usage, especially if recurring classification handles many IPs. Users can disable the timers with:
+
+```bash
+pct exec YOUR_CTID -- systemctl disable --now netsec-ai.timer netsec-source-ai.timer
+```
+
+**Open WebUI/Ollama:** You provide the origin URL, local model ID and Open WebUI API key. Existing legacy `/etc/netsec-ai.env` files using `OWUI_URL`, `OWUI_KEY`, `OWUI_MODEL` still work. The `NETSEC_AI_*` settings have priority for new installations.
+
+**None:** NetSec functions as an Nginx/CrowdSec dashboard; AI advisory components are not scheduled. Later, create `/etc/netsec-ai.env` based on `config/netsec-ai.env.example` and enable the timers yourself.
+
+**Naming:** Your chosen AI name replaces visible "Jimmy" labels in the served dashboard and is included in the report/AI prompts. It doesn't create a new or privately fine-tuned AI model. Model reasoning and product behaviour remain subject to the selected provider.
+
+## 5. Verify from your Proxmox shell
+
+```bash
+CTID=150   # change to your container ID
+pct status "$CTID"
+pct exec "$CTID" -- systemctl is-active server-status.service
+pct exec "$CTID" -- curl -sS -o /dev/null -w '%{http_code}\n' http://127.0.0.1:8787/api/status
+pct exec "$CTID" -- curl -sS -o /dev/null -w '%{http_code}\n' http://127.0.0.1:8787/api/operator/session
+pct exec "$CTID" -- bash /root/netsec-setup/scripts/verify.sh
+```
+
+Expected dashboard API `200`; privileged endpoint direct to the backend `403`.
+
+If HTTPS was configured:
+
+```bash
+curl -sS -o /dev/null -w '%{http_code}\n' https://netsec.example.org/
+curl -u netsecadmin https://netsec.example.org/api/operator/session
+```
+
+Expect `401` unauthenticated and `ok: true` with the correct username when signed in. Don't expose the container's port 8787 to the public internet; only the trusted Nginx host should be able to reach it. Verify upstream reachability from your LAN and restrict direct API access with appropriate firewall rules. Keep Proxmox, log ACLs and TLS renewal under ordinary host maintenance.
+
+For AI test without recurring scheduling:
+
+```bash
+pct exec "$CTID" -- systemctl start netsec-ai.service
+pct exec "$CTID" -- systemctl show netsec-ai.service -p Result -p ExecMainStatus
+pct exec "$CTID" -- journalctl -u netsec-ai.service -n 25 --no-pager
+```
+
+Expected `Result=success`, `ExecMainStatus=0`; the one-shot service being `inactive` afterward is normal.
+
+## 6. Updates, sharing and recovery
+
+GitHub source and all docs **must not contain** real passwords, private API keys, security logs, or runtime databases. Always back up the LXC before updating, and keep host Nginx sites/certs in a separate private backup. See `docs/MIGRATION.md`. The wizard is only for **brand-new containers**; `scripts/install-lxc.sh --upgrade` is for reviewed upgrades and isn't called by the wizard.
+
+To contribute, fork the public GitHub project, create a branch, run `bash ci/check.sh`, and open a PR. Give users stable version tags and GitHub release assets rather than expecting them to install unreviewed `main`.
