@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# NetSec first-time Proxmox LXC installer (v1.0.2).
+# NetSec first-time Proxmox LXC installer (v1.1.0).
 # Deliberately refuses existing LXCs and Nginx sites.
 # Opt-in host bouncer cutover requires explicit operator confirmation.
 set -Eeuo pipefail
@@ -8,7 +8,7 @@ HERE="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 
 usage(){
   cat <<'HELP'
-NetSec first-time Proxmox installer, v1.0.2
+NetSec first-time Proxmox installer, v1.1.0
 Usage: sudo bash scripts/proxmox-setup.sh
 
 Interactive prompts: new LXC ID, static private IPv4/CIDR, gateway, DNS,
@@ -29,7 +29,7 @@ HELP
 for cmd in pct pveam pvesm python3 awk tar; do
   command -v "$cmd" >/dev/null || { echo "Missing required command: $cmd" >&2; exit 2; }
 done
-[[ $(cat "$HERE/VERSION") == 1.0.2 ]] || { echo 'Wrong source version' >&2; exit 2; }
+[[ $(cat "$HERE/VERSION") == 1.1.0 ]] || { echo 'Wrong source version' >&2; exit 2; }
 [[ -f "$HERE/app/netsec_ai_provider.py" ]] || { echo 'Missing provider adapter' >&2; exit 2; }
 
 ask(){
@@ -44,10 +44,11 @@ ask(){
 }
 ask_secret(){ local var="$1" label="$2" value; read -r -s -p "$label: " value; printf '\n'; printf -v "$var" '%s' "$value"; }
 yesno(){ local answer; read -r -p "$1 [${2:-y/N}]: " answer; [[ "$answer" =~ ^([Yy]|[Yy][Ee][Ss])$ ]]; }
+yesno_default_yes(){ local answer; read -r -p "$1 [Y/n]: " answer; [[ -z "$answer" || "$answer" =~ ^([Yy]|[Yy][Ee][Ss])$ ]]; }
 die(){ echo "ERROR: $*" >&2; exit 2; }
 
-printf '\nNetSec v1.0.2 — New installation wizard\n'
-printf 'Existing NetSec LXCs and host bouncer configuration will not be modified.\n\n'
+printf '\nNetSec v1.1.0 — New installation wizard\n'
+printf 'Existing LXCs/sites are protected; host bouncer changes are explicitly opt-in.\n\n'
 ask CTID 'New, unused LXC ID' '150'
 [[ "$CTID" =~ ^[1-9][0-9]{1,5}$ ]] || die 'Invalid CTID'
 [[ ! -e "/etc/pve/lxc/${CTID}.conf" ]] || die "LXC $CTID already exists"
@@ -148,11 +149,15 @@ if [[ $USE_LOGS == 1 ]] && yesno 'Install independent CrowdSec detection engine 
 # tokens or Proxmox API privileges required). HTTP checks use GET; TCP checks only
 # establish a connection, e.g. to Proxmox :8006, SSH :22, or a VM's service port.
 SERVICE_CHECKS=()
-printf '\nBuilt-in read-only service health checks work on any host, VM, or container.\n'
-echo 'Use TCP for Proxmox with self-signed HTTPS on :8006; use HTTP for health endpoints.'
-if yesno 'Configure service checks now?';then
+printf '\n=== INFRASTRUCTURE MONITORING ===\n'
+echo 'This step tells NetSec WHAT servers and services to monitor.'
+echo 'You must enter service names and network addresses. Leaving all names blank means NO checks.'
+echo 'Example #1: Proxmox VE; type 2 TCP; host the LAN IP of Proxmox; port 8006.'
+echo 'Example #2: Nginx reverse proxy; type 2 TCP; host LAN IP; port 443.'
+echo 'Use TCP for self-signed Proxmox web consoles; HTTP for normal website health endpoints.'
+if yesno_default_yes 'Configure your servers/websites now?';then
   while (( ${#SERVICE_CHECKS[@]} < 25 ));do
-    ask SERVICE_NAME 'Service name (blank to finish)' ''
+    ask SERVICE_NAME 'Add service name (e.g. Proxmox VE, Nginx, Plex; blank only when finished)' ''
     [[ -n "$SERVICE_NAME" ]] || break
     [[ ${#SERVICE_NAME} -le 75 && "$SERVICE_NAME" != *'|'* && "$SERVICE_NAME" != *$'\n'* ]] || die 'Invalid service name'
     ask SERVICE_KIND 'Type: 1=HTTP(S), 2=TCP' '1'
@@ -170,6 +175,10 @@ if yesno 'Configure service checks now?';then
       *) die 'Choose HTTP(S) or TCP' ;;
     esac
   done
+  if (( ${#SERVICE_CHECKS[@]} == 0 ));then
+    echo 'WARNING: You selected service monitoring but entered NO services.'
+    yesno 'Continue WITHOUT any server/service checks?' || die 'Restart setup to configure service checks'
+  fi
 fi
 if (( ${#SERVICE_CHECKS[@]} ));then
   python3 - "${SERVICE_CHECKS[@]}" <<'PYSERV' || die 'Invalid service check configuration'
@@ -212,11 +221,19 @@ if [[ "$USE_CROWDSEC" == 1 ]];then
 fi
 ENABLE_AI=0
 VERIFY_AI=0
+USE_PUSH=0
 if [[ "$AI_PROVIDER" != none ]];then
   if [[ "$USE_LOGS" != 1 ]];then echo 'No Nginx log mount selected; AI assessments require readable Nginx logs.';fi
   echo 'AI timers run repeatedly and may use billable API tokens.'
   if [[ "$USE_LOGS" == 1 ]] && yesno 'Enable automatic AI assessment and classification timers?';then ENABLE_AI=1;fi
   if yesno 'Test AI provider with one real assessment after install (may incur API charges)?';then VERIFY_AI=1;fi
+  if [[ "$USE_PROXY" == 1 ]];then
+    echo 'Optional PWA Web Push: users install the website as an app and explicitly subscribe on each device.'
+    echo 'Push service requires access to public push providers (Apple/Google/Mozilla/Microsoft); no secret telemetry is sent in notifications.'
+    if yesno 'Install opt-in push notification support? (downloads Python dependencies)';then USE_PUSH=1;fi
+  else
+    echo 'Push skipped: authenticated HTTPS dashboard hostname is required.'
+  fi
 fi
 
 printf '\nINSTALL PLAN (review carefully)\n'
@@ -224,7 +241,13 @@ printf 'LXC: %s (%s), static %s, gateway %s, DNS %s, bridge %s\n' "$CTID" "$HOST
 printf 'Storage: %s/%s (%s GiB)\n' "$TEMPLATE_STORE" "$ROOT_STORE" "$DISK_GB"
 printf 'Dashboard: %s; operator: %s; AI: %s / %s; assistant: %s\n' "${DOMAIN:-not configured}" "${OP_USER:-not configured}" "$AI_PROVIDER" "${AI_MODEL:-none}" "$AI_NAME"
 printf 'Host log access: %s; CrowdSec detector: %s; bouncer: %s; scheduled AI: %s; AI test: %s\n' "$USE_LOGS" "$USE_CROWDSEC" "$BOUNCER_MODE" "$ENABLE_AI" "$VERIFY_AI"
-printf 'Direct service checks: %s; offline GeoIP: automatic download + monthly update timer\n' "${#SERVICE_CHECKS[@]}"
+printf 'Direct service checks: %s; offline GeoIP: automatic download + monthly update timer; Web Push: %s\n' "${#SERVICE_CHECKS[@]}" "$USE_PUSH"
+if (( ${#SERVICE_CHECKS[@]} ));then
+  echo 'Services to monitor:'
+  for row in "${SERVICE_CHECKS[@]}";do printf '  - %s\n' "$row";done
+else
+  echo 'WARNING: No services selected; the Infrastructure Services dashboard will report NOT CONFIGURED.'
+fi
 yesno 'Proceed and CREATE a new LXC and (if selected) Nginx site?' || { echo 'Cancelled: no changes made'; exit 0; }
 
 STAGING="$(mktemp -d /run/netsec-setup.XXXXXXXX)"
@@ -449,6 +472,15 @@ if [[ "$BOUNCER_MODE" != skip ]];then
     echo 'WARNING: Host bouncer configuration did not complete. Existing Nginx configuration was preserved/restored. Review before cutover.' >&2
   fi
 fi
+# Optional PWA Web Push: install isolated dependencies and a fresh local VAPID
+# identity. This never changes Nginx, CrowdSec enforcement or system login.
+if [[ "$USE_PUSH" == 1 ]];then
+  if pct exec "$CTID" -- bash /root/netsec-setup/scripts/setup-push-lxc.sh "https://$DOMAIN" "$EMAIL";then
+    echo 'Web Push dependencies, server VAPID keys, and incident timer initialized.'
+  else
+    echo 'WARNING: Web Push setup failed. Dashboard and AI remain usable; see scripts/setup-push-lxc.sh.' >&2
+  fi
+fi
 # Manual dashboard bans remain disabled until the bouncer is verified.
 pct exec "$CTID" -- systemctl disable --now netsec-ban-worker.path >/dev/null 2>&1 || true
 printf '\nINSTALL COMPLETE: NetSec on LXC %s at %s\n' "$CTID" "$IP"
@@ -459,4 +491,4 @@ else
   echo 'No HTTPS site configured; privileged UI actions remain disabled until authenticated Nginx is configured.'
 fi
 printf 'AI: %s | assistant: %s | timers enabled: %s\n' "$AI_PROVIDER" "$AI_NAME" "$ENABLE_AI"
-echo 'To finish: review docs/INSTALL_FROM_SCRATCH.md; verify HTTP/TCP checks, GeoIP, AI and host bouncer enforcement separately.'
+echo 'To finish: review docs/INSTALL_FROM_SCRATCH.md; verify service checks, GeoIP, Jimmy chat/auth, push test, and host bouncer enforcement separately.'

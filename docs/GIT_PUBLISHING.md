@@ -1,15 +1,30 @@
-# Prepare for Git hosting
+# Publish NetSec 1.1.0 to GitHub — safe staging branch workflow
 
-This ZIP is laid out as a repository root. Extract it, review licenses/config examples and scan for private secrets, then initialize a local repository:
+Use the **complete verified source ZIP**, not a partial patch series. These steps run on a workstation or the Proxmox host with Git credentials; they do not touch running LXCs. `VERSION` must say `1.1.0`. Never push `/etc/netsec-*`, `/var/lib/server-status`, certificate files, personal Nginx logs, or push keys.
 
 ```bash
-cd netsec-v1.0.1
-bash ci/check.sh
-git init
-git add .
+# In an existing, authenticated checkout of https://github.com/kygoodwi108/NetSec
+cd /root/netsec-test-source
+# Review/commit/stash local changes first, rather than overwriting them blindly.
 git status --short
-git commit -m 'NetSec v1.0.1 consolidated source baseline'
-git tag v1.0.1
+git fetch origin
+git switch -c release/netsec-1.1.0 origin/main
+# Extract the full ZIP beside the repo:
+mkdir -p /root/netsec-1.1.0-release
+unzip -q /root/netsec-v1.1.0-source.zip -d /root/netsec-1.1.0-release
+# Copy release source into the repository, but NEVER overwrite .git:
+rsync -a --exclude=.git --exclude=__pycache__ \
+  /root/netsec-1.1.0-release/netsec-v1.1.0/ ./
+cat VERSION
+bash ci/check.sh
+git diff --check
+git status --short
+git add -A
+git diff --cached --stat
+# REVIEW staged files for real credentials, private IP logs and secrets before commit:
+git diff --cached --check
+git commit -m 'NetSec 1.1.0: Jimmy analyst workspace, operator feedback, PWA and push'
+git push -u origin release/netsec-1.1.0
 ```
 
-**Do not push automatically.** Review `git diff --cached` and scan for API tokens, model keys, private IPs, certificates, real hostnames, actual security logs and private notes. These files intentionally were not included in this source ZIP. Create a public remote only after a deliberate security review and preferably independent testing on a clean LXC. If committing public build output, include only `docs`/source, not `backup-state.sh` output or any files under `/var/lib/server-status`.
+Open a pull request from `release/netsec-1.1.0` to `main`. Validate it on a **fresh staging** LXC, including bouncer and phone push opt-in, before merge/tag. Do not force-push a published `main` or automatically overwrite a working host bouncer. Once reviewed, merge and tag the immutable `v1.1.0` from the tested commit.

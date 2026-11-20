@@ -1,0 +1,17 @@
+[Unit]
+Description=NetSec Web Push incident delivery (read-only report consumer)
+After=network-online.target netsec-ai.service
+[Service]
+Type=oneshot
+User=statusdash
+Group=statusdash
+WorkingDirectory=/opt/server-status
+ExecStart=/opt/netsec-push-venv/bin/python /opt/server-status/netsec_push.py --poll
+TimeoutStartSec=90
+UMask=0027
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/server-status
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX

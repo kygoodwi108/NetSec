@@ -1,5 +1,5 @@
 [Unit]
-Description=NetSec v1.0.1 dashboard
+Description=NetSec v1.1.0 security dashboard
 Wants=network-online.target
 After=network-online.target
 [Service]

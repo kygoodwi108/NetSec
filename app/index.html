@@ -1,6 +1,6 @@
 <!doctype html>
 <!-- NetSec v3.8.2 token header compatibility fix -->
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>NetSec · Security Intelligence</title>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>NetSec · Security Intelligence</title><link rel="manifest" href="/manifest.webmanifest"><meta name="theme-color" content="#102638"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><link rel="apple-touch-icon" href="/icon-192.png">
 <style>
 :root{color-scheme:dark;--bg:#09111a;--sidebar:#0e1925;--panel:#101e2c;--panel2:#132438;--edge:#263b50;--muted:#96acc0;--text:#e6f1fb;--cyan:#5bd3e7;--blue:#67aaff;--green:#4cdb9a;--amber:#f5bc60;--red:#ff7182}
 *{box-sizing:border-box}html{scroll-behavior:smooth}body{background:var(--bg);color:var(--text);font:14px/1.48 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;margin:0}
@@ -241,11 +241,29 @@ button,input{font:inherit}button{cursor:pointer}button:focus-visible,input:focus
 #intelSection>.intel-columns>div:last-child{width:100%}
 @media(max-width:720px){.v38-hub{padding:11px}.v38-table{min-width:690px}.v38-jimmy-credentials{width:100%}.v38-jimmy-token{flex:1}}
 
+
+.jimmy-workspace{display:grid;gap:16px;background:#11283a;border-color:#47778c}.jimmy-workspace[hidden]{display:none}
+.jimmy-evidence-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.jimmy-card{border:1px solid #2c4d65;border-radius:12px;background:#0b1c2c;padding:17px;display:grid;gap:9px;align-content:start;min-width:0}
+.jimmy-card>small{color:var(--muted);font-size:11px}.jimmy-card>strong{color:#c9f1fa;overflow-wrap:anywhere}
+.jimmy-card p,.jimmy-card span{overflow-wrap:anywhere}
+.jimmy-status{color:var(--cyan);font-size:12px}.jimmy-form{display:grid;gap:8px}
+.jimmy-form label,.jimmy-card label{color:var(--muted);font-size:11px;font-weight:700}
+.jimmy-form input,.jimmy-form textarea,.jimmy-form select,.jimmy-card select{background:#07192a;color:#e5f1fb;border:1px solid #486b84;border-radius:7px;padding:9px;width:100%;font:inherit}
+.jimmy-chatlog{max-height:390px;overflow-y:auto;display:grid;gap:9px;min-height:70px}
+.jimmy-msg{background:#0e2a3b;padding:13px;border-radius:10px;display:grid;gap:7px;font-size:13px;overflow-wrap:anywhere;white-space:pre-wrap}
+.jimmy-msg.from-operator{background:#19374a}.jimmy-msg strong{color:var(--cyan)}.jimmy-msg small{color:var(--muted);font-size:10px}
+.jimmy-placeholder{color:var(--muted);padding:12px;border:1px dashed #40607b;border-radius:8px;font-size:12px}
+.jimmy-feedback-list{display:grid;gap:8px;max-height:290px;overflow:auto}.jimmy-feedback-line{display:grid;gap:3px;border-bottom:1px solid #2b4356;padding:8px 0;font-size:12px}
+.jimmy-feedback-line small{color:var(--muted)}.jimmy-incident{display:flex;justify-content:space-between;gap:10px;align-items:center;border-bottom:1px solid #2b4356;padding:8px 0;font-size:12px}
+.jimmy-workspace .row{flex-wrap:wrap}.hub-tab-jimmy .ai-panel{margin-bottom:15px}
+@media(max-width:850px){.jimmy-evidence-grid{grid-template-columns:1fr}}
+@media(max-width:950px){.side .nav{max-width:100%;overflow-x:auto;white-space:nowrap}.side .nav button{white-space:nowrap}}
 </style></head>
 <body><div class="app"><aside class="side"><div class="brand"><div class="brandmark">⬡</div><div class="brandname">NET<span>SEC</span><small>THREAT INTELLIGENCE</small></div></div>
 <nav class="nav"><a class="active" href="#overview">▦ &nbsp; Overview</a><a href="#traffic">▥ &nbsp; Traffic</a><a href="#geography">◎ &nbsp; Geography</a><a href="#events">≡ &nbsp; Event logs</a></nav>
 <div class="sidefoot"><strong><span id="pulse" class="pulse"></span> &nbsp; <span id="engineSide">MONITORING</span></strong>READ-ONLY · NGINX + CROWDSEC<br>Private dashboard</div></aside>
-<main class="main" id="overview"><div class="top"><div><div class="eyebrow">Security overview · NetSec v1.0.2</div><h1 id="headline">NetSec / Server overview</h1><p class="subtle tiny" id="updated">Connecting to the monitoring backend…</p></div><div class="row"><span class="tag" id="liveBadge">LIVE · 30S</span><span class="intel-scope"><button class="btn active" id="scopeUnknown" type="button">Unknown</button><button class="btn" id="scopeAll" type="button">All traffic</button></span><button class="btn" id="pauseBtn" type="button">Pause</button><button class="btn" id="refreshBtn" type="button">↻ Refresh</button></div></div>
+<main class="main" id="overview"><div class="top"><div><div class="eyebrow">Security overview · NetSec v1.1.0</div><h1 id="headline">NetSec / Server overview</h1><p class="subtle tiny" id="updated">Connecting to the monitoring backend…</p></div><div class="row"><span class="tag" id="liveBadge">LIVE · 30S</span><span class="intel-scope"><button class="btn active" id="scopeUnknown" type="button">Unknown</button><button class="btn" id="scopeAll" type="button">All traffic</button></span><button class="btn" id="pauseBtn" type="button">Pause</button><button class="btn" id="refreshBtn" type="button">↻ Refresh</button></div></div>
 <div class="error-banner" id="errorBanner"></div>
 <section class="grid hero"><article class="panel"><div class="panelhead"><h2>Traffic security posture</h2><span class="tag">HEURISTIC · LAST HOUR</span></div><div class="risk"><div class="stoplight" role="img" aria-label="Traffic risk indicator" id="lights"><span class="bulb red"></span><span class="bulb amber"></span><span class="bulb green"></span></div><div><div class="risk-label" id="riskLabel">ASSESSING</div><div class="risk-caption">Observed web traffic signals, not a complete network security assessment.</div></div></div><div class="reasons" id="riskReasons"><div class="reason">Awaiting traffic metrics</div></div><p class="scope" id="riskScope">This checks HTTP logs and exported CrowdSec events only.</p></article>
 <article class="panel"><div class="panelhead"><h2>Sensor & service health</h2><span class="tag">LIVE CHECKS</span></div><div class="health"><div class="healthrow"><span>Nginx log visibility</span><strong class="status muted" id="logHealth">CHECKING</strong></div><div class="healthrow"><span>CrowdSec alert feed</span><strong class="status muted" id="csHealth">CHECKING</strong></div><div class="healthrow"><span>Configured service checks</span><strong class="status muted" id="svcHealth">CHECKING</strong></div><div class="healthrow"><span>CrowdSec enforcement</span><strong class="status muted" id="bouncerHealth">CHECKING</strong></div><div class="healthrow"><span>Geolocation database</span><strong class="status muted" id="geoHealth">CHECKING</strong></div></div></article></section>
@@ -275,6 +293,37 @@ button,input{font:inherit}button{cursor:pointer}button:focus-visible,input:focus
   <p class="mini">Editing requires a signed-in <strong>netsecadmin</strong> session through the NetSec HTTPS proxy. No separate admin token.</p>
 </section>
 
+
+<section class="panel jimmy-workspace" id="jimmyWorkspace" hidden>
+  <div class="panelhead"><div><h2>Ask Jimmy · Evidence-linked conversation</h2><p class="subtle tiny">Operator feedback is a claim, not independently verified evidence. Chat never executes commands or bans.</p></div>
+    <div class="row"><button class="btn" type="button" id="jimmyReload">Reload</button><button class="btn" type="button" id="jimmyLatest">Latest report</button></div></div>
+  <p class="jimmy-status" id="jimmyWorkspaceStatus" role="status">Loading analyst workspace…</p>
+  <div class="jimmy-evidence-grid">
+    <div class="jimmy-card"><small>Assessment ID</small><strong id="jimmyReportId">—</strong><small>Recorded UTC</small><span id="jimmyReportTime">—</span></div>
+    <div class="jimmy-card"><small>Evidence-calibrated severity</small><strong id="jimmyReportSeverity">—</strong><span id="jimmyReportSummary">—</span></div>
+  </div>
+  <div class="jimmy-card"><strong>Observed evidence and calibrated reasons</strong><p id="jimmyReportEvidence">No evidence yet</p><small>Feedback influence / before-after</small><p id="jimmyOperatorComparison">—</p><small>Coverage limitations</small><p id="jimmyReportLimits">—</p></div>
+  <div class="jimmy-evidence-grid">
+    <div class="jimmy-card"><h3>Conversation anchored to this assessment</h3><div class="jimmy-chatlog" id="jimmyChatLog"></div>
+      <form id="jimmyChatForm" class="jimmy-form"><label for="jimmyQuestion">Your question</label><textarea id="jimmyQuestion" maxlength="2000" rows="3" required placeholder="Why did these 5xx events matter? What evidence is missing?"></textarea><button class="btn" type="submit">Ask Jimmy</button></form></div>
+    <div class="jimmy-card"><h3>Operator intelligence / feedback</h3><p class="subtle tiny">Recorded with author, timestamp and expiry; verified telemetry is never rewritten.</p>
+      <form id="jimmyFeedbackForm" class="jimmy-form">
+        <label for="jimmyAction">Feedback type</label><select id="jimmyAction"><option value="confirm">I confirm</option><option value="expected">That is expected</option><option value="own_ip">I own this IP</option><option value="disagree">I disagree</option><option value="maintenance">Maintenance until…</option></select>
+        <label for="jimmyFeedbackIp">IP (required for ownership only)</label><input id="jimmyFeedbackIp" type="text" maxlength="48" placeholder="Optional IP address">
+        <label for="jimmyFeedbackTtl">Expires after (hours, blank = 7 days)</label><input id="jimmyFeedbackTtl" type="number" min="1" max="2160" placeholder="For maintenance use 1–168">
+        <label for="jimmyFeedbackNote">Your context / evidence</label><textarea id="jimmyFeedbackNote" rows="3" maxlength="500" placeholder="Why is this expected? Identify the relevant service or maintenance."></textarea>
+        <button class="btn" type="submit">Save operator feedback</button>
+      </form><h3>Active operator context</h3><div id="jimmyFeedbackList" class="jimmy-feedback-list"></div></div>
+  </div>
+  <div class="jimmy-evidence-grid">
+    <div class="jimmy-card"><h3>Security incidents</h3><p class="subtle tiny">Notifications trigger only for new corroborated red assessments, not repeated red refreshes.</p><div id="jimmyIncidents"></div><label for="jimmyQuietHours">Pause alerts (hours)</label><div class="row"><select id="jimmyQuietHours"><option value="0">Off</option><option value="1">1 hour</option><option value="8">8 hours</option><option value="24">24 hours</option><option value="72">72 hours</option></select><button class="btn" type="button" id="jimmyQuiet">Set quiet period</button></div>
+      <label for="jimmyEscalationHours">Unacknowledged escalation (once)</label><div class="row"><select id="jimmyEscalationHours"><option value="0">Off</option><option value="1">After 1 hour</option><option value="3">After 3 hours</option><option value="8">After 8 hours</option></select><button class="btn" type="button" id="jimmyEscalation">Save escalation</button></div></div>
+    <div class="jimmy-card"><h3>Installable mobile app and Web Push</h3><p class="subtle tiny">On Android: use browser Install App. On iPhone: Safari → Share → Add to Home Screen, then open the installed app to enable push (iOS 16.4+).</p>
+      <p id="jimmyPushState" class="jimmy-status">Checking push…</p><div class="row"><button class="btn" type="button" id="jimmyPushEnable">Enable notifications</button><button class="btn" type="button" id="jimmyPushTest">Test notification</button><button class="btn" type="button" id="jimmyPushDisable">Disable on this device</button></div>
+      <p class="subtle tiny">Notifications contain no IPs, logs or assessment details. Tap to sign in and open Jimmy.</p>
+    </div>
+  </div>
+</section>
 <section class="panel" id="homepageSection" aria-label="Homepage service status" style="margin-bottom:15px">
 <div class="panelhead"><div><h2>Infrastructure services</h2><div class="subtle tiny">Read-only HTTP(S) and TCP checks; optional homepage integration</div></div><span class="tag" id="homepageFeedBadge">WAITING FOR FEED</span></div>
 <div class="homepage-grid" id="homepageServiceGrid"><div class="subtle tiny">Loading service health…</div></div>
@@ -290,7 +339,7 @@ button,input{font:inherit}button{cursor:pointer}button:focus-visible,input:focus
 <article class="panel"><div class="panelhead"><h2>Suspected probes</h2><span class="subtle tiny">Heuristic path matches</span></div><div class="table-scroll"><table><thead><tr><th>Source / time</th><th>Path</th><th>Status</th></tr></thead><tbody id="recentProbes"></tbody></table></div></article>
 <article class="panel"><div class="panelhead"><h2>CrowdSec detections</h2><span class="subtle tiny">Reported alerts</span></div><div class="table-scroll"><table><thead><tr><th>Source</th><th>Scenario</th><th>Time</th></tr></thead><tbody id="crowdsecRows"></tbody></table></div></article>
 <article class="panel tablewide"><div class="panelhead"><h2>Recent HTTP requests</h2><span class="subtle tiny" id="eventCount">Most recent events (not full log archive)</span></div><div class="table-scroll"><table><thead><tr><th>Time</th><th>Source IP</th><th>Method</th><th>Requested URL</th><th>Status</th></tr></thead><tbody id="recentRows"></tbody></table></div></article></div></section>
-<footer class="footerline">NetSec v1.0.2 · Unknown-focused, operator-reviewed · Read-only Nginx HTTP(S) analytics and optional CrowdSec alerts. Risk indicator reflects configured thresholds, not a proof of safety, compromise, or complete network availability. SSH, firewall drops, and VPN attempts are not covered without additional log sources.</footer>
+<footer class="footerline">NetSec v1.1.0 · Unknown-focused, operator-reviewed · Read-only Nginx HTTP(S) analytics and optional CrowdSec alerts. Risk indicator reflects configured thresholds, not a proof of safety, compromise, or complete network availability. SSH, firewall drops, and VPN attempts are not covered without additional log sources.</footer>
 </main></div>
 <script>
 'use strict';
@@ -485,7 +534,7 @@ $('aiForceRefresh').addEventListener('click',aiForceRefresh);
     if(txt!==undefined && txt!==null)n.textContent=String(txt);
     return n;
   };
-  const hubTitles={command:'Command Hub',connections:'IP Connections',traffic:'Traffic Analytics',investigate:'Event Investigations',intel:'Source Intelligence'};
+  const hubTitles={command:'Command Hub',jimmy:'Jimmy Analyst',connections:'IP Connections',traffic:'Traffic Analytics',investigate:'Event Investigations',intel:'Source Intelligence'};
   let activeHub='command';
   let connWindow='24h',connScope='all',connSearch='',connSuspicious=false;
   let connData=null,connFetching=false,connSerial=0,connFetchedAt=0;
@@ -516,9 +565,11 @@ $('aiForceRefresh').addEventListener('click',aiForceRefresh);
         <div class="hub-ribbon-card"><small>Unique source IPs</small><strong id="hubSources">—</strong><span>Observed / 24h</span></div>
         <div class="hub-ribbon-card"><small>HTTP 401 + 403</small><strong id="hubDenied">—</strong><span>Auth challenges or denials</span></div>
         <div class="hub-ribbon-card"><small>Services responding</small><strong id="hubServices">—</strong><span id="hubServiceCaption">Waiting for health feed</span></div>
-      </section>`;
+      </section><button type="button" class="btn" onclick="location.hash='jimmy'">✦ Open Jimmy Analyst</button>
+      <p class="subtle tiny" id="jimmyCommandSummary">Jimmy: waiting for assessment</p>`;
     const sections={
-      command:['#geography','section.grid.hero','#homepageSection','#aiSection'],
+      command:['#geography','section.grid.hero','#homepageSection'],
+      jimmy:['#aiSection'],
       traffic:['section.grid.metrics','#traffic'],
       investigate:['#events'],
       intel:['#intelSection']
@@ -535,10 +586,12 @@ $('aiForceRefresh').addEventListener('click',aiForceRefresh);
     tabs.investigate.firstChild.innerHTML='<div><div class="hub-kicker">Investigation / Evidence</div><h2>Requests, alerts and log details</h2></div>';
     tabs.intel.prepend(makeH('div','hub-titleline'));
     tabs.intel.firstChild.innerHTML='<div><div class="hub-kicker">Administration / Source metadata</div><h2>Trusted IPs and assessment history</h2></div>';
+    tabs.jimmy.append(document.getElementById('jimmyWorkspace'));
+    document.getElementById('jimmyWorkspace').hidden=false;
     initConnections(tabs.connections);
     const nav=document.querySelector('.nav');
     nav.replaceChildren();
-    for(const [key,label] of Object.entries({command:'⌘  Command Hub',connections:'◎  IP Connections',traffic:'▥  Traffic Analytics',investigate:'≡  Investigations',intel:'◈  Source Intelligence'})){
+    for(const [key,label] of Object.entries({command:'⌘  Command Hub',jimmy:'✦  Jimmy Analyst',connections:'◎  IP Connections',traffic:'▥  Traffic Analytics',investigate:'≡  Investigations',intel:'◈  Source Intelligence'})){
       const b=makeH('button','',label);
       b.type='button'; b.dataset.hubTab=key;b.setAttribute('role','tab');
       b.setAttribute('aria-controls','hub-tab-'+key);
@@ -547,10 +600,10 @@ $('aiForceRefresh').addEventListener('click',aiForceRefresh);
     }
     nav.setAttribute('role','tablist');nav.setAttribute('aria-label','Dashboard pages');
     H('hubOpenConnections').addEventListener('click',()=>showHub('connections'));
-    const hash=location.hash.slice(1);
+    const hash=location.hash.slice(1).split('&')[0];
     showHub(hubTitles[hash]?hash:'command',false);
     window.addEventListener('hashchange',()=>{
-      const h=location.hash.slice(1);
+      const h=location.hash.slice(1).split('&')[0];
       if(hubTitles[h])showHub(h,false);
     });
     const oldRender=render;
@@ -948,7 +1001,7 @@ $('aiForceRefresh').addEventListener('click',aiForceRefresh);
     child.textContent=child.textContent.replace('READ-ONLY','MANUAL BANS ENABLED');
   }}}
   const footer=document.querySelector('footer.footerline');
-  if(footer)footer.textContent='NetSec v1.0.2 · Read-only traffic and diagnostics, operator-approved CrowdSec bans. IP geolocation and HTTP status codes are not proof of compromise. Nginx logs do not cover SSH or firewall traffic.';
+  if(footer)footer.textContent='NetSec v1.1.0 · Read-only traffic and diagnostics, operator-approved CrowdSec bans. IP geolocation and HTTP status codes are not proof of compromise. Nginx logs do not cover SSH or firewall traffic.';
   const previousRender=render;
   render=function(d){
     previousRender(d);aiStoplight(d.ai||{});drawChecks(d.ai||{});enhanceIntel(d);
@@ -1162,4 +1215,4 @@ $('aiForceRefresh').addEventListener('click',aiForceRefresh);
 })();
 
 refresh();
-</script></body></html>
+</script><script src="/jimmy-ui.js"></script></body></html>

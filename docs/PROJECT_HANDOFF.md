@@ -1,35 +1,25 @@
-# Project handoff — NetSec v1.0.2 (for another conversation or contributor)
+# NetSec 1.1.0 — project handoff
 
-## Intent
-- Standalone, Git-ready project release built by consolidating the personal NetSec 3.x patches through internal **3.8.5**. Public baseline version was **1.0.1**; this onboarding update is **1.0.2**, with future versions using SemVer.
-- This ZIP is the **entire reconstructed source project**, not a patch. Legacy patch ZIPs should not be needed for a clean rebuild.
-- No credentials, personal runtime logs, live AI assessments or source IP lists included. Real deployment config stays private.
+## State
+- Full standalone source archive, based on the verified 1.0.2 installer refinement and legacy 3.8.5-derived application. Version reset is deliberate: current semantic version **1.1.0**.
+- **Release candidate.** Offline regression and local HTTP tests passed; live Proxmox, installed mobile app, browser push providers and host Nginx CrowdSec cutover have not yet been validated together. Do not call it production verified.
+- Never embed user keys, Nginx passwords, TLS keys, real IP histories, or VAPID private keys in published repository files.
 
-## Existing functionality
-- Multi-tab dark dashboard: web request/status, source intelligence, commands, per-IP traffic, CrowdSec enforcement.
-- Jimmy local model assessments with structured retries, deterministic Nginx error/bouncer checks, opt-in sensitive-path probes, evidence-calibrated risk, manual refresh.
-- Proactive source labeling from AI; manual Friendly/Hostile/Watch etc classifications. AI labels are for presentation/filtering and cannot autonomously ban.
-- Manual root-worker CrowdSec bans require a verified reverse-proxy authenticated user and explicit operator action, no additional admin token. Configurable IP-pinned reverse proxy auth in `/etc/netsec-proxy-auth.json`.
-- Native Debian LXC services and exports, optional Open WebUI and CrowdSec.
+## Implemented
+- Command Hub, traffic and source intelligence tabs; evidence-calibrated Jimmy read-only Nginx/CrowdSec diagnostics; manual source metadata; optional controlled CrowdSec bans with operator auth.
+- Dedicated **Jimmy Analyst** tab: report ID/time, severity and evidence source limitations, persisted Ask Jimmy conversation, structured operator feedback (confirm/expected/own-IP/disagree/maintenance) with audit/TTL, and subsequent AI context. Operator assertions cannot override verified telemetry, and AI cannot generate actions or bans.
+- PWA manifest and icons, privacy-protecting offline page, responsive mobile workspace, authenticated opt-in Web Push, safe browser endpoint validation, private VAPID keys, red incident dedup, quiet periods, acknowledgement and optional single delayed escalation.
+- Generic HTTP/TCP service checks and automatic offline country database in host installer; optional separate CrowdSec LXC engine and explicit new-bouncer/cutover choices. Known Proxmox umask 077 → `/etc` mode 700 bug corrected during LXC create.
 
-## Important production history
-- Token vs Basic Auth `Authorization` header collision previously caused repeated browser login prompts; current app sends `X-NetSec-Action: dashboard` and Nginx forwards a verified username using `X-NetSec-Authenticated-User` while removing the Basic Auth `Authorization` header.
-- Some historical hotfixes failed preflight due to exact-code-string mismatch. Prefer versioned source deployment and semantic regression tests, not cumulative `str.replace`-based patches.
-- Risk evaluator used to report unsupported red alerts for successful CrowdSec denials and bounded upstream log errors. Current evidence-calibrated risk path separates defense activity, operational issues and compromise evidence.
-- Full-scan diagnostics were limited to one path per six hours before authorized mode; current opt-in path can cover configured hosts with a verified narrow CrowdSec probe-source allowance.
+## Files and services
+- App `/opt/server-status`, state `/var/lib/server-status` including `jimmy-workspace.sqlite3`, AI config `/etc/netsec-ai.env`, proxy auth `/etc/netsec-proxy-auth.json`, diagnostics `/etc/netsec-diagnostics.json`.
+- Push private identity `/etc/netsec-push.json` and `/etc/netsec-push-private.pem`, optional Python venv `/opt/netsec-push-venv`, timer `netsec-push.timer`.
+- CLI `scripts/proxmox-setup.sh` only from Proxmox host; manual in-LXC installer `scripts/install-lxc.sh --fresh|--upgrade`.
 
-## Next product request (NOT IMPLEMENTED)
-User selected a **NetSec installable mobile web app (PWA)** rather than Telegram/ntfy chat. Move Jimmy's **detailed security assessment to its own dedicated tab** and integrate contextual Ask Jimmy conversations, bidirectional operator feedback that influences subsequent assessments, and push alerts on new evidence-confirmed red incidents. Keep overview risk summary. See `docs/ROADMAP.md` for complete feature and acceptance definition.
+## User's deployment testing convention
+- Preserve existing working production LXC and remote public HTTPS admin access while testing replacement on a separate static-IP LXC. Host-wide bouncer changes are opt-in and backed up; keep old CrowdSec LAPI available for rollback until new enforcement is actually confirmed.
+- Provide **complete** Mac-to-host (normal SCP or temporary `curl -T ... https://qurl.sh` when remote), SHA-256 check, host/LXC `pct push` and extraction, full installation, verification and rollback instructions for every release.
+- Do not assume everything about personal `108`/`150` paths or credentials applies to other users.
 
-## Operational conventions
-- Main source `/opt/server-status`, data `/var/lib/server-status`, credential env `/etc/netsec-ai.env`, diagnostics `/etc/netsec-diagnostics.json`, auth policy `/etc/netsec-proxy-auth.json`.
-- On Proxmox, a common personal layout uses Debian LXC **108** with Nginx reverse proxy on host and CrowdSec in LXC; this ID is deployment-specific, not part of the public source code.
-- User may be **away from home**. New release instructions must include direct ZIP download, Mac upload to a temporary HTTPS link if SSH isn't reachable, host curl retrieval and checksum, `pct push` and extraction in LXC, backup, install and systemd checks. Never assume workstation can reach 192.168.x LAN.
-- Keep remote HTTPS access. Do not automatically insist on VPN-only administration or shutting off Proxmox public access as default.
-- Source of truth: code and docs in this archive. Validate against live system before claiming production parity; don't infer private config from example files.
-
-## v1.0.2 onboarding additions
-- New `scripts/proxmox-setup.sh` interactive host installer for static private IPv4/CIDR, gateway, DNS, LXC ID, template/storage, HTTPS Basic Auth, AI assistant name, and personal provider key.
-- New cloud OpenAI API or local Open WebUI/Ollama provider compatibility via `app/netsec_ai_provider.py`; cloud telemetry requires explicit consent.
-- No preconfigured author API credentials; source archive contains examples only.
-- The host installer is offline-checked but not yet live Proxmox end-to-end tested. Never assume v1.0.2 is validated solely because v1.0.1 was.
+## Next validation
+Run full clean Debian 12 Proxmox installation, test configured services/GeoIP, one real Open WebUI assessment + Ask Jimmy, operator feedback before/after, PWA installation and push self-test on physical phone, stable red dedup, Nginx bouncer last pull and controlled external 403 block. Then sign/tag the published GitHub release. See `docs/INSTALL_FROM_SCRATCH.md`.

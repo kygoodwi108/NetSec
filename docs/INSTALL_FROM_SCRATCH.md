@@ -1,163 +1,246 @@
-# NetSec v1.0.2 — From-scratch Proxmox installer
+# NetSec 1.1.0 — Complete fresh Proxmox installation guide
 
-The **v1.0.2 setup wizard** installs NetSec in a **new unprivileged Debian 12 LXC**, optionally provisions a separate HTTPS Nginx site, mounts Nginx logs read-only, optionally installs an independent CrowdSec detection engine, and configures an AI provider and assistant name. The wizard is for the **Proxmox host shell**. It is not meant to run inside an existing LXC.
+**Status:** release candidate. This package has automated tests and a local HTTP smoke test; **a full Debian 12 Proxmox + CrowdSec host-bouncer + phone push delivery test is still required**. Do not remove a working installation until the replacement and the rollback have been demonstrated. `scripts/proxmox-setup.sh` runs **on the Proxmox host**, creates **a new LXC**, and refuses existing IDs and Nginx virtual-host names. It does not support an in-place reinstall.
 
-> **Do not use this on a live NetSec container.** It refuses to replace an existing container ID or Nginx hostname, but Proxmox administrators must review commands and take backups before executing third-party scripts.
+## 1. Architecture and prerequisites
 
-## 1. Prerequisites
+```
+Internet / optional Cloudflare
+     │
+     ▼
+Proxmox host Nginx :443  ─── CrowdSec Nginx bouncer (host-wide; OPTIONAL)
+     │                          │
+     │                          └─ private relay (new NetSec LXC :8081) ── LAPI :8080
+     └─ HTTPS Basic Auth ── new NetSec Debian 12 LXC :8787
+                                    ├─ read-only bind mount of host Nginx logs
+                                    ├─ built-in HTTP/TCP checks of any host/VM/LXC
+                                    ├─ offline GeoIP + Jimmy scheduled analyst
+                                    ├─ authenticated assessment-specific chat/feedback
+                                    └─ optional Web Push worker (external browser push services)
+```
 
-- Existing supported Proxmox VE host with root shell access, functioning `vmbr0` or another bridge, Internet access, and enough disk space for a new LXC (at least 8 GiB).
-- A **free private static IPv4 address** on your LAN, with CIDR prefix (for example `192.168.1.50/24`), gateway and DNS server. Reserve the address in your router and make sure it is not used by another device. Ping alone cannot reliably detect IP conflicts.
-- Two active Proxmox storage locations (e.g., `local` for Debian template and `local-lvm` for LXC root disk). A new container ID, e.g. `150`.
-- For HTTPS setup: Nginx on the Proxmox host, publicly resolvable hostname pointed at the host, reachable inbound TCP/80 and TCP/443, and `certbot` plus `apache2-utils` on the host. The wizard uses the **HTTP-01 webroot challenge**. When using Cloudflare, set the new record to DNS-only temporarily for issuance, then optionally proxy it using **Full (strict)** TLS.
-- For security telemetry: Nginx should write combined-format access logs to `/var/log/nginx/access.log` on the host. This location is mounted **read-only** into the LXC. If you use another path, adapt the config after installation.
-- A personal provider credential, if you want AI: an **OpenAI project API key** from https://platform.openai.com/api-keys, or an Open WebUI API key and reachable self-hosted model. **A ChatGPT subscription is not an OpenAI API key or credit.**
+Required: Proxmox VE host shell as root; an unused LXC ID and static private LAN IPv4/CIDR outside the DHCP allocation; correct gateway, DNS and bridge; active template and root-disk storage; host Nginx, `nginx -t`, `certbot`, `apache2-utils`, `acl`, Python 3; Internet during installation. The LXC defaults to Debian 12, 2 CPU, 2 GiB RAM, 16 GiB disk. Provide more resources if the workload requires it.
 
-### Prepare tools on Proxmox host
+Run on **Proxmox host** before starting:
 
 ```bash
 apt-get update
-apt-get install -y git nginx certbot apache2-utils acl
+apt-get install -y git curl unzip nginx certbot apache2-utils acl
+nginx -t
+pvesm status
+pveam available --section system | grep debian-12-standard
 ```
 
-If your host already has Nginx and TLS configured, the wizard will create a **separate server block and password file**, not overwrite an existing site. Host bouncer configuration is a **separate opt-in** with a new-bouncer/cutover confirmation. On shared Nginx hosts, a cutover affects enforcement for **every** virtual host; leave it unchanged for staging.
+For HTTPS, your **new** FQDN must reach the host's TCP/80 and TCP/443, and the Let's Encrypt challenge must work (temporarily set a Cloudflare hostname DNS-only if required; afterwards use Full/Strict TLS). The wizard can reuse a certificate already on the host, but will never replace a conflicting Nginx site. Do not expose NetSec's LXC `:8787` or CrowdSec LAPI `:8080/:8081` directly to the Internet.
 
-## 2. Get the source and run the wizard
+A ChatGPT subscription is **not** OpenAI API credit. Choose either (a) OpenAI and **your** valid API key and model such as `gpt-4.1-mini`, or (b) a reachable Open WebUI instance, its private API key, and the **actual model ID** such as your local `jimmy` model. An assistant *display name* is not the model ID.
+
+## 2. Back up before replacing an existing NetSec
+
+**Skip this section only for a first installation with no prior NetSec.** Keep a live installation (e.g. LXC 108) running while you test a second LXC (e.g. 150).
+
+On host, make a private directory and capture machine-readable configs:
 
 ```bash
-cd /root
-git clone https://github.com/kygoodwi108/NetSec.git netsec-source
-cd netsec-source
-# After v1.0.2 is published, prefer the immutable v1.0.2 tag:
-git checkout v1.0.2
+BACKUP="/root/netsec-before-1.1.0-$(date -u +%Y%m%dT%H%M%SZ)"
+install -d -m 0700 "$BACKUP"
+pct config 108 > "$BACKUP/ct108.config.txt"    # adjust for your live CTID
+cp -a /etc/nginx "$BACKUP/nginx"
+cp -a /etc/letsencrypt "$BACKUP/letsencrypt"
+if [ -d /etc/crowdsec/bouncers ]; then cp -a /etc/crowdsec/bouncers "$BACKUP/bouncers"; fi
+chmod 700 "$BACKUP"
+# Verify a Proxmox backup storage has sufficient space and backup content enabled.
+vzdump 108 --mode snapshot --storage local --compress zstd
+# Record the exact backup filename and make sure it can be listed/read.
+ls -lh /var/lib/vz/dump/vzdump-lxc-108-*.tar.zst | tail -3
+```
+
+The backup contains secrets and private IP data. **Never upload it to GitHub, qurl.sh, or public file-transfer services.** Host Nginx, TLS keys and CrowdSec bouncer config are outside the LXC and require the separate copies above. A second separate/private off-host copy is prudent before destructive replacement. `vzdump` support and backup location depend on Proxmox storage; do not proceed on a failed backup.
+
+## 3. Get the complete release on Proxmox (local or remote)
+
+The recommended artifact is the **full source ZIP**, not a legacy cumulative patch. Download `netsec-v1.1.0-source.zip` from the release attached to this conversation or a verified official release after publication.
+
+**Mac on the same LAN / SSH available:** in macOS Terminal:
+
+```bash
+scp ~/Downloads/netsec-v1.1.0-source.zip root@192.168.1.10:/root/
+```
+
+Replace the IP for other installations. If your Mac is **away from home** and cannot SSH to the private host, keep using your existing temporary HTTPS link workflow. On Mac:
+
+```bash
+curl -fsS -T ~/Downloads/netsec-v1.1.0-source.zip https://qurl.sh
+```
+
+Copy the **actual returned private temporary HTTPS download URL** (never invent it). In the Proxmox web Shell:
+
+```bash
+curl -fL --retry 3 -o /root/netsec-v1.1.0-source.zip 'PASTE_RETURNED_TEMPORARY_URL'
+sha256sum /root/netsec-v1.1.0-source.zip
+```
+
+Compare the displayed SHA-256 with the separately published **verified release hash**. Abandon the file on mismatch; never guess a hash. This transfer is only for **public source code**, not private backups or keys. Delete the temporary uploaded copy after verification as supported by the transfer service.
+
+**Extract + test on Proxmox host:**
+
+```bash
+mkdir -p /root/netsec-1.1.0
+unzip -q /root/netsec-v1.1.0-source.zip -d /root/netsec-1.1.0
+cd /root/netsec-1.1.0/netsec-v1.1.0
+cat VERSION                        # expect 1.1.0
+bash ci/check.sh                    # offline tests before creating a container
+bash -n scripts/proxmox-setup.sh
 bash scripts/proxmox-setup.sh --help
+```
+
+If you instead run the wizard from a Git checkout, **first verify the checkout's `VERSION` says `1.1.0`** and that its source matches the reviewed release. Don't run an old `main` branch and assume it includes 1.1.0.
+
+## 4. The interactive wizard: what every question means
+
+On **Proxmox host**, from the extracted source:
+
+```bash
+cd /root/netsec-1.1.0/netsec-v1.1.0
 bash scripts/proxmox-setup.sh
 ```
 
-If v1.0.2 has **not** yet been tagged or merged, use the reviewed v1.0.2 release-candidate archive/branch instead; **do not** run the older v1.0.1 installer expecting these new features.
+Typical **staging example** (adapt to your network; never copy a live IP used by another CT):
 
-The wizard asks:
-
-| Setting | Example | Notes |
+| Prompt | Example | Meaning |
 |---|---|---|
-| Container ID / hostname | `150` / `netsec` | Must be unused |
-| Static IP/CIDR, gateway, DNS | `192.168.1.50/24`, `192.168.1.1`, `192.168.1.1` | Must match your actual network, not copied blindly |
-| Bridge and storage | `vmbr0`, `local`, `local-lvm` | Actual Proxmox resources |
-| Assistant name | `Jimmy`, `Sentinel`, `Guardian AI` | Used in UI and AI prompts; 1–32 safe characters |
-| AI provider | OpenAI / Open WebUI / None | Cloud provider explicitly opted into |
-| AI model | `gpt-4.1-mini` or local model name | Must support Chat Completions with JSON output |
-| API key | Private input | **Not printed**; never hard-code a key into GitHub |
-| Public hostname and admin login | `netsec.example.org`, `netsecadmin` | Distinct Nginx site and password file |
-| Log mount / CrowdSec / timers | opt-in prompts | Read-only monitoring by default; AI timers may incur charges |
-| Portable service checks | HTTP(S) URL or TCP host and port | Works for any server, VM or container; no Homepage dependency |
-| Nginx CrowdSec bouncer | Keep unchanged / New / Explicit cutover | **Host-wide**; existing config backup and Nginx reload checks |
+| New unused LXC ID | `150` | Must not exist. Never enter `108` if production still exists |
+| Container hostname | `netsec-test` | Local Linux hostname; not an FQDN |
+| Static private IP/CIDR | `192.168.1.50/24` | Reserve it on your LAN |
+| Gateway | `192.168.1.1` | Actual LAN router |
+| DNS | `1.1.1.1` | Use a resolver reachable by the LXC; setup checks DNS as `_apt` |
+| Network bridge | `vmbr0` | Proxmox bridge |
+| Template storage / disk storage | `local` / `local-lvm` | Must be active |
+| Disk | `16` | GiB |
+| Assistant name | `Jimmy` | On-screen name, **not the AI model** |
+| AI provider | `1` OpenAI, `2` local Open WebUI, `3` none | Choose **2** for a local model named `jimmy` |
+| Model ID | e.g. `gpt-4.1-mini` or `jimmy` | Must match the selected provider |
+| API key | hidden | Never upload or paste into issue/chat/GitHub |
+| HTTPS hostname | `netsec-test.example.com` | Must be publicly DNS-resolvable; separate from existing production site |
+| HTTPS email/login/password | Your own | Password ≥12 chars; Nginx Basic Auth serves the app |
+| Read host Nginx logs | Yes | Read-only host mount with mapped UID ACL |
+| CrowdSec engine | Yes for detection | A standalone engine inside the new LXC |
+| Bouncer | Keep / New / Cutover | **Host-wide**, see §5 |
+| AI automation | Optional | Sends requests repeatedly; enable only after one-shot test |
+| Web Push | Optional | Requires HTTPS, external push service and device opt-in |
 
-**Do not paste an API key into GitHub, shell commands, an issue, a chat, or a public configuration.** The installer reads it through a hidden prompt, transfers it via a short-lived root-only file in `/run`, and stores it as `/etc/netsec-ai.env` with group access restricted to `statusdash`. The app reads it as a systemd environment file. On a compromised Proxmox root account secrets can still be read.
+### The service-monitoring question — **this is where you add services**
 
-## 3. What the installer actually does
+You will see `=== INFRASTRUCTURE MONITORING ===` and:
 
-1. Validates the requested new LXC ID, private IPv4/CIDR, gateway, disk settings, hostname, assistant name and model. Rejects local-only model identifiers for the OpenAI provider; API key/model validity is confirmed only by a real provider test.
-2. Downloads Debian 12 template; provisions a **new** unprivileged container with your static IP; installs Python prerequisites. The installer temporarily uses `umask 0022` during `pct create`, ensuring `/etc` is traversable by `_apt`. It checks `_apt` DNS readiness before APT updates and treats repository failures as errors.
-3. Deploys the exact local source checkout, executes `ci/check.sh`, then runs `scripts/install-lxc.sh --fresh` in the new LXC.
-4. Writes user-specific `assistant_name` and optional generic `services` checks into `/opt/server-status/config.json`; downloads the offline DB-IP Country Lite database using `statusdash` and enables the monthly refresh timer. An unavailable database is reported as a warning, never a successful map.
-5. If AI is selected, stores **your** API key and provider/model details under `/etc/netsec-ai.env`. API requests use either Open WebUI's `/api/chat/completions` or OpenAI's official `/v1/chat/completions` with provider-specific request shaping.
-6. Optionally grants read-only access to existing Nginx logs and installs an independent CrowdSec detection engine. Existing host bouncer is left unchanged by default. New bouncer connection/cutover is optional, with an explicit confirmation for host-wide enforcement changes. Always verify a controlled test decision separately.
-7. Optionally provisions a separate HTTP/HTTPS Nginx virtual host, a new Basic Auth password file, an HTTP-01 Let's Encrypt certificate, and `/etc/netsec-proxy-auth.json` with IP-pinned proxy authentication.
-8. Only enables automated AI timers if explicitly selected **and** a real one-shot AI assessment succeeds; a failed provider credential/model test leaves timers disabled. The manual-ban worker is disabled pending an independently verified bouncer enforcement test.
+```text
+Configure your servers/websites now? [Y/n]:
+Add service name (e.g. Proxmox VE, Nginx, Plex; blank only when finished): Proxmox VE
+Type: 1=HTTP(S), 2=TCP [1]: 2
+Host IPv4/DNS (without port): 192.168.1.10
+TCP port (1-65535) [8006]: 8006
 
-**The installation can partially succeed before a later step fails** (for example, certificate issuance). Fix DNS, routing or credentials, then complete the remaining steps manually rather than running the new-container wizard again with the same ID. The installer deliberately does not destroy a partially configured LXC. It does not support in-place reinstallations. On Proxmox hosts with production Nginx/CrowdSec, take an independent backup **before** removing an old NetSec container or changing a host bouncer.
+Add service name (e.g. Proxmox VE, Nginx, Plex; blank only when finished): Nginx
+Type: 1=HTTP(S), 2=TCP [1]: 2
+Host IPv4/DNS (without port): 192.168.1.10
+TCP port (1-65535) [8006]: 443
 
-## 4. AI privacy, usage and provider choice
-
-**OpenAI:** You provide **your own** API key. NetSec sends bounded security metrics for assessments and source IP/path evidence for auto-labeling to OpenAI, which means some infrastructure information leaves your LAN. The user must explicitly consent. API usage is billed separately from ChatGPT. Choose an appropriate model and monitor usage, especially if recurring classification handles many IPs. Users can disable the timers with:
-
-```bash
-pct exec YOUR_CTID -- systemctl disable --now netsec-ai.timer netsec-source-ai.timer
+Add service name (e.g. Proxmox VE, Nginx, Plex; blank only when finished):
 ```
 
-**Open WebUI/Ollama:** You provide the origin URL, local model ID and Open WebUI API key. Existing legacy `/etc/netsec-ai.env` files using `OWUI_URL`, `OWUI_KEY`, `OWUI_MODEL` still work. The `NETSEC_AI_*` settings have priority for new installations.
+**The final blank name ends the list, not the entire server installation.** The wizard prints the named endpoints before creation. If you selected monitoring but added zero services, it prints a warning and makes you explicitly confirm continuing without them. `Y`/Enter on the first prompt means yes; don't leave subsequent service names blank if you want them monitored. HTTPS endpoints with self-signed certificates are better represented by TCP checks, which indicate reachability only. Checks do **not** verify Proxmox VM power states or the internals of an application.
 
-**None:** NetSec functions as an Nginx/CrowdSec dashboard; AI advisory components are not scheduled. Later, create `/etc/netsec-ai.env` based on `config/netsec-ai.env.example` and enable the timers yourself.
+For another person's server, enter their real IPs or hostnames, ports, or HTTP(S) health URLs. **Nothing here is tied to the author's homepage.** Advanced users can edit `services` in `/opt/server-status/config.json` after install, then restart `server-status.service`.
 
-**Naming:** Your chosen AI name replaces visible "Jimmy" labels in the served dashboard and is included in the report/AI prompts. It doesn't create a new or privately fine-tuned AI model. Model reasoning and product behaviour remain subject to the selected provider.
+## 5. CrowdSec Nginx bouncer: three choices (important)
 
-## 5. Verify from your Proxmox shell
+The CrowdSec **engine** detects; the **bouncer** enforces. The engine is independent inside the LXC; the bouncer runs where Nginx runs (the Proxmox host in this example).
+
+1. **Keep current host bouncer unchanged** — default, safe for testing. CrowdSec in the LXC observes logs, while the host's existing bouncer remains connected to its current LAPI. No newly detected decisions on the new engine are enforced by the old bouncer.
+2. **New host Nginx bouncer** — use only if the host does not already have a configured bouncer. The wizard checks the package, config and relay before changing files.
+3. **Cut over existing host bouncer** — changes the LAPI used for **every Nginx site** on this host. Requires explicit typed `SWITCH-TO-<CTID>` confirmation, backups, and `nginx -t`. Only after a known-good backup and a deliberate cutover window. If the existing config has an unrecognized `.conf.local` override, the helper refuses auto-change and requires manual reconciliation.
+
+On a host with existing production Nginx/CrowdSec, **do not choose New** to bypass a working bouncer. Do not erase the old CrowdSec engine until a controlled test demonstrates the new bouncer is connected and blocks a chosen safe test IP. The installer leaves manual dashboard ban execution disabled until verified separately. Registered bouncer ≠ recent LAPI pull ≠ confirmed blocking.
+
+To check on Proxmox after the bouncer is configured:
 
 ```bash
-CTID=150   # change to your container ID
+pct exec 150 -- cscli lapi status
+pct exec 150 -- cscli bouncers list
+pct exec 150 -- systemctl is-active netsec-lapi-relay.service
+nginx -t
+```
+
+For a controlled test, add a **temporary, non-trusted test IP** to the new CrowdSec LAPI, use an outside test client at that IP, expect an actual Nginx denial, then remove the decision. **Never test-ban your own admin IP, Cloudflare shared proxy IP, or the Proxmox host.** Exact synthetic enforcement depends on your reverse-proxy/logging/real-client-IP setup. When Cloudflare is used, configure trusted proxy headers properly or the bouncer may see the wrong source IP. Backup location used by the cutover helper is printed as `/root/netsec-bouncer-backups/...-ct<CTID>` on the Proxmox host.
+
+## 6. GeoIP, Jimmy chat, PWA and Web Push
+
+- GeoIP is downloaded by the installer as the non-root `statusdash` user and refreshed monthly. A network failure prints `WARNING`; it never silently marks the map active.
+- Jimmy detailed assessment lives on **Jimmy Analyst** tab. The Command Hub retains heuristic risk and a concise Jimmy summary.
+- `Ask Jimmy` requires an authenticated HTTPS operator session. Each chat is tied to a saved assessment ID/time, with local history. It uses **your configured AI provider** and includes bounded read-only checks of configured HTTP/TCP services and local enforcement export; it does not execute model-proposed commands, run arbitrary shell commands, or create bans.
+- Operator feedback: **I confirm**, **That is expected**, **I own this IP**, **I disagree**, **Maintenance until...**. Records include author, UTC timestamp and expiry. Only the explicit IP-ownership action writes a friendly *dashboard metadata label*, not CrowdSec enforcement. Feedback enters subsequent AI prompts as **unverified operator context**; deterministic risk evidence remains authoritative and reports show a before/after severity comparison.
+- PWA: on Android use **Install App/Add to Home screen** in your browser. On iPhone use **Safari → Share → Add to Home Screen**, then open the installed app. On supported iOS (16.4+), push permission is only offered after Home Screen installation and a direct click. All devices need HTTPS, a successful Nginx Basic Auth login and explicit notification permission.
+- Web Push is optional. Setup installs `pywebpush==2.5.0` into `/opt/netsec-push-venv`, creates private VAPID key material under `/etc/netsec-push*`, and enables `netsec-push.timer`. These files **must never** go into GitHub or a public source release. Browser push providers are external, so subscription delivery uses their services; no log content/IP details appear in a notification. Users subscribe from Jimmy's tab and can send a self-test.
+- Notifications are deduplicated for a continuing evidence-calibrated red incident, with a six-hour repeat suppression for the same reason category. Operator-controlled quiet periods (0-72h), acknowledgements and an optional single delayed reminder (1/3/8h) are available. These are **advisory**, never autonomous CrowdSec actions.
+- Rotating VAPID keys is a **manual**, disruptive administrator action: `pct exec 150 -- bash /root/netsec-setup/scripts/rotate-push-vapid-lxc.sh ROTATE-VAPID`. Existing device subscriptions are invalidated and users must opt in again; private old-key backups stay on the LXC host root directory.
+
+## 7. Verify the entire deployment before using it
+
+On Proxmox:
+
+```bash
+CTID=150
 pct status "$CTID"
 pct exec "$CTID" -- systemctl is-active server-status.service
-pct exec "$CTID" -- curl -sS -o /dev/null -w '%{http_code}\n' http://127.0.0.1:8787/api/status
-pct exec "$CTID" -- curl -sS -o /dev/null -w '%{http_code}\n' http://127.0.0.1:8787/api/operator/session
 pct exec "$CTID" -- bash /root/netsec-setup/scripts/verify.sh
+pct exec "$CTID" -- stat -c '%a %n' /etc
+pct exec "$CTID" -- runuser -u _apt -- getent ahostsv4 deb.debian.org
+pct exec "$CTID" -- python3 -c 'import json;d=json.load(open("/opt/server-status/config.json"));print(json.dumps(d.get("services",[]),indent=2))'
+pct exec "$CTID" -- curl -sS -o /dev/null -w 'API %{http_code}\n' http://127.0.0.1:8787/api/status
+pct exec "$CTID" -- curl -sS -o /dev/null -w 'PWA %{http_code}\n' http://127.0.0.1:8787/manifest.webmanifest
+pct exec "$CTID" -- curl -sS -o /dev/null -w 'Push worker page %{http_code}\n' http://127.0.0.1:8787/sw.js
+pct exec "$CTID" -- curl -sS -o /dev/null -w 'Privileged API %{http_code}\n' http://127.0.0.1:8787/api/jimmy/workspace
 ```
 
-Expected dashboard API `200`; privileged endpoint direct to the backend `403`.
-
-If HTTPS was configured:
+Expected: dashboard/PWA/service-worker `200` and **direct privileged workspace `403`**. A direct unauthenticated privileged API returning `200` is a **critical failure: stop before exposure**. `/etc` must be `755` and `_apt` should resolve Debian's hostname.
 
 ```bash
-curl -sS -o /dev/null -w '%{http_code}\n' https://netsec.example.org/
-curl -u netsecadmin https://netsec.example.org/api/operator/session
-```
-
-Expect `401` unauthenticated and `ok: true` with the correct username when signed in. Don't expose the container's port 8787 to the public internet; only the trusted Nginx host should be able to reach it. Verify upstream reachability from your LAN and restrict direct API access with appropriate firewall rules. Keep Proxmox, log ACLs and TLS renewal under ordinary host maintenance.
-
-For AI test without recurring scheduling:
-
-```bash
-pct exec "$CTID" -- systemctl start netsec-ai.service
+pct exec "$CTID" -- ls -lh /var/lib/server-status/geoip-country.sqlite3
+pct exec "$CTID" -- systemctl list-timers --all | grep netsec
+pct exec "$CTID" -- systemctl start netsec-ai.service   # one real call, may be billable
 pct exec "$CTID" -- systemctl show netsec-ai.service -p Result -p ExecMainStatus
 pct exec "$CTID" -- journalctl -u netsec-ai.service -n 25 --no-pager
+nginx -t
+curl -I https://netsec-test.example.com/                  # without login should be 401
 ```
 
-Expected `Result=success`, `ExecMainStatus=0`; the one-shot service being `inactive` afterward is normal.
+The AI `oneshot` service normally ends inactive after success; `Result=success` and `ExecMainStatus=0` are key. Test a real Ask Jimmy message and feedback submission while logged in. Refresh the AI analysis and verify the new report references operator feedback separately from evidence. Verify manually selected service checks appear in the UI and that GeoIP has country rows from public client IP traffic.
 
-## 6. Updates, sharing and recovery
-
-GitHub source and all docs **must not contain** real passwords, private API keys, security logs, or runtime databases. Always back up the LXC before updating, and keep host Nginx sites/certs in a separate private backup. See `docs/MIGRATION.md`. The wizard is only for **brand-new containers**; `scripts/install-lxc.sh --upgrade` is for reviewed upgrades and isn't called by the wizard.
-
-To contribute, fork the public GitHub project, create a branch, run `bash ci/check.sh`, and open a PR. Give users stable version tags and GitHub release assets rather than expecting them to install unreviewed `main`.
-
-## 7. Generic infrastructure service monitoring (no homepage required)
-
-The installer asks whether to configure **read-only direct checks**. Supported probes:
-
-- **HTTP/HTTPS:** a GET to an administrator-selected status URL, e.g. `https://app.example.org/health`. HTTP 2xx–4xx means the web endpoint is responding (401/403 can mean authentication is required); 5xx and connectivity failure are down.
-- **TCP:** connect to a specified DNS name/IP and port, e.g. Proxmox web console `192.168.1.10:8006`, a VM's SSH `192.168.1.20:22`, or a service port in an LXC. A successful TCP handshake proves the port is reachable, **not** that the VM is healthy or its application is fully operational.
-
-The checks run inside the new NetSec LXC; confirm its network can reach your target. Checks are parallel and bounded (maximum 25, ~2.5 seconds timeout per endpoint, ~25 seconds cache). No Proxmox administrator token is needed. For a self-signed Proxmox web UI, use **TCP 8006** rather than disabling HTTPS certificate validation. Do not put API keys in service URLs.
-
-After installation, checks are editable in `/opt/server-status/config.json` under `services`:
-
-```json
-"services": [
-  {"name": "Proxmox Web Console", "type": "tcp", "host": "192.168.1.10", "port": 8006},
-  {"name": "Plex Web", "type": "http", "url": "http://192.168.1.30:32400/web"},
-  {"name": "Example Site", "type": "http", "url": "https://example.org/health"}
-]
-```
-
-Restart the dashboard after editing (`systemctl restart server-status.service` inside the LXC). A legacy homepage feed remains optional via `homepage_status_file`, but never needs to be installed or copied for a generic NetSec deployment.
-
-## 8. Optional CrowdSec Nginx bouncer integration
-
-The CrowdSec detection engine and an enforcement **bouncer** are separate. The host installer offers three choices: (1) leave the existing host bouncer unchanged (default), (2) configure a **new** host bouncer when none is configured, (3) explicitly cut over an **existing** bouncer to the new LXC's CrowdSec engine using a typed confirmation.
-
-The new/cutover flow starts a restricted LAPI relay on `LXC_IP:8081` accepting only the Proxmox host IP, uses the official `crowdsec-nginx-bouncer` package, backs up `/etc/crowdsec/bouncers/crowdsec-nginx-bouncer.conf` in `/root/netsec-bouncer-backups/`, registers a fresh bouncer key, updates the actual main bouncer configuration and validates/reloads Nginx. It refuses to touch a `.conf.local` override with uncertain precedence. If Nginx validation/reload fails, it attempts to restore the previous config.
-
-**Before cutover:** back up the working production container, `/etc/nginx`, `/etc/crowdsec/bouncers`, and the host's active Nginx config. One Nginx bouncer affects **all** hosted sites, not just NetSec. Cloudflare-fronted sites require correctly configured trusted proxy IP parsing so bans apply to real visitors, not Cloudflare edge addresses. Keep existing protection in place when testing staging.
-
-**After registration:** check `cscli bouncers list` and its last pull against the new LAPI. Do not infer enforcement solely from a registered key or successful `nginx -t`; conduct a controlled short-lived block test from a separate, disposable test IP and confirm a denial, then remove the test decision. The first-time installer deliberately leaves the manual ban worker disabled until enforcement is proven.
-
-The installer cannot automatically install CrowdSec bouncers for every server layout (Nginx Proxy Manager, Traefik, Caddy, remote firewalls, etc.). Those remain manual integrations; no existing bouncer is silently replaced.
-
-## 9. Offline country mapping
-
-At install time, NetSec runs:
+If opted into Web Push:
 
 ```bash
-runuser -u statusdash -- python3 /opt/server-status/geoip_update.py
+pct exec "$CTID" -- systemctl is-active netsec-push.timer
+pct exec "$CTID" -- systemctl start netsec-push.service
+pct exec "$CTID" -- journalctl -u netsec-push.service -n 25 --no-pager
 ```
 
-Monthly refresh is handled by `netsec-geoip-update.timer`. If the initial download fails, the installer warns and the map remains visibly unconfigured until the command succeeds; it never sends visitor IPs to an external lookup service.
+On a supported real phone: install PWA, sign in, enable notifications, run self-test, receive notification, tap to open Jimmy (authenticate if needed), and acknowledge a test incident. Fake simulated red status in a unit test is **not** equivalent to verified Nginx/CrowdSec red detection or live push provider delivery.
+
+## 8. Complete staging → production cutover and rollback planning
+
+If the old installation is still active, keep it until **all** of the above checks have passed. Take a second backup before any host-wide bouncer cutover, and record its printed backup directory. Do not remove the current production Nginx site until its configuration, Basic Auth file and TLS keys are privately backed up. Fresh wizard refuses an existing domain—use a separate staging domain, then plan the intentional DNS/Nginx cutover.
+
+A safe rollback from a failed bouncer cutover involves restoring the saved host bouncer config, `nginx -t && systemctl reload nginx`, and keeping or restarting the former CrowdSec LAPI. For failed app deployments, restore the existing LXC or `vzdump` archive only after verifying the exact CTID and backup path. A replacement same-ID restore requires stopping/destroying the failed replacement first; **do not run it on your old active 108**. Ensure host Nginx upstream IP and certificate still point to the intended container. Never assume restoring a NetSec LXC automatically restores host Nginx, TLS or CrowdSec bouncer state.
+
+## 9. Manual file transfer/install inside an already-created **test** LXC
+
+This is **not** a substitute for the complete host wizard when testing auto-provisioning, but it is useful for a reviewed upgrade or recovery. On Proxmox, with a trusted, unpacked release and a **non-production** target LXC:
+
+```bash
+CTID=150
+pct push "$CTID" /root/netsec-v1.1.0-source.zip /root/netsec-v1.1.0-source.zip
+pct exec "$CTID" -- python3 -m zipfile -e /root/netsec-v1.1.0-source.zip /root/netsec-release
+pct exec "$CTID" -- bash /root/netsec-release/netsec-v1.1.0/scripts/install-lxc.sh --fresh
+```
+
+This manual path does **not** automatically set up host Nginx/HTTPS, CrowdSec, GeoIP, AI credentials or Web Push. For complete fresh provisioning, always use `scripts/proxmox-setup.sh` from the **Proxmox host** instead. Do not run `--fresh` over an existing app; reviewed upgrades use `--upgrade` with a verified backup and compatibility checks.

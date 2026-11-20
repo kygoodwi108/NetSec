@@ -122,7 +122,13 @@ def _model_content(response):
 def analyze_model(telemetry, verification, status, model, base, key, http_json,
                   validate_reply, extract_json_object):
     e=evidence(telemetry,verification,status)
-    ctx=json.dumps(compact_context(e),ensure_ascii=False,separators=(',',':'))
+    # The compact original evidence stays the authoritative source. Additional
+    # operator assertions can shape follow-up questions but never calibrate red.
+    context=compact_context(e)
+    feedback=telemetry.get('operator_feedback') or {}
+    context['operator_supplied_context']={'origin':'operator assertion, not verified telemetry',
+        'items':(feedback.get('items') or [])[:12]}
+    ctx=json.dumps(context,ensure_ascii=False,separators=(',',':'))[:14500]
     attempts=[]
     for n in range(3):
         # Most providers accept json_object; schema is used where available.

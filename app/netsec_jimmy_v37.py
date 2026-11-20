@@ -108,16 +108,24 @@ def build_review(verification, status=None):
                          'last_results':paths,
                          'next_test': _clip(sensitive.get('limits'),260),
                          'note':'404/403 does not prove every path safe; 200 does not alone prove disclosure.'}
-    service = status.get('homepage') or {}
-    statuses = status.get('services') or []
-    service_fresh = service.get('state') == 'fresh'
+    # The 1.1.0 standalone deployment uses direct HTTP/TCP checks by default.
+    # Unlike the old homepage-only assessment, these become valid evidence too.
+    source=status.get('service_source')
+    service=(status.get('homepage') or {}) if source=='homepage' else (status.get('service_monitor') or {})
+    statuses=status.get('services') or []
+    service_fresh=(service.get('state')=='fresh' if source=='homepage' else service.get('state')=='checked')
+    try:
+        checked=dt.datetime.fromisoformat(str(service.get('checked_at','')).replace('Z','+00:00'))
+        if checked.tzinfo is None or abs((dt.datetime.now(dt.timezone.utc)-checked).total_seconds())>180:
+            service_fresh=False
+    except (ValueError,TypeError):service_fresh=False
     service_counts = {label:sum(x.get('status')==label for x in statuses if isinstance(x,dict))
                       for label in ('up','down','stale','unknown')}
-    services = {'source':'Read-only homepage service feed', 'fresh':service_fresh,
-                'state':service.get('state') if service else 'not_available',
+    services = {'source':'Legacy read-only homepage feed' if source=='homepage' else 'NetSec HTTP/TCP direct reachability',
+                'fresh':service_fresh,'state':service.get('state') if service else 'not_available',
                 'checked_at':service.get('checked_at'),
                 'counts':service_counts if service_fresh else {},
-                'limitation':'HTTPS reachability, not authenticated application or host integrity'}
+                'limitation':'HTTP/TCP reachability, not authenticated application or host integrity'}
     scheduled = []
     if sensitive.get('state') in ('partial', 'unavailable', 'not_configured'):
         scheduled.append({'id':'sensitive_paths', 'state':'scheduled' if sensitive.get('state')=='partial' else 'needs_configuration',

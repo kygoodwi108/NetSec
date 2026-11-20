@@ -19,6 +19,7 @@ import smtplib
 import sys
 import tempfile
 import netsec_ai_provider as AP
+import netsec_jimmy_store as JSTORE
 import netsec_intel as NI  # NetSec v3 intelligence
 import netsec_evidence as IE  # NetSec v3.1 incident evidence
 import netsec_jimmy_context as JC  # NetSec v3.4 operator context
@@ -215,6 +216,14 @@ def main():
             raise RuntimeError('No readable Nginx logs; cannot assess risk')
         telemetry=metrics_for_model(status)
         telemetry['operator_context']=JC.build_context(status,cfg)
+        # Operator feedback is persistent and timestamped, but remains an
+        # assertion, never independently verified telemetry or a ban signal.
+        feedback=JSTORE.active_feedback(20)
+        telemetry['operator_feedback']={'origin':'authenticated_operator',
+            'status':'unverified_context_only',
+            'items':[{'action':x['action'],'ip':x['ip'],'note':x['note'][:250],
+                'created_at':x['created_at'],'expires_at':x['expires_at']}
+                for x in feedback]}
         meta=status.get('intel') or {}
         telemetry['scope']='unknown / unconfirmed IPs for all Nginx-derived metrics'
         telemetry['trusted_ip_context']={'confirmed_friendly_ips':meta.get('trusted_count',0),
@@ -264,6 +273,18 @@ def main():
                 'source_generated_at':status.get('generated_at'),'verification_results':verification,
                 'risk_assessment':risk_assessment,'model_response':response_meta,**advice,
                 'warning':'AI interpretation is advisory and may be inaccurate. No blocking or server changes are performed.'}
+        # Explain feedback's limits and show the comparison against the prior
+        # evidence-calibrated assessment; do not rewrite observed facts.
+        old_report={}
+        try:
+            old_report=json.loads(OUT_FILE.read_text())
+        except (OSError,ValueError):pass
+        prev_severity=old_report.get('severity')
+        report['operator_feedback_context']={
+            'active_count':len(feedback),'provenance':'operator statement, not independently verified',
+            'interpretation':'Used as model context; deterministic corroborated evidence still controls calibrated severity',
+            'severity_before':prev_severity or 'none', 'severity_after':report['severity'],
+            'reason':'Calibrated from current bounded verification; feedback alone cannot change proven event severity'}
         atomic_json(OUT_FILE,report)
         AR.succeeded(report)
         try:

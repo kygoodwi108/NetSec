@@ -1,4 +1,4 @@
-# Architecture v1.0.1
+# Architecture v1.1.0
 
 ```text
 Internet -> authenticated HTTPS Nginx (on Proxmox) -> dashboard LXC :8787
@@ -34,3 +34,12 @@ AI source classification: logs -> Open WebUI -> advisory SQLite label; no ban ed
 
 ## Primary services
 `server-status.service`, `netsec-ai.service/.timer`, `netsec-source-ai.service/.timer`, `netsec-ai-manual.path`, `netsec-ban-worker.path`, `netsec-alert-export.timer`, `netsec-enforcement-export.timer`, `crowdsec.service` (installed separately).
+
+
+## 1.1.0 Jimmy workspace and push
+
+The main `app.py` listens on the private LXC address and serves `/api/status` plus authenticated `/api/jimmy/*` and `/api/push/*`. Writes require IP-pinned Nginx Basic Auth identity and same-origin `X-NetSec-Action: dashboard` checks. Conversation/feedback/subscription state is local SQLite under `/var/lib/server-status`, accessible only to `statusdash`. The scheduled analyst **reads** feedback without writing to SQLite; it treats assertions separately from verification data.
+
+An opt-in `netsec-push.timer` runs `netsec_push.py` through an isolated `pywebpush` venv; it reads the latest deterministic calibrated report, deduplicates verified red incidents, and sends only generic notifications through trusted Web Push service endpoints. VAPID private key and subscriber crypto material are not in the public repository.
+
+The service worker stores only an anonymous `/offline.html` page; it never caches authenticated APIs, logs, conversations or credentials.

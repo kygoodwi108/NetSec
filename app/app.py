@@ -1,4 +1,4 @@
-# NetSec product release v1.0.2 (consolidated standalone distribution)
+# NetSec product release v1.1.0 (dedicated Jimmy analyst workspace / PWA)
 # NetSec v3.8.5 netsecadmin reverse proxy authorization
 # NetSec v3.8.2 metadata token / Basic Auth separation
 # NetSec v3.8 proactive source intelligence
@@ -34,6 +34,7 @@ import netsec_bans as NB  # Authenticated queue for root ban worker
 import netsec_jimmy_checks as NCHK  # Read-only diagnostics and bouncer denials
 import netsec_manual_refresh as NMR  # NetSec AI reliability v3.2
 import netsec_proxy_auth as NPA  # Verified Nginx netsecadmin login
+import netsec_jimmy_api as JAPI
 
 DIR = os.path.dirname(os.path.abspath(__file__))
 with open(os.environ.get('STATUS_CONFIG', os.path.join(DIR, 'config.json')), encoding='utf8') as f:
@@ -392,6 +393,8 @@ def NSH_send(handler, status, payload):
 class Handler(BaseHTTPRequestHandler):
     def do_GET(self):
         path = self.path.split('?', 1)[0]
+        if path in ('/api/jimmy/workspace','/api/push/status'):
+            return JAPI.get(self,path)
         if path == '/api/ai/refresh-state':
             return NMR.get_status(self)
         if path == '/api/operator/session':
@@ -445,15 +448,21 @@ class Handler(BaseHTTPRequestHandler):
                 b = b'{"error":"Cannot compute status; check service journal"}'
                 self.send_response(500)
             mime = 'application/json; charset=utf-8'
-        elif path in ('/', '/index.html', '/world.svg'):
-            name = 'index.html' if path in ('/', '/index.html') else 'world.svg'
+        elif path in ('/', '/index.html', '/world.svg', '/manifest.webmanifest',
+                      '/sw.js', '/jimmy-ui.js', '/offline.html', '/icon-192.png', '/icon-512.png'):
+            name = 'index.html' if path in ('/', '/index.html') else path.lstrip('/')
             with open(os.path.join(DIR, name), 'rb') as f:
                 b = f.read()
-            if name == 'index.html':
+            if name in ('index.html','manifest.webmanifest'):
                 safe_name = html.escape(ASSISTANT_NAME)
                 b = b.decode('utf8').replace('Jimmy', safe_name).replace('JIMMY', safe_name.upper()).encode('utf8')
             self.send_response(200)
-            mime = 'text/html; charset=utf-8' if name == 'index.html' else 'image/svg+xml'
+            mime = {'index.html':'text/html; charset=utf-8',
+                    'offline.html':'text/html; charset=utf-8',
+                    'world.svg':'image/svg+xml', 'sw.js':'text/javascript; charset=utf-8',
+                    'jimmy-ui.js':'text/javascript; charset=utf-8',
+                    'manifest.webmanifest':'application/manifest+json',
+                    'icon-192.png':'image/png', 'icon-512.png':'image/png'}[name]
         else:
             self.send_error(404)
             return
@@ -467,6 +476,9 @@ class Handler(BaseHTTPRequestHandler):
         self.wfile.write(b)
 
     def do_POST(self):
+        path=self.path.partition('?')[0]
+        if path.startswith('/api/jimmy/') or path.startswith('/api/push/'):
+            return JAPI.post(self,path)
         if self.path.partition('?')[0]=='/api/ban':
             return NB.trigger(self)
         if self.path.partition('?')[0]=='/api/ai/refresh':

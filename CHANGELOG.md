@@ -1,3 +1,14 @@
+## v1.1.0 — Jimmy Analyst workspace, PWA, Web Push (release candidate)
+
+- Moved full evidence-calibrated Jimmy assessment to a separate **Jimmy Analyst** tab, preserving the Command Hub's live overview and brief analyst severity summary.
+- Added authenticated assessment-ID-linked Ask Jimmy conversations; durable, bounded local SQLite history and read-only, cited/timestamped evidence context. No arbitrary tool calls, shell commands or AI bans.
+- Added operator feedback (confirm, expected, own-IP, disagree, maintenance), audit timestamps, expiry and safe reuse in subsequent AI model prompts; deterministic severity is **not** overridden by operator assertions.
+- Added mobile PWA manifest/icons with generic offline fallback. No authentication data, logs or model replies are cached by service worker.
+- Added optional pywebpush backend with private rotating VAPID identity, validated browser subscriptions, red incident deduplication, acknowledgement, quiet hours, optional one-time escalation and a delivery test.
+- Updated built-in HTTP/TCP monitoring to feed Jimmy's freshness checks (not just the former homepage feed).
+- Improved first-run service monitor instructions and final configuration summary; explicit warning when none configured. Retains first-boot DNS/umask, GeoIP, AI test and optional host bouncer setup fixes from 1.0.2.
+- Added new unit tests and a local HTTP smoke test. **Live Proxmox host-bouncer cutover and real-device Web Push delivery remain unverified.**
+
 ## v1.0.2 installer refinement (release candidate)
 
 - Fixed unprivileged Debian APT DNS failure during Proxmox LXC creation: container-creation umask is 0022 only in a subshell, and `_apt` DNS readiness is verified before strict/retried APT updates.
@@ -38,4 +49,4 @@ Version history is intentionally renumbered for the consolidated, future public 
 
 ## Semantic versioning rule from here
 - `MAJOR`: incompatible migrations, `MINOR`: backwards-compatible functionality, `PATCH`: fixes and packaging improvements.
-- Next proposed functionality should use **v1.1.0** unless the scope merits a breaking release.
+- Next feature changes after 1.1.0 use a new SemVer release; do not silently modify a published tag.

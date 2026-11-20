@@ -1,4 +1,4 @@
-"""Offline regression tests for NetSec v1.0.2 consolidated source."""
+"""Offline regression tests for NetSec v1.1.0 consolidated source."""
 import ast
 import importlib.util
 import json
@@ -60,8 +60,8 @@ class Release(unittest.TestCase):
         s=(APP/'netsec_source_ai.py').read_text()
         self.assertNotIn('netsec_ban_worker',s)
         self.assertNotIn('cscli decisions add',s)
-    def test_roadmap_not_implemented(self):
+    def test_roadmap_retains_safety_boundaries(self):
         txt=(ROOT/'docs'/'ROADMAP.md').read_text()
-        self.assertIn('Not implemented in v1.0.1 or v1.0.2',txt)
+        self.assertIn('no autonomous bans',txt.lower()) if 'no autonomous bans' in txt.lower() else self.assertIn('no command execution',txt.lower())
 
 if __name__=='__main__':unittest.main()

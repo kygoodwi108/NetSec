@@ -1,0 +1,9 @@
+[Unit]
+Description=Check for new evidence-calibrated NetSec red incidents
+[Timer]
+OnBootSec=3min
+OnUnitInactiveSec=90s
+Persistent=true
+Unit=netsec-push.service
+[Install]
+WantedBy=timers.target
