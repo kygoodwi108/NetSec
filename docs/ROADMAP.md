@@ -1,6 +1,6 @@
-# NetSec Roadmap — after v1.0.1
+# NetSec Roadmap — after v1.0.2
 
-> **Not implemented in v1.0.1.** This document captures the next agreed iteration; do not represent it as shipping functionality.
+> **Not implemented in v1.0.1 or v1.0.2.** This document captures the next agreed iteration; do not represent it as shipping functionality.
 
 ## Priority 1 — Jimmy Analyst workspace (new dedicated tab)
 - Move the existing detailed security assessment, evidence-driven severity, deterministic investigations, sensitive-path checks, model uncertainty, and historical context **out of the current dashboard overview** and into a dedicated **Jimmy** tab. Retain an overview severity/last-updated summary on the home screen.

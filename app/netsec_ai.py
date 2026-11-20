@@ -18,6 +18,7 @@ import re
 import smtplib
 import sys
 import tempfile
+import netsec_ai_provider as AP
 import netsec_intel as NI  # NetSec v3 intelligence
 import netsec_evidence as IE  # NetSec v3.1 incident evidence
 import netsec_jimmy_context as JC  # NetSec v3.4 operator context
@@ -67,6 +68,7 @@ SYSTEM += J37.PROMPT_GUIDANCE
 
 
 def http_json(url, headers=None, payload=None, timeout=30, max_bytes=1024*1024):
+    url,payload = AP.adapt_chat_request(url,payload)
     req = Request(url, headers={'Accept':'application/json', **(headers or {})},
                   data=(json.dumps(payload).encode('utf-8') if payload is not None else None),
                   method=('POST' if payload is not None else 'GET'))
@@ -185,7 +187,7 @@ def send_email(report):
     if same and time.time()-last < 7200: return False
     msg=EmailMessage()
     msg['From']=sender; msg['To']=to
-    msg['Subject']='[NetSec] '+report['severity'].upper()+' AI security advisory'
+    msg['Subject']='[NetSec] '+str(report.get('assistant_name','Jimmy'))[:32]+' '+report['severity'].upper()+' AI security advisory'
     msg.set_content(report.get('summary','')+'\n\n'+ '\n'.join('- '+str(x) for x in report.get('recommended_actions',[])) +
                     '\n\nAdvisory only. Verify events in '+os.getenv('NETSEC_PUBLIC_URL','your NetSec dashboard')+' before acting.')
     port=int(os.getenv('SMTP_PORT','587'))
@@ -237,8 +239,8 @@ def main():
         atomic_json(OUT_DIR/'verification-latest.json',verification)
 
 
-        base=os.getenv('OWUI_URL','').rstrip('/')
-        if not base: raise RuntimeError('OWUI_URL is unset')
+        base,key,model=AP.settings()
+        if not base: raise RuntimeError('NETSEC_AI_URL / OWUI_URL is unset')
         parsed=urlparse(base)
         if parsed.scheme not in ('https','http') or not parsed.netloc or parsed.username:
             raise RuntimeError('OWUI_URL must be an http(s) origin')
@@ -249,9 +251,7 @@ def main():
                     raise RuntimeError('Non-TLS OWUI_URL must be a private LAN IP')
             except ValueError:
                 raise RuntimeError('Use HTTPS for a DNS hostname') from None
-        key=os.getenv('OWUI_KEY','').strip()
-        if not key: raise RuntimeError('OWUI_KEY is unset')
-        model=os.getenv('OWUI_MODEL','qwen3.5:9b').strip()
+        if not key: raise RuntimeError('NETSEC_AI_KEY / OWUI_KEY is unset')
         # NetSec v3.8.4: small evidence-first request with bounded JSON fallback.
         advice, response_meta, verified_metrics = R384.analyze_model(
             telemetry, verification, status, model, base, key, http_json,
@@ -259,7 +259,7 @@ def main():
         advice=J37.reconcile(advice,verification,status)
         advice=R384.calibrate(advice,verified_metrics)
         risk_assessment=advice.pop('risk_assessment')
-        report={'state':'ready','updated_at':now,'model':model,
+        report={'state':'ready','updated_at':now,'model':model,'assistant_name':str(cfg.get('assistant_name','Jimmy'))[:32],
                 'traffic_risk':(status.get('risk') or {}).get('level','unknown'),
                 'source_generated_at':status.get('generated_at'),'verification_results':verification,
                 'risk_assessment':risk_assessment,'model_response':response_meta,**advice,

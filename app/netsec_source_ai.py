@@ -14,6 +14,7 @@ import sys
 from urllib.error import HTTPError
 from urllib.parse import urlparse
 
+import netsec_ai_provider as AP
 import netsec_source_hub as HUB
 import netsec_intel as NI
 
@@ -36,10 +37,12 @@ MAX_BATCHES=max(1,min(8,int(os.getenv('NETSEC_SOURCE_AI_BATCHES','4'))))
 BATCH_SIZE=max(1,min(16,int(os.getenv('NETSEC_SOURCE_AI_BATCH_SIZE','10'))))
 
 
+def assistant_name():
+    name=os.getenv('NETSEC_ASSISTANT_NAME','Jimmy')
+    return name if re.fullmatch(r'[A-Za-z][A-Za-z0-9 _-]{0,31}',name) else 'Jimmy'
+
 def _settings():
-    base=os.getenv('OWUI_URL','').rstrip('/')
-    key=os.getenv('OWUI_KEY','').strip()
-    model=os.getenv('OWUI_MODEL','').strip()
+    base,key,model=AP.settings()
     p=urlparse(base)
     if p.scheme not in ('https','http') or not p.hostname or p.username or p.password or p.path not in ('','/'):
         raise ValueError('Invalid OWUI_URL origin')
@@ -50,7 +53,7 @@ def _settings():
         except ValueError as exc:
             raise ValueError('OWUI_URL HTTP must use a private IP') from exc
     if not key or not model:
-        raise ValueError('OWUI_KEY or OWUI_MODEL missing')
+        raise ValueError('NETSEC_AI_KEY / MODEL missing')
     return base,key,model
 
 
@@ -119,13 +122,13 @@ def ask_model(rows,base,key,model):
                                 'not_found_404','http_5xx','http_2xx','top_paths')} for r in rows]
     req={'model':model,'stream':False,'temperature':0.0,'max_tokens':1800,
          'response_format':{'type':'json_object'},'options':{'think':False},
-         'messages':[{'role':'system','content':SYSTEM},
+         'messages':[{'role':'system','content':SYSTEM.replace('Jimmy',assistant_name())},
                      {'role':'user','content':json.dumps({'sources':evidence},separators=(',',':'))}]}
     errors=[]
     for attempt in range(2):
         if attempt:
             # Each reply still has to identify every IP; request a shorter JSON response.
-            req['messages'][0]['content']=SYSTEM+' Extremely short output: use brief reasons, no prose.'
+            req['messages'][0]['content']=SYSTEM.replace('Jimmy',assistant_name())+' Extremely short output: use brief reasons, no prose.'
             req['max_tokens']=2500
         try:
             response=http_json(base+'/api/chat/completions',

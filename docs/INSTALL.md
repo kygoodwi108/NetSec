@@ -1,4 +1,6 @@
-# Fresh installation — NetSec v1.0.1
+# Fresh installation — NetSec v1.0.2
+
+For automated new Proxmox deployments including a static IP and user-owned AI key, see **`docs/INSTALL_FROM_SCRATCH.md`**. This manual guide remains available for users who already built an LXC.
 
 **Targets:** Debian 12/13 unprivileged LXC on Proxmox VE; Nginx reverse proxy on host. Python stdlib app; no Docker. Does **not** automatically install/alter the production host's Nginx/bouncer. Use a **new container** for a fresh install, not an existing working LXC. You need a working Linux/Proxmox admin account.
 
@@ -34,21 +36,21 @@ pct exec "$CTID" -- apt-get install -y python3 curl ca-certificates socat acl
 Template and storage IDs vary. The app itself will work without CrowdSec, but CrowdSec dashboards won't report full enforcement until the detection/bouncer steps are installed. Existing CrowdSec installations must be reconciled manually to avoid duplicates.
 
 ## 2. Transfer the ZIP (workstation -> Proxmox -> LXC)
-Download `netsec-v1.0.1-source.zip` on your Mac and upload to host via SSH (if you have SSH access):
+Download `netsec-v1.0.2-source.zip` on your Mac and upload to host via SSH (if you have SSH access):
 
 ```bash
-scp ~/Downloads/netsec-v1.0.1-source.zip root@YOUR_PVE_IP:/root/
+scp ~/Downloads/netsec-v1.0.2-source.zip root@YOUR_PVE_IP:/root/
 ```
 
-**When remote without SSH:** upload from Mac to the same temporary HTTPS transfer service you normally use and copy the link; in the Proxmox web Shell run `curl -fL -o /root/netsec-v1.0.1-source.zip 'YOUR_TEMPORARY_URL'`. Temporary uploads can expose code to the provider, so don't include runtime secrets in the ZIP. Verify the release checksum printed alongside your download before installing.
+**When remote without SSH:** upload from Mac to the same temporary HTTPS transfer service you normally use and copy the link; in the Proxmox web Shell run `curl -fL -o /root/netsec-v1.0.2-source.zip 'YOUR_TEMPORARY_URL'`. Temporary uploads can expose code to the provider, so don't include runtime secrets in the ZIP. Verify the release checksum printed alongside your download before installing.
 
 On Proxmox host:
 
 ```bash
-sha256sum /root/netsec-v1.0.1-source.zip
-pct push "$CTID" /root/netsec-v1.0.1-source.zip /root/netsec-v1.0.1-source.zip
-pct exec "$CTID" -- python3 -m zipfile -e /root/netsec-v1.0.1-source.zip /root
-pct exec "$CTID" -- bash /root/netsec-v1.0.1/scripts/install-lxc.sh --fresh
+sha256sum /root/netsec-v1.0.2-source.zip
+pct push "$CTID" /root/netsec-v1.0.2-source.zip /root/netsec-v1.0.2-source.zip
+pct exec "$CTID" -- python3 -m zipfile -e /root/netsec-v1.0.2-source.zip /root
+pct exec "$CTID" -- bash /root/netsec-v1.0.2/scripts/install-lxc.sh --fresh
 ```
 
 The installer checks source syntax, installs complete app modules, creates the non-root `statusdash` account and private state paths, installs the provided systemd definitions, then starts `server-status.service`. It **does not** create or change a host Nginx vhost or CrowdSec decision; it preserves existing configs and disables optional AI timers until configured.
@@ -57,7 +59,7 @@ The installer checks source syntax, installs complete app modules, creates the n
 Edit `/opt/server-status/config.json`, particularly log glob paths and `services`; ensure private config remains root:statusdash 0640. Keep the dashboard listener on the private LXC network only. `ALLOW_REMOTE_BIND=YES` is set by the controlled systemd unit.
 
 ```bash
-cp /root/netsec-v1.0.1/config/netsec-proxy-auth.json.example /etc/netsec-proxy-auth.json
+cp /root/netsec-v1.0.2/config/netsec-proxy-auth.json.example /etc/netsec-proxy-auth.json
 nano /etc/netsec-proxy-auth.json
 chown root:statusdash /etc/netsec-proxy-auth.json
 chmod 640 /etc/netsec-proxy-auth.json
@@ -88,7 +90,7 @@ Run `nginx -t && systemctl reload nginx` **only after** a successful syntax chec
 Inside the LXC:
 
 ```bash
-cp /root/netsec-v1.0.1/config/netsec-ai.env.example /etc/netsec-ai.env
+cp /root/netsec-v1.0.2/config/netsec-ai.env.example /etc/netsec-ai.env
 nano /etc/netsec-ai.env
 chown root:statusdash /etc/netsec-ai.env
 chmod 640 /etc/netsec-ai.env
@@ -107,7 +109,7 @@ By default `sensitive_probe_mode=rotating`, `sensitive_probe_source_allowlisted=
 ## 7. Verification (inside LXC / from host)
 
 ```bash
-bash /root/netsec-v1.0.1/scripts/verify.sh
+bash /root/netsec-v1.0.2/scripts/verify.sh
 systemctl list-timers --all | grep netsec
 journalctl -u server-status.service -n 30 --no-pager
 curl -sS http://127.0.0.1:8787/api/status | python3 -m json.tool | head -30

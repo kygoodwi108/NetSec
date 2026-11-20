@@ -6,7 +6,7 @@ MODE=${1:-}
 [[ ${EUID} -eq 0 ]] || { echo 'Run as root INSIDE intended NetSec LXC.' >&2; exit 2; }
 HERE=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)
 [[ -r "$HERE/VERSION" && -r "$HERE/app/app.py" ]] || { echo 'Release directory incomplete' >&2; exit 2; }
-[[ "$(cat "$HERE/VERSION")" == '1.0.1' ]] || { echo 'Release version mismatch' >&2; exit 2; }
+[[ "$(cat "$HERE/VERSION")" == '1.0.2' ]] || { echo 'Release version mismatch' >&2; exit 2; }
 APP=/opt/server-status
 STATE=/var/lib/server-status
 EXISTING=0
@@ -14,7 +14,7 @@ EXISTING=0
 if [[ "$MODE" == --fresh && $EXISTING -eq 1 ]];then echo 'Existing NetSec installation: refusing overwrite. Use --upgrade only after backup/review.' >&2;exit 2;fi
 if [[ "$MODE" == --upgrade && $EXISTING -eq 0 ]];then echo 'No existing NetSec installation. Use --fresh.' >&2;exit 2;fi
 # For non-blank upgrades require known legacy NetSec markers; no blind overwrite.
-if [[ "$MODE" == --upgrade ]] && ! grep -qE 'NetSec v3|NetSec product release v1.0.1' "$APP/app.py"; then
+if [[ "$MODE" == --upgrade ]] && ! grep -qE 'NetSec v3|NetSec product release v1.0.[12]' "$APP/app.py"; then
  echo 'Unknown preexisting code: refusing upgrade' >&2; exit 2
 fi
 # Verify Python syntax and essential modules before touching live paths.
@@ -65,7 +65,7 @@ if [[ -r /etc/netsec-ai.env ]] && ! grep -q 'REPLACE_WITH' /etc/netsec-ai.env; t
  systemctl enable --now netsec-ai.timer netsec-source-ai.timer netsec-ai-manual.path
 else echo 'AI NOT enabled: configure /etc/netsec-ai.env then enable netsec-ai.timer, netsec-source-ai.timer and netsec-ai-manual.path.'
 fi
-printf '\nNetSec v1.0.1 installed. Application code: %s\n' "$APP"
+printf '\nNetSec v1.0.2 installed. Application code: %s\n' "$APP"
 printf 'Auth is fail-closed until /etc/netsec-proxy-auth.json and authenticated Nginx forwarding are configured.\n'
 printf 'No host Nginx, CrowdSec decisions, browser credentials or private user data were overwritten.\n'
 [[ -z "$BACKUP" ]] || printf 'Retain backup: %s\n' "$BACKUP"

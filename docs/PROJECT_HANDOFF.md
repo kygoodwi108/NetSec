@@ -1,7 +1,7 @@
-# Project handoff — NetSec v1.0.1 (for another conversation or contributor)
+# Project handoff — NetSec v1.0.2 (for another conversation or contributor)
 
 ## Intent
-- Standalone, Git-ready project release built by consolidating the personal NetSec 3.x patches through internal **3.8.5**. Public release version is **1.0.1**, with future versions using SemVer.
+- Standalone, Git-ready project release built by consolidating the personal NetSec 3.x patches through internal **3.8.5**. Public baseline version was **1.0.1**; this onboarding update is **1.0.2**, with future versions using SemVer.
 - This ZIP is the **entire reconstructed source project**, not a patch. Legacy patch ZIPs should not be needed for a clean rebuild.
 - No credentials, personal runtime logs, live AI assessments or source IP lists included. Real deployment config stays private.
 
@@ -27,3 +27,9 @@ User selected a **NetSec installable mobile web app (PWA)** rather than Telegram
 - User may be **away from home**. New release instructions must include direct ZIP download, Mac upload to a temporary HTTPS link if SSH isn't reachable, host curl retrieval and checksum, `pct push` and extraction in LXC, backup, install and systemd checks. Never assume workstation can reach 192.168.x LAN.
 - Keep remote HTTPS access. Do not automatically insist on VPN-only administration or shutting off Proxmox public access as default.
 - Source of truth: code and docs in this archive. Validate against live system before claiming production parity; don't infer private config from example files.
+
+## v1.0.2 onboarding additions
+- New `scripts/proxmox-setup.sh` interactive host installer for static private IPv4/CIDR, gateway, DNS, LXC ID, template/storage, HTTPS Basic Auth, AI assistant name, and personal provider key.
+- New cloud OpenAI API or local Open WebUI/Ollama provider compatibility via `app/netsec_ai_provider.py`; cloud telemetry requires explicit consent.
+- No preconfigured author API credentials; source archive contains examples only.
+- The host installer is offline-checked but not yet live Proxmox end-to-end tested. Never assume v1.0.2 is validated solely because v1.0.1 was.

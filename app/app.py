@@ -1,4 +1,4 @@
-# NetSec product release v1.0.1 (consolidated standalone distribution)
+# NetSec product release v1.0.2 (consolidated standalone distribution)
 # NetSec v3.8.5 netsecadmin reverse proxy authorization
 # NetSec v3.8.2 metadata token / Basic Auth separation
 # NetSec v3.8 proactive source intelligence
@@ -9,6 +9,7 @@
 # NetSec v3 intelligence
 """NetSec v2: read-only Nginx/CrowdSec dashboard; Python stdlib only."""
 import collections
+import html
 import datetime as dt
 import glob
 import gzip
@@ -38,6 +39,9 @@ with open(os.environ.get('STATUS_CONFIG', os.path.join(DIR, 'config.json')), enc
     CFG = json.load(f)
 HOST = CFG.get('bind', '127.0.0.1')
 PORT = int(CFG.get('port', 8787))
+ASSISTANT_NAME = str(CFG.get('assistant_name', 'Jimmy'))
+if not re.fullmatch(r'[A-Za-z][A-Za-z0-9 _-]{0,31}', ASSISTANT_NAME):
+    raise SystemExit('Invalid assistant_name in config.json')
 if HOST not in ('127.0.0.1', '::1', 'localhost') and os.environ.get('ALLOW_REMOTE_BIND') != 'YES':
     raise SystemExit('Refusing non-loopback bind without ALLOW_REMOTE_BIND=YES')
 MAX_LINES = max(1000, min(int(CFG.get('max_log_lines', 50000)), 200000))
@@ -456,6 +460,9 @@ class Handler(BaseHTTPRequestHandler):
             name = 'index.html' if path in ('/', '/index.html') else 'world.svg'
             with open(os.path.join(DIR, name), 'rb') as f:
                 b = f.read()
+            if name == 'index.html':
+                safe_name = html.escape(ASSISTANT_NAME)
+                b = b.decode('utf8').replace('Jimmy', safe_name).replace('JIMMY', safe_name.upper()).encode('utf8')
             self.send_response(200)
             mime = 'text/html; charset=utf-8' if name == 'index.html' else 'image/svg+xml'
         else:

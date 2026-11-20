@@ -2,6 +2,14 @@
 
 Version history is intentionally renumbered for the consolidated, future public Git repository.
 
+## v1.0.2 — Candidate: first-time onboarding (not yet live host validated)
+- Added interactive Proxmox host installer with configurable private static IP/CIDR, gateway, DNS, storage, independent hostname, and optional HTTPS + Nginx Basic Auth.
+- Added choice of operator-owned OpenAI API key or local Open WebUI/Ollama key, model and an assistant display name. No credentials are bundled.
+- Added OpenAI Chat Completions transport adapter, retaining legacy Open WebUI settings; local model compatibility is preserved.
+- Added staging-safe CrowdSec detector-only setup; no production host bouncer or automatic-ban activation.
+- Added from-scratch installation, privacy and billing documentation; tests cover provider request mapping and safe naming.
+- New first-run wizard has **not** been validated end-to-end on a Proxmox host. Test in a new LXC; v1.0.1 remains the validated baseline.
+
 ## v1.0.1 — 2026-11-20 — Consolidated source release
 - First complete **personal-feature** source distribution reconstructed from the legacy dashboard upgrade chain (through internal 3.8.5); does **not** require replaying the earlier patch ZIPs.
 - Includes Nginx analytics, CrowdSec evidence/exports, Source Intelligence Hub, AI advisory source labels, manual labels, read-only Jimmy diagnostics, operator-authenticated ban queue, and evidence-calibrated JSON assessment path.

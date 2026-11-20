@@ -11,5 +11,6 @@
   "homepage_status_file": "",
   "homepage_max_age_seconds": 150,
   "services": [],
-  "display_name": "NetSec"
+  "display_name": "NetSec",
+  "assistant_name": "Jimmy"
 }
