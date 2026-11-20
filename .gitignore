@@ -1,0 +1,26 @@
+# Local deployment and credentials — never commit
+.env
+.env.*
+!.env.example
+config/local/
+*.key
+*.token
+*.pem
+*.p12
+*.sqlite
+*.sqlite3
+*.db
+*.db-shm
+*.db-wal
+*.log
+*.bak
+*.zip
+*.tar.gz
+backups/
+data/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.vscode/
+.idea/
+.DS_Store
