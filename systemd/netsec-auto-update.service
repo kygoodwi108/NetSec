@@ -11,4 +11,3 @@ ExecStart=/usr/bin/python3 /usr/local/sbin/netsec-auto-update
 TimeoutStartSec=600
 NoNewPrivileges=true
 PrivateTmp=true
-ProtectHome=read-only
