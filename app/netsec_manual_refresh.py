@@ -103,6 +103,7 @@ def ai_report():
     data['evidence_review'] = d.get('evidence_review') or {}
     data['suppressed_duplicate_actions'] = int(d.get('suppressed_duplicate_actions') or 0)
     data['risk_assessment'] = d.get('risk_assessment') or {}
+    data['findings'] = (d.get('findings') or [])[:8]
     data['model_response'] = d.get('model_response') or {}
     data['operator_feedback_context'] = d.get('operator_feedback_context') or {}
     return data
