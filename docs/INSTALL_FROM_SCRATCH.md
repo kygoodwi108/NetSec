@@ -1,6 +1,6 @@
-# NetSec 1.1.1 — Complete fresh Proxmox installation guide
+# NetSec 1.2.0 — Complete fresh Proxmox installation guide
 
-**Status:** release candidate. This package has automated tests and a local HTTP smoke test; **a full Debian 12 Proxmox + CrowdSec host-bouncer + phone push delivery test is still required**. Do not remove a working installation until the replacement and the rollback have been demonstrated. `scripts/proxmox-setup.sh` runs **on the Proxmox host**, creates **a new LXC**, and refuses existing IDs and Nginx virtual-host names. It does not support an in-place reinstall.
+**Status:** development branch; release only after CI and host smoke testing. This package has automated tests and a local HTTP smoke test; **a full Debian 12 Proxmox + CrowdSec host-bouncer + phone push delivery test is still required**. Do not remove a working installation until the replacement and the rollback have been demonstrated. `scripts/proxmox-setup.sh` runs **on the Proxmox host**, creates **a new LXC**, and refuses existing IDs and Nginx virtual-host names. It does not support an in-place reinstall.
 
 ## 1. Architecture and prerequisites
 
@@ -42,7 +42,7 @@ A ChatGPT subscription is **not** OpenAI API credit. Choose either (a) OpenAI an
 On host, make a private directory and capture machine-readable configs:
 
 ```bash
-BACKUP="/root/netsec-before-1.1.1-$(date -u +%Y%m%dT%H%M%SZ)"
+BACKUP="/root/netsec-before-1.2.0-$(date -u +%Y%m%dT%H%M%SZ)"
 install -d -m 0700 "$BACKUP"
 pct config 108 > "$BACKUP/ct108.config.txt"    # adjust for your live CTID
 cp -a /etc/nginx "$BACKUP/nginx"
@@ -59,25 +59,25 @@ The backup contains secrets and private IP data. **Never upload it to GitHub, qu
 
 ## 3. Get the complete release on Proxmox (local or remote)
 
-The recommended artifact is the **full source ZIP**, not a legacy cumulative patch. Download `netsec-v1.1.1-source.zip` from the release attached to this conversation or a verified official release after publication.
+The recommended artifact is the **full source ZIP**, not a legacy cumulative patch. Download `netsec-v1.2.0-source.zip` from the release attached to this conversation or a verified official release after publication.
 
 **Mac on the same LAN / SSH available:** in macOS Terminal:
 
 ```bash
-scp ~/Downloads/netsec-v1.1.1-source.zip root@192.168.1.10:/root/
+scp ~/Downloads/netsec-v1.2.0-source.zip root@192.168.1.10:/root/
 ```
 
 Replace the IP for other installations. If your Mac is **away from home** and cannot SSH to the private host, keep using your existing temporary HTTPS link workflow. On Mac:
 
 ```bash
-curl -fsS -T ~/Downloads/netsec-v1.1.1-source.zip https://qurl.sh
+curl -fsS -T ~/Downloads/netsec-v1.2.0-source.zip https://qurl.sh
 ```
 
 Copy the **actual returned private temporary HTTPS download URL** (never invent it). In the Proxmox web Shell:
 
 ```bash
-curl -fL --retry 3 -o /root/netsec-v1.1.1-source.zip 'PASTE_RETURNED_TEMPORARY_URL'
-sha256sum /root/netsec-v1.1.1-source.zip
+curl -fL --retry 3 -o /root/netsec-v1.2.0-source.zip 'PASTE_RETURNED_TEMPORARY_URL'
+sha256sum /root/netsec-v1.2.0-source.zip
 ```
 
 Compare the displayed SHA-256 with the separately published **verified release hash**. Abandon the file on mismatch; never guess a hash. This transfer is only for **public source code**, not private backups or keys. Delete the temporary uploaded copy after verification as supported by the transfer service.
@@ -85,23 +85,23 @@ Compare the displayed SHA-256 with the separately published **verified release h
 **Extract + test on Proxmox host:**
 
 ```bash
-mkdir -p /root/netsec-1.1.1
-unzip -q /root/netsec-v1.1.1-source.zip -d /root/netsec-1.1.1
-cd /root/netsec-1.1.1/netsec-v1.1.1
-cat VERSION                        # expect 1.1.1
+mkdir -p /root/netsec-1.2.0
+unzip -q /root/netsec-v1.2.0-source.zip -d /root/netsec-1.2.0
+cd /root/netsec-1.2.0/netsec-v1.2.0
+cat VERSION                        # expect 1.2.0
 bash ci/check.sh                    # offline tests before creating a container
 bash -n scripts/proxmox-setup.sh
 bash scripts/proxmox-setup.sh --help
 ```
 
-If you instead run the wizard from a Git checkout, **first verify the checkout's `VERSION` says `1.1.1`** and that its source matches the reviewed release. Don't run an old `main` branch and assume it includes 1.1.1.
+If you instead run the wizard from a Git checkout, **first verify the checkout's `VERSION` says `1.2.0`** and that its source matches the reviewed release. Don't run an old `main` branch and assume it includes 1.2.0.
 
 ## 4. The interactive wizard: what every question means
 
 On **Proxmox host**, from the extracted source:
 
 ```bash
-cd /root/netsec-1.1.1/netsec-v1.1.1
+cd /root/netsec-1.2.0/netsec-v1.2.0
 bash scripts/proxmox-setup.sh
 ```
 
@@ -113,7 +113,7 @@ Typical **staging example** (adapt to your network; never copy a live IP used by
 | Container hostname | `netsec-test` | Local Linux hostname; not an FQDN |
 | Static private IP/CIDR | `192.168.1.50/24` | Reserve it on your LAN |
 | Gateway | `192.168.1.1` | Actual LAN router |
-| DNS | `1.1.1.1` | Use a resolver reachable by the LXC; setup checks DNS as `_apt` |
+| DNS | `1.2.0.1` | Use a resolver reachable by the LXC; setup checks DNS as `_apt` |
 | Network bridge | `vmbr0` | Proxmox bridge |
 | Template storage / disk storage | `local` / `local-lvm` | Must be active |
 | Disk | `16` | GiB |
@@ -238,9 +238,39 @@ This is **not** a substitute for the complete host wizard when testing auto-prov
 
 ```bash
 CTID=150
-pct push "$CTID" /root/netsec-v1.1.1-source.zip /root/netsec-v1.1.1-source.zip
-pct exec "$CTID" -- python3 -m zipfile -e /root/netsec-v1.1.1-source.zip /root/netsec-release
-pct exec "$CTID" -- bash /root/netsec-release/netsec-v1.1.1/scripts/install-lxc.sh --fresh
+pct push "$CTID" /root/netsec-v1.2.0-source.zip /root/netsec-v1.2.0-source.zip
+pct exec "$CTID" -- python3 -m zipfile -e /root/netsec-v1.2.0-source.zip /root/netsec-release
+pct exec "$CTID" -- bash /root/netsec-release/netsec-v1.2.0/scripts/install-lxc.sh --fresh
 ```
 
 This manual path does **not** automatically set up host Nginx/HTTPS, CrowdSec, GeoIP, AI credentials or Web Push. For complete fresh provisioning, always use `scripts/proxmox-setup.sh` from the **Proxmox host** instead. Do not run `--fresh` over an existing app; reviewed upgrades use `--upgrade` with a verified backup and compatibility checks.
+
+
+## Automatic updates introduced in v1.2
+
+After the initial installation (or the first manual v1.2 upgrade), NetSec enables the `netsec-auto-update.timer` systemd timer inside its LXC. Every day, with random delay, it checks the *latest stable* GitHub Release from `kygoodwi108/NetSec` and upgrades only when the release includes a correctly named source ZIP and SHA-256 digest. GitHub release assets are the update channel; pushing to main alone does not automatically deploy new code.
+
+The updater backs up application code and service units before updating, checks the release source and Python tests before installation, verifies the running service, and restores the previous application version on upgrade failure. Persistent databases are preserved and **cannot be automatically downgraded if a future version makes irreversible schema changes**; releases must ship backwards-compatible database migrations. Maintain separate host or Proxmox LXC backups for disaster recovery.
+
+Inspect or disable the updater inside the LXC:
+
+```bash
+systemctl list-timers netsec-auto-update.timer
+journalctl -u netsec-auto-update.service -n 100 --no-pager
+systemctl disable --now netsec-auto-update.timer
+```
+
+To bootstrap an existing NetSec v1.1 LXC, manually download the published v1.2.0 source archive to your computer, transfer to Proxmox (or through your existing temporary HTTPS file-link workflow when remote), then on `root@pve`:
+
+```bash
+# Adjust filename only if your actual downloaded release asset differs.
+sha256sum /root/netsec-v1.2.0-source.zip
+pct push 108 /root/netsec-v1.2.0-source.zip /root/netsec-v1.2.0-source.zip
+pct exec 108 -- python3 -m zipfile -e /root/netsec-v1.2.0-source.zip /root/netsec-upgrade-120
+# Confirm extracted root path; for standard package use:
+pct exec 108 -- bash /root/netsec-upgrade-120/netsec-v1.2.0/scripts/install-lxc.sh --upgrade
+pct exec 108 -- systemctl is-active server-status.service
+pct exec 108 -- systemctl list-timers netsec-auto-update.timer
+```
+
+**Verify the ZIP hash against the published release SHA-256 before installing.** The extracted top-level directory may differ depending on packaging; check before running the last installer command. Never run the *fresh Proxmox setup wizard* against an existing LXC such as 108. For third-party installs, replace 108 with the actual existing container ID; don't assume host Nginx, HTTPS, CrowdSec or the GPU should be changed by the app updater.
