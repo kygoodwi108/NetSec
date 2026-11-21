@@ -81,7 +81,8 @@ function decorate(){
     if(old)old.remove();
     const select=make('select','v13-classify');
     select.setAttribute('aria-label','Classification for '+ip);
-    let selected=manual[ip]?.status||(tr.querySelector('.hub-pill.trusted')?'friendly':'unknown');
+    let selected=manual[ip]?.status||ai[ip]?.label||(tr.querySelector('.hub-pill.trusted')?'friendly':'unknown');
+    if(!manual[ip]&&ai[ip]?.label)select.title='Jimmy suggested classification; not operator verified';
     for(const [value,label] of options){const opt=make('option','',label);opt.value=value;select.append(opt);}
     if(!options.some(x=>x[0]===selected))selected='unknown';
     select.value=selected;select.dataset.value=selected;
@@ -89,7 +90,7 @@ function decorate(){
       const old=select.dataset.value,newValue=select.value;select.disabled=true;
       try{
         const saved=await setClass(ip,newValue,old);
-        if(saved){select.dataset.value=newValue;select.dataset.value=newValue;select.dataset.value=newValue;select.dataset.value=newValue;}
+        if(saved){select.dataset.value=newValue;banButton.disabled=newValue==='friendly'||clearlyLocal(ip);}
         else select.value=old;
       }catch(ex){select.value=old;notify('Classification failed: '+ex.message);}
       finally{select.disabled=false;select.dataset.value=select.value;}
