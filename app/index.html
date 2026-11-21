@@ -298,6 +298,7 @@ button,input{font:inherit}button{cursor:pointer}button:focus-visible,input:focus
 .v13-dynamic-finding{border:1px solid #33546c;background:#102c40;padding:13px;border-radius:11px;margin:8px 0}
 .v13-dynamic-finding strong{display:block;color:#dff2ff;margin-bottom:6px}
 @media(max-width:700px){.jimmy-chatlog{height:58vh;min-height:260px;padding:9px}.jimmy-msg{max-width:90%;font-size:13px}#jimmyChatForm button[type=submit]{padding:10px 12px}.v13-explorer-table{min-width:570px}.v13-classify{max-width:132px}}
+.jimmy-action-item{padding:14px 0;border-top:1px solid var(--edge)}.jimmy-action-item:first-child{border-top:0}.jimmy-action-heading{display:flex;justify-content:space-between;gap:12px;align-items:center}.jimmy-action-heading strong{font-size:14px;color:#f4f9ff}.jimmy-action-priority{font-size:10px;color:var(--amber);letter-spacing:.1em}.jimmy-action-evidence,.jimmy-action-next{margin:7px 0;font-size:13px;line-height:1.5}.jimmy-action-next{color:#d5eeff}.jimmy-action-provenance{font-size:11px;color:var(--muted)}.jimmy-action-buttons{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}.jimmy-action-buttons .btn{font-size:12px}
 </style><link rel="stylesheet" href="/mobile.css"></head>
 <body><div class="app"><aside class="side"><div class="brand"><div class="brandmark">⬡</div><div class="brandname">NET<span>SEC</span><small>THREAT INTELLIGENCE</small></div></div>
 <nav class="nav"><a class="active" href="#overview">▦ &nbsp; Overview</a><a href="#traffic">▥ &nbsp; Traffic</a><a href="#geography">◎ &nbsp; Geography</a><a href="#events">≡ &nbsp; Event logs</a></nav>
@@ -337,6 +338,8 @@ button,input{font:inherit}button{cursor:pointer}button:focus-visible,input:focus
   <div class="panelhead"><div><h2>Jimmy · Security Analyst</h2><p class="subtle tiny">Focused security intelligence and read-only investigation. The AI cannot execute commands or create bans.</p></div>
     <div class="row"><button class="btn" type="button" id="jimmyReload">Reload</button><button class="btn" type="button" id="jimmyLatest">Latest assessment</button></div></div>
   <p class="jimmy-status" id="jimmyWorkspaceStatus" role="status">Loading Jimmy…</p>
+  <div class="jimmy-card" style="margin-bottom:12px"><div class="jimmy-chathead"><div><h3>Action plan · evidence first</h3><p class="subtle tiny">Prioritized verified findings · read-only diagnostics · changes require operator approval and manual execution</p></div></div><div id="jimmyActionList" aria-live="polite"></div></div>
+  <div class="jimmy-card" style="margin-bottom:12px"><div class="jimmy-chathead"><div><h3>PatchMon · Host patch visibility</h3><p class="subtle tiny">Separate installation · reachability only · no patch-execution privileges</p></div><a href="#" id="jimmyPatchmonLink" target="_blank" rel="noopener noreferrer" hidden>Open PatchMon</a></div><p class="subtle tiny" id="jimmyPatchmonStatus">Checking PatchMon integration…</p></div>
   <div class="jimmy-card" style="margin-bottom:12px">
     <div class="jimmy-chathead"><div><h3>Jimmy · Conversation</h3><p class="subtle tiny">Secure read-only investigation · Historical and latest evidence available</p></div></div>
     <div class="jimmy-chatlog" id="jimmyChatLog" aria-live="polite"></div>
@@ -1247,4 +1250,4 @@ $('aiForceRefresh').addEventListener('click',aiForceRefresh);
 })();
 
 refresh();
-</script><script src="/jimmy-ui.js"></script><script src="/mobile-ui.js"></script><script src="/netsec-v13.js"></script></body></html>
+</script><script src="/jimmy-ui.js"></script><script src="/jimmy-action-plan.js"></script><script src="/mobile-ui.js"></script><script src="/netsec-v13.js"></script></body></html>
