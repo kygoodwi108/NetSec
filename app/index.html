@@ -1066,58 +1066,50 @@ $('aiForceRefresh').addEventListener('click',aiForceRefresh);
   };
   function redraw(ai){
     panel.replaceChildren();
-    const review=ai?.evidence_review;
+    // Structured findings are deterministic and only exist when the evidence
+    // supports a concrete concern. Do not generate three obligatory cards.
     const previousChecks=document.getElementById('v36Checks')?.closest('.v36-verify');
-    if(previousChecks)previousChecks.hidden=!!(review?.checks?.length);
+    if(previousChecks)previousChecks.hidden=true;
     const top=el('div','v37-top');
-    const title=el('div');title.append(el('h3','','Jimmy · Investigations completed'),
-      el('p','v37-meta','Deterministic checks performed before the AI narrative · No model-generated server commands'));
-    const freshness=el('span','v37-state '+(ai?.state==='ready'?'verified':'partial'),
-      ai?.state==='ready'?'LATEST REPORT':ai?.state==='stale'?'HISTORICAL REPORT':'NO REPORT');
-    top.append(title,freshness);panel.append(top);
-    if(!review?.checks?.length){panel.append(el('p','v37-empty','Evidence results will appear after the next successful Jimmy assessment.'));return;}
-    const grid=el('div','v37-grid');
-    for(const c of review.checks.slice(0,6)){
-      const item=el('article','v37-item');const head=el('div','v37-item-top');
-      head.append(el('span','v37-item-name',names[c.id]||c.id||'Automated check'),
-        el('span','v37-state '+(c.state||''),String(c.state||'UNKNOWN').toUpperCase()));
-      item.append(head,el('p','v37-result',c.result||'No results recorded.'),
-        el('p','v37-small','CHECKED '+when(c.observed_at)),el('p','v37-small',c.limits||''));grid.append(item);
+    const title=el('div');title.append(el('h3','','Jimmy · Findings requiring attention'),
+      el('p','v37-meta','Ranked evidence-backed observations; no automated ban decisions'));
+    const state=ai?.state==='ready'?'LATEST REPORT':ai?.state==='stale'?'STALE REPORT':'NO CURRENT REPORT';
+    top.append(title,el('span','v37-state '+(ai?.state==='ready'?'verified':'partial'),state));panel.append(top);
+    const findings=Array.isArray(ai?.findings)?ai.findings:[];
+    if(!findings.length){
+      panel.append(el('p','v37-empty',ai?.state==='ready'?
+        'No new actionable concerns established by the available bounded evidence. This is not proof of zero risk.':
+        'No current dynamic findings available. Re-run Jimmy after the upgrade for a fresh analysis.'));
+    }else{
+      const priorities={high:0,medium:1,low:2};
+      const sorted=[...findings].sort((a,b)=>(priorities[a.priority]??3)-(priorities[b.priority]??3));
+      for(const item of sorted.slice(0,8)){
+        const card=el('article','v13-dynamic-finding');
+        const h=el('div','v37-item-top');h.append(el('strong','',item.title||'Recorded concern'),
+          el('span','v37-state '+(item.priority==='high'?'partial':'verified'),String(item.priority||'review').toUpperCase()));
+        card.append(h,el('p','',item.summary||'No explanatory evidence supplied.'),
+          el('small','v37-small',String(item.category||'security')+' · Confidence: '+String(item.confidence||'unknown')+
+            ' · Observed evidence, not proof of compromise'));
+        panel.append(card);
+      }
     }
-    panel.append(grid);
-    const scoring=ai?.risk_assessment;
-    if(scoring?.severity){
-      panel.append(el('p','v37-meta','Evidence-calibrated risk: '+String(scoring.severity).toUpperCase()+
-        (scoring.model_severity_adjusted?' (adjusted from Jimmy’s '+String(scoring.model_severity_before_calibration||'unknown')+')':'')+
-        '. '+(scoring.reasons||[]).slice(0,2).join(' · ')));
+    const review=ai?.evidence_review;
+    const details=el('details','v37-technical');
+    details.append(el('summary','','Technical verification · CrowdSec, Nginx, sensitive paths'));
+    const checks=review?.checks||ai?.verification_results?.checks||[];
+    if(!checks.length)details.append(el('p','v37-meta','No completed verification records in this assessment.'));
+    for(const c of checks.slice(0,8)){
+      const block=el('div','v37-item');
+      block.append(el('strong','',names[c.id]||c.id||'Technical check'),
+        el('p','v37-small',String(c.result||c.state||'No finding reported.')),
+        el('p','v37-small','CHECKED '+when(c.observed_at)));
+      details.append(block);
     }
-    const tested=(review.sensitive_paths?.last_results||[]);
-    if(tested.length){
-      const last=el('p','v37-meta', 'Sensitive-path coverage: '+tested.length+' recorded result(s); most recent actual HTTP test: '+when(tested.map(x=>x.tested_at).filter(Boolean).sort().slice(-1)[0]));
-      panel.append(last);
-    }
-    const ng=review.nginx||{}, cs=review.crowdsec||{};
-    const facts=el('div','v37-foot');
-    facts.append(el('span','','Observed public-source bans: '+(cs.public_denial_sources_sample??'—')),
-      el('span','','CrowdSec timer errors: '+(ng.crowdsec_timer_connectivity_sample??'—')),
-      el('span','','True upstream errors (sample): '+(ng.real_upstream_errors_sample??'—')));
-    panel.append(facts);
-    const follow=review.follow_up_states||[];
-    if(follow.length){
-      const line=el('div','v37-followups');line.append(el('strong','','Unresolved / scheduled: '));
-      line.append(el('span','',follow.map(x=>x.description).filter(Boolean).join(' · ')));
-      panel.append(line);
-    }
-    if(ai?.suppressed_duplicate_actions){
-      panel.append(el('p','v37-meta',ai.suppressed_duplicate_actions+' redundant model-generated recommendation(s) filtered out.'));
-    }
-    const actions=document.getElementById('aiActions');
-    if(actions && Array.isArray(ai?.recommended_actions) && !ai.recommended_actions.length){
-      actions.replaceChildren(el('li','','No additional manual action established. Scheduled read-only checks continue automatically.'));
-    }
-    const heading=actions?.parentElement?.querySelector('h3');
-    // Existing template may use different nesting. Do not assume this heading exists.
-    if(heading && /recommended checks/i.test(heading.textContent))heading.textContent='Outstanding actions';
+    panel.append(details);
+    const scoring=ai?.risk_assessment||{};
+    if(scoring.reasons?.length)panel.append(el('p','v37-meta','Assessment basis: '+scoring.reasons.slice(0,3).join(' · ')));
+    const follow=review?.follow_up_states||[];
+    if(follow.length)panel.append(el('p','v37-meta','Unresolved: '+follow.map(x=>x.description).filter(Boolean).join(' · ')));
   }
   const footer=document.querySelector('footer.footerline');
   if(footer)footer.textContent=footer.textContent.replace('NetSec v3.6','NetSec v3.7');
