@@ -76,6 +76,7 @@ async function load(requested=''){
     const d=await r.json();if(!r.ok||!d.ok)throw new Error(d.error||'HTTP '+r.status);
     currentId=d.current_report_id||'';selectedId=d.report_id||'';
     draw(d.report,d.messages,d.feedback,d.incidents);
+    window.netsecJimmyActionPlan?.(d.report);
     message(selectedId?'Assessment loaded · conversation continues across reports.':'No successful assessment found.');
   }catch(e){message('Workspace unavailable: '+e.message);}
 }
