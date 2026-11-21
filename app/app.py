@@ -36,6 +36,7 @@ import netsec_jimmy_checks as NCHK  # Read-only diagnostics and bouncer denials
 import netsec_manual_refresh as NMR  # NetSec AI reliability v3.2
 import netsec_proxy_auth as NPA  # Verified Nginx netsecadmin login
 import netsec_jimmy_api as JAPI
+import netsec_patchmon as PM
 
 DIR = os.path.dirname(os.path.abspath(__file__))
 with open(os.environ.get('STATUS_CONFIG', os.path.join(DIR, 'config.json')), encoding='utf8') as f:
@@ -396,6 +397,9 @@ class Handler(BaseHTTPRequestHandler):
         path = self.path.split('?', 1)[0]
         if path in ('/api/jimmy/workspace','/api/push/status'):
             return JAPI.get(self,path)
+        if path == '/api/integrations/patchmon':
+            if not NPA.require(self,write=False):return
+            return JAPI.send(self,200,PM.status(CFG.get('patchmon_url')))
         if path == '/api/ai/refresh-state':
             return NMR.get_status(self)
         if path == '/api/operator/session':
@@ -472,7 +476,7 @@ class Handler(BaseHTTPRequestHandler):
                 self.send_response(500)
             mime = 'application/json; charset=utf-8'
         elif path in ('/', '/index.html', '/world.svg', '/manifest.webmanifest',
-                      '/sw.js', '/jimmy-ui.js', '/netsec-v13.js', '/mobile-ui.js', '/mobile.css', '/offline.html', '/icon-192.png', '/icon-512.png'):
+                      '/sw.js', '/jimmy-ui.js', '/jimmy-action-plan.js', '/netsec-v13.js', '/mobile-ui.js', '/mobile.css', '/offline.html', '/icon-192.png', '/icon-512.png'):
             name = 'index.html' if path in ('/', '/index.html') else path.lstrip('/')
             with open(os.path.join(DIR, name), 'rb') as f:
                 b = f.read()
@@ -484,6 +488,7 @@ class Handler(BaseHTTPRequestHandler):
                     'offline.html':'text/html; charset=utf-8',
                     'world.svg':'image/svg+xml', 'sw.js':'text/javascript; charset=utf-8',
                     'jimmy-ui.js':'text/javascript; charset=utf-8',
+                    'jimmy-action-plan.js':'text/javascript; charset=utf-8',
                     'netsec-v13.js':'text/javascript; charset=utf-8',
                     'mobile-ui.js':'text/javascript; charset=utf-8',
                     'mobile.css':'text/css; charset=utf-8',
