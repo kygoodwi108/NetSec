@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
 node --check app/jimmy-ui.js
+node --check app/jimmy-action-plan.js
 node --check app/netsec-v13.js
 node --check app/mobile-ui.js
 tmp="$(mktemp -d)"
