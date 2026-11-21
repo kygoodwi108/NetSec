@@ -7,7 +7,7 @@ ConditionPathExists=/etc/netsec-installed-version
 [Service]
 Type=oneshot
 User=root
-ExecStart=/usr/bin/python3 /usr/local/sbin/netsec-auto-update
+ExecStart=/usr/bin/flock -n /run/lock/netsec-auto-update.lock /usr/bin/python3 /usr/local/sbin/netsec-auto-update
 TimeoutStartSec=600
 NoNewPrivileges=true
 PrivateTmp=true
