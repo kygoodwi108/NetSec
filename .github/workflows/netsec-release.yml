@@ -23,6 +23,7 @@ jobs:
           bash ci/check.sh
           bash -n scripts/install-lxc.sh scripts/proxmox-setup.sh
           node --check app/jimmy-ui.js
+          node --check app/netsec-v13.js
       - name: Check tag matches VERSION
         if: startsWith(github.ref, 'refs/tags/v')
         run: test "v$(cat VERSION)" = "${GITHUB_REF_NAME}"
