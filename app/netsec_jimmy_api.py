@@ -21,6 +21,10 @@ import netsec_proxy_auth as AUTH
 import netsec_intel as INTEL
 import netsec_service_checks as SERVICES
 
+class AIResponseError(Exception):
+    """Provider returned a syntactically valid reply without visible answer."""
+
+
 AI_ENV=Path('/etc/netsec-ai.env')
 SYSTEM='''You are Jimmy, the read-only NetSec security analyst. Explain what matters in plain language.
 Prioritize changes, meaningful risks, recurring service failures, and concrete next checks.
@@ -160,7 +164,7 @@ def chat_model(report,question,history,feedback):
         diagnostics.append(f'attempt={attempt+1} finish={finish} reasoning_tokens='+str(
             ((obj.get('usage') or {}).get('completion_tokens_details') or {}).get('reasoning_tokens','unknown')))
     print('Jimmy empty completion: '+'; '.join(diagnostics),file=sys.stderr)
-    raise ValueError('AI generated no visible answer after retries; check model reasoning budget and provider logs')
+    raise AIResponseError('AI returned no visible answer after three attempts; review model reasoning budget and provider logs')
 
 
 def get(handler,path):
@@ -231,6 +235,8 @@ def post(handler,path):
             import netsec_push
             return netsec_push.api(handler,path,data,send)
         return send(handler,404,{'ok':False,'error':'Unknown workspace action'})
+    except AIResponseError as ex:
+        return send(handler,502,{'ok':False,'error':str(ex)[:180]})
     except HTTPError as ex:
         return send(handler,502,{'ok':False,'error':'AI provider HTTP '+str(ex.code)+'; check credentials, model and provider logs'})
     except (ValueError,TypeError,KeyError,json.JSONDecodeError,UnicodeError) as ex:
