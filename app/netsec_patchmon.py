@@ -35,6 +35,6 @@ def status(url):
         return {'ok':True,'configured':True,'url':endpoint,'status':'up' if code<500 else 'down','http_code':code}
     except HTTPError as err:
         code=err.code
-        return {'ok':True,'configured':True,'url':url,'status':'up' if code in (401,403) else 'down','http_code':code}
+        return {'ok':True,'configured':True,'url':url,'status':'up' if code in (301,302,303,307,308,401,403) else 'down','http_code':code}
     except (OSError,URLError,ValueError,TimeoutError) as err:
         return {'ok':True,'configured':True,'status':'down','error_type':type(err).__name__}
