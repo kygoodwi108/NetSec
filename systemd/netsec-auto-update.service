@@ -1,0 +1,14 @@
+[Unit]
+Description=Automatically update NetSec from a verified GitHub release
+After=network-online.target
+Wants=network-online.target
+ConditionPathExists=/etc/netsec-installed-version
+
+[Service]
+Type=oneshot
+User=root
+ExecStart=/usr/bin/python3 /usr/local/sbin/netsec-auto-update
+TimeoutStartSec=600
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=read-only
