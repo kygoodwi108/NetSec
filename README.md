@@ -1,13 +1,13 @@
-# NetSec v1.2.0 — Proxmox security dashboard and Jimmy analyst
+# NetSec v1.3.0 — Proxmox security dashboard and Jimmy analyst
 
-**Development branch — do not deploy until release CI and production upgrade smoke tests pass.** Source includes the NetSec 3.8.5-derived security dashboard, generic server monitoring, evidence-calibrated local/cloud AI, optional independent CrowdSec engine and host bouncer, and a mobile-ready Jimmy analyst workspace.
+**Release source; back up existing installations before deploying and confirm CI and release checks.** Source includes the NetSec 3.8.5-derived security dashboard, generic server monitoring, evidence-calibrated local/cloud AI, optional independent CrowdSec engine and host bouncer, and a mobile-ready Jimmy analyst workspace.
 
 ## Get started
 
 Start with **[the complete Proxmox fresh-install guide](docs/INSTALL_FROM_SCRATCH.md)**. The automated wizard runs as root on the **Proxmox host** from the extracted release source, creates a **new Debian 12 unprivileged LXC**, and refuses to overwrite an existing CT or Nginx virtual host:
 
 ```bash
-cat VERSION                 # 1.2.0
+cat VERSION                 # 1.3.0
 bash ci/check.sh
 bash scripts/proxmox-setup.sh --help
 bash scripts/proxmox-setup.sh
@@ -15,7 +15,7 @@ bash scripts/proxmox-setup.sh
 
 **Before a live replacement:** Back up the LXC and the host's Nginx/HTTPS/CrowdSec configuration separately. A bouncer cutover affects **all** Nginx sites on the host; default is leave it unchanged. Do not delete a known-good installation merely because offline tests pass.
 
-## What's in 1.2.0
+## What's in 1.3.0
 
 - Command Hub, traffic logs, source intelligence, IP connection outcomes, geography, CrowdSec telemetry and operator-controlled manual labels.
 - Independent HTTP(S) and TCP service checks for generic Proxmox, VM, LXC, container, and website deployments. No special homepage feed required.
@@ -48,9 +48,9 @@ Source ZIPs must not include private runtime state or secrets. Web Push delivery
 | `docs/INSTALL_FROM_SCRATCH.md` | Full setup, remote file transfer, checks, bouncer safety and rollback |
 | `docs/ROADMAP.md` | Implemented features, pending live verification and exclusions |
 
-Run `bash ci/check.sh` before publishing or deploying changes. **There is no representation here that v1.2.0 has passed a complete host-wide bouncer cutover or real-device Web Push test yet.**
+Run `bash ci/check.sh` before publishing or deploying changes. **There is no representation here that v1.3.0 has passed a complete host-wide bouncer cutover or real-device Web Push test yet.**
 
-## Phone layout (v1.2.0)
+## Phone layout (v1.3.0)
 
 At narrow screen widths, NetSec keeps the existing data and actions, but presents a quick telemetry summary, bottom navigation with Home/Jimmy/IPs/Events/More, and labeled event/IP cards instead of forcing seven-column tables to fit. The desktop view is unchanged. No account settings or server-side migration are needed; refresh the installed PWA after an upgrade. See `docs/MOBILE.md` for use and testing.
 
@@ -69,3 +69,8 @@ systemctl disable --now netsec-auto-update.timer
 ```
 
 The updater does not reconfigure host Nginx, CrowdSec bouncers, TLS, model placement, or Proxmox itself. For a test or production rollout, retain an LXC/vzdump backup in addition to updater's application backups.
+
+
+## v1.3 unified investigations
+
+The Source Intelligence tab now includes HTTP outcome charts and all observed IP rows, direct persisted manual classification (including low-volume sources), safe manual CrowdSec ban queuing with worker status, and a paginated per-IP request explorer. The explorer only returns sanitized records available in bounded Nginx logs, not guaranteed complete historical traffic; rotated or truncated logs show coverage warnings. Recent AI assessments appear in Jimmy, which now uses a dark bubble conversation with optimistic send and retry. Security findings are evidence-derived and variable; the former fixed CrowdSec/Nginx/sensitive-path boxes are retained under expandable technical verification. Existing state, credentials, and security controls are preserved by the in-place installer.
