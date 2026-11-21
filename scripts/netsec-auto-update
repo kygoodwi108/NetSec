@@ -128,10 +128,20 @@ def verify_dashboard():
     opts=json.loads(conf.read_text()) if conf.is_file() else {}
     port=int(opts.get('port',8787))
     if not 1<=port<=65535:raise RuntimeError('Invalid dashboard port')
-    root='http://127.0.0.1:'+str(port)
-    with urlopen(root+'/',timeout=15) as response:
-        if response.status!=200:raise RuntimeError('Dashboard HTTP health check failed')
-        response.read(1000)
+    bind=str(opts.get('bind') or '127.0.0.1')
+    host='127.0.0.1' if bind in ('0.0.0.0','::','localhost') else bind
+    root='http://'+('['+host+']' if ':' in host else host)+':'+str(port)
+    # systemd active means the process started, not that its listener is ready.
+    import time
+    for attempt in range(12):
+        try:
+            with urlopen(root+'/',timeout=5) as response:
+                if response.status!=200:raise RuntimeError('Dashboard HTTP health check failed')
+                response.read(1000)
+            break
+        except (OSError,TimeoutError):
+            if attempt==11:raise
+            time.sleep(1)
     try:
         with urlopen(root+'/api/jimmy/workspace',timeout=15):
             raise RuntimeError('SECURITY FAILURE: unauthenticated analyst endpoint exposed')
