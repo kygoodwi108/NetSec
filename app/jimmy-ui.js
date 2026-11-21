@@ -18,7 +18,7 @@ function contentText(node,body){
   const lines=String(body||'').split('\n');
   for(let i=0;i<lines.length;i++){
     if(i)node.append(document.createElement('br'));
-    const fragments=lines[i].split(/(\\*\\*[^*]+\\*\\*|\\x60[^\\x60]+\\x60)/g);
+    const fragments=lines[i].split(/(\*\*[^*]+\*\*|`[^`]+`)/g);
     for(const part of fragments){
       if(part.startsWith('**')&&part.endsWith('**')&&part.length>4){
         node.append(field('strong','',part.slice(2,-2)));
