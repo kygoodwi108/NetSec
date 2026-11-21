@@ -140,6 +140,14 @@ def verify_dashboard():
             raise RuntimeError('Analyst authorization check failed: HTTP '+str(error.code))
 
 
+def prune_backups(keep=5):
+    """Keep the latest recovery points without deleting a failed-update backup."""
+    ordered=sorted((p for p in BACKUPS.iterdir() if p.is_dir() and p.name.startswith('before-')),
+                   key=lambda p:p.stat().st_mtime,reverse=True)
+    for old in ordered[keep:]:
+        shutil.rmtree(old)
+
+
 def main():
     if os.geteuid()!=0:raise RuntimeError('Auto-update requires root')
     current=parse_version(VERSION.read_text()) if VERSION.exists() else None
@@ -159,11 +167,14 @@ def main():
         subprocess.run(['bash',str(source/'ci/check.sh')],cwd=source,check=True,timeout=180)
         backup=save_backup()
         try:
-            subprocess.run(['bash',str(source/'scripts/install-lxc.sh'),'--upgrade'],check=True,timeout=240)
+            subprocess.run(['bash',str(source/'scripts/install-lxc.sh'),'--upgrade'],check=True,timeout=240,
+                           env={**os.environ,'NETSEC_PREBACKED_UP':'1'})
             subprocess.run(['systemctl','is-active','--quiet','server-status.service'],check=True)
             verify_dashboard()
             VERSION.write_text('.'.join(map(str,latest))+'\n')
             print('NetSec update complete: '+VERSION.read_text().strip()+'; backup '+str(backup))
+            try:prune_backups()
+            except OSError as ex:print('Backup pruning skipped: '+str(ex),file=sys.stderr)
         except Exception:
             rollback(backup)
             raise
