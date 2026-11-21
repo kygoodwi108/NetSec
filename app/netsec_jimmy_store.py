@@ -79,16 +79,32 @@ def get_report(rid):
 
 def messages(rid):
     with db() as c:
-        rows=c.execute('SELECT role,content,created_at FROM messages WHERE report_id=? ORDER BY id DESC LIMIT 30',
+        rows=c.execute('SELECT role,content,created_at FROM messages WHERE report_id=? ORDER BY id DESC LIMIT 60',
                        (rid,)).fetchall()
     return [dict(zip(('role','content','at'),x)) for x in reversed(rows)]
+
+
+def recent_messages(limit=60):
+    """Global cross-assessment context, strictly ordered and bounded."""
+    limit=max(1,min(int(limit),80))
+    with db() as c:
+        rows=c.execute('SELECT role,content,created_at FROM messages ORDER BY id DESC LIMIT ?', (limit,)).fetchall()
+    return [dict(zip(('role','content','at'),x)) for x in reversed(rows)]
+
+
+def recent_reports(limit=5):
+    """Recent saved assessments; newest first, for cautious historical comparison."""
+    limit=max(1,min(int(limit),8))
+    with db() as c:
+        rows=c.execute('SELECT body FROM reports ORDER BY created_at DESC LIMIT ?', (limit,)).fetchall()
+    return [json.loads(row[0]) for row in rows]
 
 
 def add_exchange(rid,question,answer):
     if not isinstance(question,str) or not 1<=len(question.strip())<=MAX_MESSAGE:raise ValueError('Question length invalid')
     if not isinstance(answer,str) or not answer.strip():raise ValueError('Empty answer')
     with db() as c:
-        for role,content in [('user',question.strip()),('assistant',answer[:5000])]:
+        for role,content in [('user',question.strip()),('assistant',answer[:10000])]:
             c.execute('INSERT INTO messages(report_id,role,content,created_at) VALUES (?,?,?,?)',
                       (rid,role,content,stamp()))
         # Bounded retention across all report threads.
