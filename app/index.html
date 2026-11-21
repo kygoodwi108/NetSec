@@ -259,6 +259,45 @@ button,input{font:inherit}button{cursor:pointer}button:focus-visible,input:focus
 .jimmy-workspace .row{flex-wrap:wrap}.hub-tab-jimmy .ai-panel{margin-bottom:15px}
 @media(max-width:850px){.jimmy-evidence-grid{grid-template-columns:1fr}}
 @media(max-width:950px){.side .nav{max-width:100%;overflow-x:auto;white-space:nowrap}.side .nav button{white-space:nowrap}}
+
+/* NetSec v1.3: coherent source analysis and dark mobile-style messenger. */
+#v38Hub, #intelSection>.intel-stats, #intelSection>.panelhead{display:none!important}
+#intelSection{margin-top:18px}
+#intelSection>.intel-columns{margin-top:14px}
+#intelSection>.intel-columns>div:last-child{padding:16px;background:#0b1c2c;border:1px solid #2c4d65;border-radius:12px}
+.jimmy-workspace{background:#102537;border-color:#31546e}
+.jimmy-workspace>.jimmy-card:not(details){padding:18px;min-height:0}
+.jimmy-chathead{display:flex;justify-content:space-between;align-items:center}
+.jimmy-chatlog{height:min(62vh,690px);max-height:none;min-height:300px;display:flex;flex-direction:column;gap:12px;padding:12px;background:#091a2a;border:1px solid #29445b;border-radius:14px;overflow-y:auto}
+.jimmy-msg{display:flex;flex-direction:column;align-self:flex-start;width:max-content;max-width:min(82%,700px);background:#1166cb;border-radius:17px 17px 17px 5px;color:#f5faff;padding:11px 14px;gap:5px;font-size:14px;line-height:1.5;white-space:normal;overflow-wrap:anywhere;box-shadow:0 2px 5px #020b1555}
+.jimmy-msg.from-operator{align-self:flex-end;background:#34465b;color:#f2f6fc;border-radius:17px 17px 5px 17px}
+.jimmy-msg small{align-self:flex-end;font-size:10px;color:#d0e2f7}
+.jimmy-msg.from-operator small{color:#c1ccd9}
+.jimmy-bubble-text{white-space:normal}
+.jimmy-typing{animation:jimmy-pulse 1.3s ease-in-out infinite;font-weight:700;letter-spacing:.25em;min-width:74px}
+@keyframes jimmy-pulse{0%,100%{opacity:.45}50%{opacity:1}}
+@media(prefers-reduced-motion:reduce){.jimmy-typing{animation:none}}
+#jimmyChatForm{display:flex;flex-direction:row;align-items:flex-end;gap:10px}
+#jimmyChatForm label{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
+#jimmyChatForm textarea{min-height:54px;max-height:130px;resize:vertical;flex:1;background:#142d44;border:1px solid #41637d;border-radius:20px;padding:14px 17px;font-size:14px;color:#f4f9ff}
+#jimmyChatForm button[type=submit]{min-height:48px;background:#1572d5;border:1px solid #3689e9;border-radius:22px;color:#fff;padding:10px 20px;font-weight:700}
+.jimmy-msg strong{color:#fff;font-weight:700}
+#jimmyChatForm button[type=submit]:disabled{background:#34475a;border-color:#4c6175;color:#9bb0c2;cursor:not-allowed;opacity:.8}
+.jimmy-send-error{color:#f3b5b5;text-align:right;font-size:12px}
+.v13-source-action{display:flex;gap:6px;align-items:center}
+.v13-classify{border-radius:99px;background:#1d364c;border:1px solid #41647c;color:#e1eefb;padding:7px 11px;font-weight:600;font-size:11px;max-width:170px}
+.v13-classify[data-value=friendly]{background:#15483c;color:#81e6b1;border-color:#236d4e}
+.v13-ban{background:#442830!important;color:#ffbec6!important;border:1px solid #a34f5d!important}
+.v13-ban:disabled{opacity:.4!important;cursor:not-allowed}
+.v13-explorer{margin-top:18px;border-top:1px solid #345066;padding-top:16px}
+.v13-explorer-controls{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}
+.v13-explorer-controls select,.v13-explorer-controls input{background:#10283b;color:#e9f5ff;border:1px solid #45647b;padding:9px;border-radius:8px}
+.v13-explorer-table{width:100%;border-collapse:collapse;font-size:12px}
+.v13-explorer-table td,.v13-explorer-table th{padding:9px;border-bottom:1px solid #31495d;text-align:left;overflow-wrap:anywhere}
+.v13-explorer-status{color:#a8bcd0;font-size:12px;margin-top:8px}
+.v13-dynamic-finding{border:1px solid #33546c;background:#102c40;padding:13px;border-radius:11px;margin:8px 0}
+.v13-dynamic-finding strong{display:block;color:#dff2ff;margin-bottom:6px}
+@media(max-width:700px){.jimmy-chatlog{height:58vh;min-height:260px;padding:9px}.jimmy-msg{max-width:90%;font-size:13px}#jimmyChatForm button[type=submit]{padding:10px 12px}.v13-explorer-table{min-width:570px}.v13-classify{max-width:132px}}
 </style><link rel="stylesheet" href="/mobile.css"></head>
 <body><div class="app"><aside class="side"><div class="brand"><div class="brandmark">⬡</div><div class="brandname">NET<span>SEC</span><small>THREAT INTELLIGENCE</small></div></div>
 <nav class="nav"><a class="active" href="#overview">▦ &nbsp; Overview</a><a href="#traffic">▥ &nbsp; Traffic</a><a href="#geography">◎ &nbsp; Geography</a><a href="#events">≡ &nbsp; Event logs</a></nav>
@@ -299,19 +338,11 @@ button,input{font:inherit}button{cursor:pointer}button:focus-visible,input:focus
     <div class="row"><button class="btn" type="button" id="jimmyReload">Reload</button><button class="btn" type="button" id="jimmyLatest">Latest assessment</button></div></div>
   <p class="jimmy-status" id="jimmyWorkspaceStatus" role="status">Loading Jimmy…</p>
   <div class="jimmy-card" style="margin-bottom:12px">
-    <div class="row" style="align-items:center;justify-content:space-between"><h3 style="margin:0">Current security picture</h3><strong id="jimmyReportSeverity">—</strong></div>
-    <p id="jimmyReportSummary">Checking the latest assessment…</p>
-    <small>Assessment recorded: <span id="jimmyReportTime">—</span></small>
-    <details style="margin-top:12px"><summary>Evidence and limitations</summary>
-      <p id="jimmyReportEvidence">No evidence yet</p><p id="jimmyReportLimits">—</p><small>Assessment ID: <span id="jimmyReportId">—</span></small>
-    </details>
-  </div>
-  <div class="jimmy-card" style="margin-bottom:12px">
-    <h3>Ask Jimmy</h3><p class="subtle tiny">The conversation carries forward between assessments. Jimmy uses saved recent reports and bounded live service checks, not unrestricted network access.</p>
+    <div class="jimmy-chathead"><div><h3>Jimmy · Conversation</h3><p class="subtle tiny">Secure read-only investigation · Historical and latest evidence available</p></div></div>
     <div class="jimmy-chatlog" id="jimmyChatLog" aria-live="polite"></div>
     <form id="jimmyChatForm" class="jimmy-form"><label for="jimmyQuestion">Your question</label>
       <textarea id="jimmyQuestion" maxlength="2000" rows="3" required placeholder="Which problems changed since the last assessment, and what should I check first?"></textarea>
-      <button class="btn" type="submit">Ask Jimmy</button></form>
+      <button class="btn" type="submit">Send</button></form>
   </div>
   <details class="jimmy-card"><summary>Notifications and alert settings</summary>
     <div style="padding-top:12px"><h3>Security incidents</h3><div id="jimmyIncidents"></div>
@@ -533,7 +564,7 @@ $('aiForceRefresh').addEventListener('click',aiForceRefresh);
     if(txt!==undefined && txt!==null)n.textContent=String(txt);
     return n;
   };
-  const hubTitles={command:'Command Hub',jimmy:'Jimmy Analyst',connections:'IP Connections',traffic:'Traffic Analytics',investigate:'Event Investigations',intel:'Source Intelligence'};
+  const hubTitles={command:'Command Hub',jimmy:'Jimmy Analyst',traffic:'Traffic Analytics',investigate:'Event Investigations',intel:'Source Intelligence'};
   let activeHub='command';
   let connWindow='24h',connScope='all',connSearch='',connSuspicious=false;
   let connData=null,connFetching=false,connSerial=0,connFetchedAt=0;
@@ -584,13 +615,23 @@ $('aiForceRefresh').addEventListener('click',aiForceRefresh);
     tabs.investigate.prepend(makeH('div','hub-titleline'));
     tabs.investigate.firstChild.innerHTML='<div><div class="hub-kicker">Investigation / Evidence</div><h2>Requests, alerts and log details</h2></div>';
     tabs.intel.prepend(makeH('div','hub-titleline'));
-    tabs.intel.firstChild.innerHTML='<div><div class="hub-kicker">Administration / Source metadata</div><h2>Trusted IPs and assessment history</h2></div>';
+    tabs.intel.firstChild.innerHTML='<div><div class="hub-kicker">Source Intelligence / Analysis and control</div><h2>Source Intelligence</h2></div>';
     tabs.jimmy.append(document.getElementById('jimmyWorkspace'));
     document.getElementById('jimmyWorkspace').hidden=false;
-    initConnections(tabs.connections);
+    // Reuse the complete IP outcome analytics within Source Intelligence.
+    const existingIntel=document.getElementById('intelSection');
+    if(existingIntel)existingIntel.remove();
+    initConnections(tabs.intel);
+    if(existingIntel)tabs.intel.append(existingIntel);
+    const history=existingIntel?.querySelector('#intelHistory')?.closest('.table-scroll')?.parentElement;
+    if(history){
+      const details=makeH('details','jimmy-card jimmy-history');
+      details.append(makeH('summary','', 'Recent AI assessments'),history);
+      tabs.jimmy.append(details);
+    }
     const nav=document.querySelector('.nav');
     nav.replaceChildren();
-    for(const [key,label] of Object.entries({command:'⌘  Command Hub',jimmy:'✦  Jimmy Analyst',connections:'◎  IP Connections',traffic:'▥  Traffic Analytics',investigate:'≡  Investigations',intel:'◈  Source Intelligence'})){
+    for(const [key,label] of Object.entries({command:'⌘  Command Hub',jimmy:'✦  Jimmy Analyst',traffic:'▥  Traffic Analytics',investigate:'≡  Investigations',intel:'◈  Source Intelligence'})){
       const b=makeH('button','',label);
       b.type='button'; b.dataset.hubTab=key;b.setAttribute('role','tab');
       b.setAttribute('aria-controls','hub-tab-'+key);
@@ -598,17 +639,17 @@ $('aiForceRefresh').addEventListener('click',aiForceRefresh);
       nav.append(b);
     }
     nav.setAttribute('role','tablist');nav.setAttribute('aria-label','Dashboard pages');
-    H('hubOpenConnections').addEventListener('click',()=>showHub('connections'));
+    H('hubOpenConnections').addEventListener('click',()=>showHub('intel'));
     const hash=location.hash.slice(1).split('&')[0];
-    showHub(hubTitles[hash]?hash:'command',false);
+    showHub(hubTitles[hash]?hash:hash==='connections'?'intel':'command',false);
     window.addEventListener('hashchange',()=>{
       const h=location.hash.slice(1).split('&')[0];
-      if(hubTitles[h])showHub(h,false);
+      if(hubTitles[h])showHub(h,false);else if(h==='connections')showHub('intel',false);
     });
     const oldRender=render;
     render=function(d){oldRender(d);hubUpdate(d);};
     setInterval(()=>{
-      if(activeHub==='connections' && Date.now()-connFetchedAt>=90000&&!connFetching)loadConnections();
+      if(activeHub==='intel' && Date.now()-connFetchedAt>=90000&&!connFetching)loadConnections();
     },15000);
     return true;
   }
@@ -623,7 +664,7 @@ $('aiForceRefresh').addEventListener('click',aiForceRefresh);
     if(updateUrl && location.hash!=='#'+key)history.replaceState(null,'','#'+key);
     H('headline').textContent='NetSec / '+hubTitles[key];
     window.scrollTo({top:0,behavior:'instant'});
-    if(key==='connections'&&(connData===null||Date.now()-connFetchedAt>90000))loadConnections();
+    if(key==='intel'&&(connData===null||Date.now()-connFetchedAt>90000))loadConnections();
   }
   function hubUpdate(d){
     const t=d.traffic||{};
@@ -1026,58 +1067,50 @@ $('aiForceRefresh').addEventListener('click',aiForceRefresh);
   };
   function redraw(ai){
     panel.replaceChildren();
-    const review=ai?.evidence_review;
+    // Structured findings are deterministic and only exist when the evidence
+    // supports a concrete concern. Do not generate three obligatory cards.
     const previousChecks=document.getElementById('v36Checks')?.closest('.v36-verify');
-    if(previousChecks)previousChecks.hidden=!!(review?.checks?.length);
+    if(previousChecks)previousChecks.hidden=true;
     const top=el('div','v37-top');
-    const title=el('div');title.append(el('h3','','Jimmy · Investigations completed'),
-      el('p','v37-meta','Deterministic checks performed before the AI narrative · No model-generated server commands'));
-    const freshness=el('span','v37-state '+(ai?.state==='ready'?'verified':'partial'),
-      ai?.state==='ready'?'LATEST REPORT':ai?.state==='stale'?'HISTORICAL REPORT':'NO REPORT');
-    top.append(title,freshness);panel.append(top);
-    if(!review?.checks?.length){panel.append(el('p','v37-empty','Evidence results will appear after the next successful Jimmy assessment.'));return;}
-    const grid=el('div','v37-grid');
-    for(const c of review.checks.slice(0,6)){
-      const item=el('article','v37-item');const head=el('div','v37-item-top');
-      head.append(el('span','v37-item-name',names[c.id]||c.id||'Automated check'),
-        el('span','v37-state '+(c.state||''),String(c.state||'UNKNOWN').toUpperCase()));
-      item.append(head,el('p','v37-result',c.result||'No results recorded.'),
-        el('p','v37-small','CHECKED '+when(c.observed_at)),el('p','v37-small',c.limits||''));grid.append(item);
+    const title=el('div');title.append(el('h3','','Jimmy · Findings requiring attention'),
+      el('p','v37-meta','Ranked evidence-backed observations; no automated ban decisions'));
+    const state=ai?.state==='ready'?'LATEST REPORT':ai?.state==='stale'?'STALE REPORT':'NO CURRENT REPORT';
+    top.append(title,el('span','v37-state '+(ai?.state==='ready'?'verified':'partial'),state));panel.append(top);
+    const findings=Array.isArray(ai?.findings)?ai.findings:[];
+    if(!findings.length){
+      panel.append(el('p','v37-empty',ai?.state==='ready'?
+        'No new actionable concerns established by the available bounded evidence. This is not proof of zero risk.':
+        'No current dynamic findings available. Re-run Jimmy after the upgrade for a fresh analysis.'));
+    }else{
+      const priorities={high:0,medium:1,low:2};
+      const sorted=[...findings].sort((a,b)=>(priorities[a.priority]??3)-(priorities[b.priority]??3));
+      for(const item of sorted.slice(0,8)){
+        const card=el('article','v13-dynamic-finding');
+        const h=el('div','v37-item-top');h.append(el('strong','',item.title||'Recorded concern'),
+          el('span','v37-state '+(item.priority==='high'?'partial':'verified'),String(item.priority||'review').toUpperCase()));
+        card.append(h,el('p','',item.summary||'No explanatory evidence supplied.'),
+          el('small','v37-small',String(item.category||'security')+' · Confidence: '+String(item.confidence||'unknown')+
+            ' · Observed evidence, not proof of compromise'));
+        panel.append(card);
+      }
     }
-    panel.append(grid);
-    const scoring=ai?.risk_assessment;
-    if(scoring?.severity){
-      panel.append(el('p','v37-meta','Evidence-calibrated risk: '+String(scoring.severity).toUpperCase()+
-        (scoring.model_severity_adjusted?' (adjusted from Jimmy’s '+String(scoring.model_severity_before_calibration||'unknown')+')':'')+
-        '. '+(scoring.reasons||[]).slice(0,2).join(' · ')));
+    const review=ai?.evidence_review;
+    const details=el('details','v37-technical');
+    details.append(el('summary','','Technical verification · CrowdSec, Nginx, sensitive paths'));
+    const checks=review?.checks||ai?.verification_results?.checks||[];
+    if(!checks.length)details.append(el('p','v37-meta','No completed verification records in this assessment.'));
+    for(const c of checks.slice(0,8)){
+      const block=el('div','v37-item');
+      block.append(el('strong','',names[c.id]||c.id||'Technical check'),
+        el('p','v37-small',String(c.result||c.state||'No finding reported.')),
+        el('p','v37-small','CHECKED '+when(c.observed_at)));
+      details.append(block);
     }
-    const tested=(review.sensitive_paths?.last_results||[]);
-    if(tested.length){
-      const last=el('p','v37-meta', 'Sensitive-path coverage: '+tested.length+' recorded result(s); most recent actual HTTP test: '+when(tested.map(x=>x.tested_at).filter(Boolean).sort().slice(-1)[0]));
-      panel.append(last);
-    }
-    const ng=review.nginx||{}, cs=review.crowdsec||{};
-    const facts=el('div','v37-foot');
-    facts.append(el('span','','Observed public-source bans: '+(cs.public_denial_sources_sample??'—')),
-      el('span','','CrowdSec timer errors: '+(ng.crowdsec_timer_connectivity_sample??'—')),
-      el('span','','True upstream errors (sample): '+(ng.real_upstream_errors_sample??'—')));
-    panel.append(facts);
-    const follow=review.follow_up_states||[];
-    if(follow.length){
-      const line=el('div','v37-followups');line.append(el('strong','','Unresolved / scheduled: '));
-      line.append(el('span','',follow.map(x=>x.description).filter(Boolean).join(' · ')));
-      panel.append(line);
-    }
-    if(ai?.suppressed_duplicate_actions){
-      panel.append(el('p','v37-meta',ai.suppressed_duplicate_actions+' redundant model-generated recommendation(s) filtered out.'));
-    }
-    const actions=document.getElementById('aiActions');
-    if(actions && Array.isArray(ai?.recommended_actions) && !ai.recommended_actions.length){
-      actions.replaceChildren(el('li','','No additional manual action established. Scheduled read-only checks continue automatically.'));
-    }
-    const heading=actions?.parentElement?.querySelector('h3');
-    // Existing template may use different nesting. Do not assume this heading exists.
-    if(heading && /recommended checks/i.test(heading.textContent))heading.textContent='Outstanding actions';
+    panel.append(details);
+    const scoring=ai?.risk_assessment||{};
+    if(scoring.reasons?.length)panel.append(el('p','v37-meta','Assessment basis: '+scoring.reasons.slice(0,3).join(' · ')));
+    const follow=review?.follow_up_states||[];
+    if(follow.length)panel.append(el('p','v37-meta','Unresolved: '+follow.map(x=>x.description).filter(Boolean).join(' · ')));
   }
   const footer=document.querySelector('footer.footerline');
   if(footer)footer.textContent=footer.textContent.replace('NetSec v3.6','NetSec v3.7');
@@ -1214,4 +1247,4 @@ $('aiForceRefresh').addEventListener('click',aiForceRefresh);
 })();
 
 refresh();
-</script><script src="/jimmy-ui.js"></script><script src="/mobile-ui.js"></script></body></html>
+</script><script src="/jimmy-ui.js"></script><script src="/mobile-ui.js"></script><script src="/netsec-v13.js"></script></body></html>

@@ -29,6 +29,7 @@ import netsec_homepage as KVG
 import netsec_service_checks as SVC
 import netsec_intel as NI  # NetSec v3 intelligence
 import netsec_connections as NC  # Read-only per-IP response outcomes
+import netsec_request_explorer as RX  # Sanitized per-IP HTTP requests
 import netsec_source_hub as NSH  # Advisory AI source metadata and full inventory
 import netsec_bans as NB  # Authenticated queue for root ban worker
 import netsec_jimmy_checks as NCHK  # Read-only diagnostics and bouncer denials
@@ -420,6 +421,28 @@ class Handler(BaseHTTPRequestHandler):
             except Exception as exc:
                 print('NetSec source hub error:',type(exc).__name__,flush=True)
                 return NSH_send(self,503,{'ok':False,'error':'Source inventory temporarily unavailable'})
+        if path == '/api/source-requests':
+            if not NPA.require(self,write=False):return
+            try:
+                query=parse_qs(self.path.partition('?')[2])
+                field=lambda key,default:query.get(key,[default])[0]
+                data=RX.explore(_files,_lines,_parse,field('ip',''),window=field('window','24h'),
+                                offset=field('offset','0'),limit=field('limit','100'),
+                                status=field('status','all'),search=field('search',''))
+                return NSH_send(self,200,data)
+            except (ValueError,TypeError) as ex:
+                return NSH_send(self,400,{'ok':False,'error':str(ex)[:120]})
+            except (OSError,UnicodeError) as ex:
+                print('Source explorer error:',type(ex).__name__,flush=True)
+                return NSH_send(self,503,{'ok':False,'error':'Request history unavailable'})
+        if path == '/api/source-labels':
+            if not NPA.require(self,write=False):return
+            try:
+                meta=NI.read_registry().get('addresses',{})
+                return NSH_send(self,200,{'ok':True,'labels':dict(list(meta.items())[:1000]),
+                                           'ai':dict(list(NSH.stored_ai().items())[:1000])})
+            except (OSError,ValueError):
+                return NSH_send(self,503,{'ok':False,'error':'Source labels unavailable'})
         if path == '/api/connections':
             try:
                 params=parse_qs(self.path.partition('?')[2])
@@ -449,7 +472,7 @@ class Handler(BaseHTTPRequestHandler):
                 self.send_response(500)
             mime = 'application/json; charset=utf-8'
         elif path in ('/', '/index.html', '/world.svg', '/manifest.webmanifest',
-                      '/sw.js', '/jimmy-ui.js', '/mobile-ui.js', '/mobile.css', '/offline.html', '/icon-192.png', '/icon-512.png'):
+                      '/sw.js', '/jimmy-ui.js', '/netsec-v13.js', '/mobile-ui.js', '/mobile.css', '/offline.html', '/icon-192.png', '/icon-512.png'):
             name = 'index.html' if path in ('/', '/index.html') else path.lstrip('/')
             with open(os.path.join(DIR, name), 'rb') as f:
                 b = f.read()
@@ -461,6 +484,7 @@ class Handler(BaseHTTPRequestHandler):
                     'offline.html':'text/html; charset=utf-8',
                     'world.svg':'image/svg+xml', 'sw.js':'text/javascript; charset=utf-8',
                     'jimmy-ui.js':'text/javascript; charset=utf-8',
+                    'netsec-v13.js':'text/javascript; charset=utf-8',
                     'mobile-ui.js':'text/javascript; charset=utf-8',
                     'mobile.css':'text/css; charset=utf-8',
                     'manifest.webmanifest':'application/manifest+json',

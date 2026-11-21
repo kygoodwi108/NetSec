@@ -1,38 +1,57 @@
-/* NetSec 1.2.0 — focused analyst workspace and opt-in PWA push. */
+/* NetSec v1.3 — dark conversation, optimistic send, read-only assessment history. */
 (() => {
 'use strict';
 const el=id=>document.getElementById(id);
 const field=(tag,cls,text)=>{const n=document.createElement(tag);if(cls)n.className=cls;if(text!==undefined)n.textContent=String(text);return n;};
 const status=el('jimmyWorkspaceStatus');
 if(!status)return;
-let currentId='',selectedId='',currentReport=null;
+let currentId='',selectedId='',currentReport=null,sending=false,transient=null;
 function message(s){status.textContent=s;}
 function post(path,body){return fetch(path,{method:'POST',credentials:'same-origin',cache:'no-store',
   headers:{'Content-Type':'application/json','X-NetSec-Action':'dashboard'},body:JSON.stringify(body)}).then(async r=>{
     const j=await r.json();if(!r.ok||!j.ok)throw new Error(j.error||'HTTP '+r.status);return j;
   });}
 function kv(id,v){el(id).textContent=String(v??'—');}
+function toBottom(){const list=el('jimmyChatLog');list.scrollTop=list.scrollHeight;}
+function contentText(node,body){
+  // Render a deliberately small Markdown subset with DOM text nodes, never innerHTML.
+  const lines=String(body||'').split('\n');
+  for(let i=0;i<lines.length;i++){
+    if(i)node.append(document.createElement('br'));
+    const fragments=lines[i].split(/(\*\*[^*]+\*\*|`[^`]+`)/g);
+    for(const part of fragments){
+      if(part.startsWith('**')&&part.endsWith('**')&&part.length>4){
+        node.append(field('strong','',part.slice(2,-2)));
+      }else if(part.startsWith('\x60')&&part.endsWith('\x60')&&part.length>2){
+        node.append(field('code','',part.slice(1,-1)));
+      }else node.append(document.createTextNode(part));
+    }
+  }
+}
+function bubble(role,body,at='',pending=false){
+  const row=field('div','jimmy-msg '+(role==='user'?'from-operator':'from-jimmy')+(pending?' jimmy-pending':''));
+  const text=field('div','jimmy-bubble-text');
+  contentText(text,body);
+  row.append(text);
+  if(at)row.append(field('small','',at));
+  return row;
+}
 function draw(report,items,feedback,incidents){
   currentReport=report;
-  if(report){
-    kv('jimmyReportId',selectedId);kv('jimmyReportTime',report.updated_at);
-    kv('jimmyReportSeverity',(report.severity||'unknown').toUpperCase());
-    kv('jimmyReportSummary',report.summary);
-    const risk=report.risk_assessment||{};
-    kv('jimmyReportEvidence',(risk.reasons||[]).join(' · ')||'No verified reason supplied');
-    kv('jimmyReportLimits',risk.limitations||report.warning||'Read-only bounded evidence');
-  } else {
-    kv('jimmyReportId','No assessment');kv('jimmyReportTime','—');kv('jimmyReportSeverity','NOT CONFIGURED');
-    kv('jimmyReportSummary','Run a successful Jimmy assessment before starting a linked conversation.');
-    kv('jimmyReportEvidence','No evidence');kv('jimmyReportLimits','—');
-  }
   const list=el('jimmyChatLog');list.replaceChildren();
-  for(const line of items||[]){
-    const row=field('div','jimmy-msg '+(line.role==='user'?'from-operator':'from-jimmy'));
-    row.append(field('strong','',line.role==='user'?'Operator':'Jimmy'),field('div','',line.content),field('small','',line.at||''));
-    list.append(row);
+  for(const line of items||[])list.append(bubble(line.role,line.content,line.at||''));
+  if(transient){
+    list.append(bubble('user',transient.message,transient.failed?'Not sent':'Sent · waiting for Jimmy',!transient.failed));
+    if(transient.failed){
+      const retry=field('button','btn','Retry message');retry.type='button';
+      retry.onclick=()=>{el('jimmyQuestion').value=transient.message;transient=null;draw(currentReport,items,feedback,incidents);el('jimmyQuestion').focus();};
+      list.append(retry);
+    }else{
+      const typing=field('div','jimmy-msg from-jimmy jimmy-typing','●  ●  ●');
+      typing.setAttribute('aria-label','Jimmy is typing');list.append(typing);
+    }
   }
-  if(!items?.length)list.append(field('div','jimmy-placeholder','Ask Jimmy about the latest findings, earlier assessments, or what to investigate next.'));
+  if(!items?.length&&!transient)list.append(field('div','jimmy-placeholder','Ask Jimmy about incidents, source IPs, or changes between assessments.'));
   const ibox=el('jimmyIncidents');ibox.replaceChildren();
   for(const incident of (incidents||[]).slice(0,6)){
     const row=field('div','jimmy-incident');
@@ -43,10 +62,12 @@ function draw(report,items,feedback,incidents){
     ibox.append(row);
   }
   if(!ibox.children.length)ibox.append(field('div','jimmy-placeholder','No evidence-calibrated red incidents recorded.'));
-  const active=!!report;
-  el('jimmyChatForm').querySelector('button[type=submit]').disabled=!active;
-
+  const send=el('jimmyChatForm').querySelector('button[type=submit]');
+  send.disabled=!report||sending;
+  send.textContent=sending?'Jimmy is responding…':'Send';
+  toBottom();
 }
+
 async function load(requested=''){
   message('Loading assessment workspace…');
   try{
@@ -59,11 +80,31 @@ async function load(requested=''){
   }catch(e){message('Workspace unavailable: '+e.message);}
 }
 el('jimmyChatForm').addEventListener('submit',async e=>{
-  e.preventDefault();const input=el('jimmyQuestion');const msg=input.value.trim();if(!msg||!selectedId)return;
-  const send=el('jimmyChatForm').querySelector('button[type=submit]');send.disabled=true;message('Jimmy is investigating…');
-  try{const r=await post('/api/jimmy/chat',{report_id:selectedId,message:msg});input.value='';await load(selectedId);
-       message('Jimmy answered · conversation saved.');}
-  catch(ex){message('Jimmy chat error: '+ex.message);}finally{send.disabled=false;}
+  e.preventDefault();
+  const input=el('jimmyQuestion'),msg=input.value.trim();
+  if(!msg||!selectedId||sending)return;
+  sending=true;transient={message:msg,failed:false};input.value='';
+  const log=el('jimmyChatLog');
+  log.append(bubble('user',msg,'Sent · waiting for Jimmy',true));
+  const typing=field('div','jimmy-msg from-jimmy jimmy-typing','●  ●  ●');
+  typing.setAttribute('aria-label','Jimmy is typing');log.append(typing);
+  const send=el('jimmyChatForm').querySelector('button[type=submit]');
+  send.disabled=true;send.textContent='Jimmy is responding…';toBottom();
+  message('Message sent · Jimmy is investigating…');
+  try{
+    await post('/api/jimmy/chat',{report_id:selectedId,message:msg});
+    transient=null;sending=false;await load(selectedId);
+    message('Jimmy answered · conversation saved.');
+  }catch(ex){
+    sending=false;transient={message:msg,failed:true};
+    typing.remove();message('Jimmy chat error: '+ex.message);
+    // Restore a failed message as editable text and keep it visible as unsent.
+    if(!input.value.trim())input.value=msg;
+    log.append(field('div','jimmy-send-error','Not delivered. You can retry without losing the text.'));
+    send.disabled=false;send.textContent='Send';
+  }finally{
+    if(!sending){send.disabled=!currentReport;send.textContent='Send';}
+  }
 });
 el('jimmyReload').onclick=()=>load();
 el('jimmyLatest').onclick=()=>{history.replaceState(null,'','#jimmy');load();};

@@ -63,7 +63,7 @@ def save_report(report):
     if not rid:raise ValueError('No current assessment')
     limited={k:report.get(k) for k in ('updated_at','severity','summary','confidence','observations',
       'recommended_actions','verification_results','risk_assessment','model','source_generated_at',
-      'operator_feedback_context')}
+      'operator_feedback_context','findings')}
     with db() as c:
         c.execute('INSERT OR IGNORE INTO reports VALUES (?,?,?)',
                   (rid,stamp(),json.dumps(limited,ensure_ascii=False)[:20000]))

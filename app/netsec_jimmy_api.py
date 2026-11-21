@@ -138,7 +138,7 @@ def chat_model(report,question,history,feedback):
     import sys
     kind,base,model,key=env_settings()
     evidence={k:report.get(k) for k in ('updated_at','source_generated_at','severity','summary',
-             'confidence','risk_assessment','observations','verification_results','recommended_actions')}
+             'confidence','risk_assessment','observations','verification_results','recommended_actions','findings')}
     previous=STORE.recent_reports(limit=5)
     older=[{k:item.get(k) for k in ('updated_at','severity','summary','risk_assessment')}
            for item in previous if item.get('updated_at')!=report.get('updated_at')][:4]

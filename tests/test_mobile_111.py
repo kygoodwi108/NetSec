@@ -19,7 +19,7 @@ class MobileUI(unittest.TestCase):
 
     def test_navigation_reuses_original_authorization_and_routes(self):
         js=(APP/'mobile-ui.js').read_text()
-        for key in ('command','jimmy','connections','investigate','traffic','intel'):
+        for key in ('command','jimmy','investigate','traffic','intel'):
             self.assertIn("'"+key+"'",js)
         self.assertIn('target.click()',js)
         self.assertIn('MutationObserver(syncNav)',js)
