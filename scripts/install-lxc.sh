@@ -25,7 +25,7 @@ for f in root.glob('*.py'): ast.parse(f.read_text(), filename=str(f))
 print('Python parse preflight PASS')
 PYCOMPILE
 BACKUP=
-if [[ $EXISTING -eq 1 ]]; then
+if [[ $EXISTING -eq 1 && ${NETSEC_PREBACKED_UP:-0} != 1 ]]; then
  BACKUP="/root/netsec-before-v120-$(date -u +%Y%m%dT%H%M%SZ)-$$"
  mkdir -m 0700 "$BACKUP"
  cp -a "$APP" "$BACKUP/server-status"
