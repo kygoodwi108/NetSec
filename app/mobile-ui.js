@@ -46,7 +46,7 @@
   const definitions = [
     ['command', '⌂', 'Home'],
     ['jimmy', '✦', 'Jimmy'],
-    ['connections', '◎', 'IPs'],
+    ['intel', '◎', 'IPs'],
     ['investigate', '≡', 'Events']
   ];
   const buttons = new Map();
@@ -54,7 +54,7 @@
     const button = node('button', 'mobile-dock-button');
     button.type = 'button';
     button.dataset.mobileTab = key;
-    button.setAttribute('aria-label', label === 'IPs' ? 'IP Connections' : label === 'Events' ? 'Investigations' : label);
+    button.setAttribute('aria-label', label === 'IPs' ? 'Source Intelligence' : label === 'Events' ? 'Investigations' : label);
     const symbol = node('span', 'mobile-dock-icon', icon);
     symbol.setAttribute('aria-hidden', 'true');
     button.append(symbol, node('span', 'mobile-dock-label', label));
@@ -77,7 +77,7 @@
   moreMenu.id = 'netsecMobileMore';
   moreMenu.hidden = true;
   moreMenu.setAttribute('aria-label', 'Other dashboard pages');
-  for (const [key, label, icon] of [['traffic', 'Traffic analytics', '▥'], ['intel', 'Source intelligence', '◈']]) {
+  for (const [key, label, icon] of [['traffic', 'Traffic analytics', '▥']]) {
     const item = node('button', 'mobile-more-item', `${icon}  ${label}`);
     item.type = 'button';
     item.dataset.mobileTab = key;
@@ -116,7 +116,7 @@
       if (selected) button.setAttribute('aria-current', 'page');
       else button.removeAttribute('aria-current');
     }
-    const inMore = current === 'traffic' || current === 'intel';
+    const inMore = current === 'traffic';
     more.classList.toggle('active', inMore);
     if (inMore) more.setAttribute('aria-current', 'page');
     else more.removeAttribute('aria-current');
