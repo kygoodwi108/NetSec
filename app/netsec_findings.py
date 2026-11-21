@@ -6,9 +6,10 @@ def _n(value):
     try:return max(0,int(value))
     except (ValueError,TypeError):return 0
 
-def build(evidence,history):
+def build(evidence,history,telemetry=None):
     e=evidence if isinstance(evidence,dict) else {}
     history=history if isinstance(history,dict) else {}
+    telemetry=telemetry if isinstance(telemetry,dict) else {}
     findings=[]
     def add(key,title,priority,summary,confidence='medium',category='infrastructure'):
         findings.append({'id':key,'title':title,'priority':priority,'summary':summary,
@@ -37,6 +38,24 @@ def build(evidence,history):
         add('http-error-rate','Elevated HTTP 5xx responses','medium',
             str(errors)+' HTTP 5xx responses across '+str(requests)+' observed requests (rolling 24h). Attribute to specific services before assuming an incident.',
             'low' if not backend else 'medium','availability')
+    probes=_n(telemetry.get('probes_24h'))
+    if probes>=50 and requests>=100 and probes/requests>=0.01:
+        add('probe-activity','Elevated probe-like HTTP requests','medium',
+            str(probes)+' of '+str(requests)+' observed 24h requests matched known probe-like paths. Distinguish routine internet scanning from a targeted attempt; HTTP response codes alone do not prove exploitation.',
+            'low','traffic')
+    denied=_n(telemetry.get('http_401_24h'))+_n(telemetry.get('http_403_24h'))
+    if denied>=100 and requests>=100 and denied/requests>=0.5:
+        add('auth-denials','High share of 401/403 responses','medium',
+            str(denied)+' of '+str(requests)+' observed responses were 401/403. Identify affected endpoints and callers before interpreting this as an attack.',
+            'low','traffic')
+    if _n(telemetry.get('log_files_readable'))==0 and telemetry:
+        add('missing-logs','Security log visibility unavailable','high',
+            'No readable Nginx access logs are reported. Investigation and threat classification are incomplete.',
+            'high','visibility')
+    if (telemetry.get('crowdsec') or {}).get('export_error'):
+        add('crowdsec-export','CrowdSec alert evidence unavailable','medium',
+            'The CrowdSec alert export could not be read. Confirm collection and refresh status before interpreting missing events.',
+            'high','visibility')
     previous=(history.get('previous_assessments') or []) if isinstance(history.get('previous_assessments'),list) else []
     prior=next((p for p in previous if isinstance(p,dict) and p.get('rolling_24h_requests') is not None),None)
     if prior:
