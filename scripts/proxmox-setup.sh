@@ -432,7 +432,7 @@ server {
         proxy_set_header X-NetSec-Authenticated-User \$remote_user;
         proxy_set_header Authorization "";
         proxy_connect_timeout 5s;
-        proxy_read_timeout 60s;
+        proxy_read_timeout 420s;
     }
 }
 HTTPS
