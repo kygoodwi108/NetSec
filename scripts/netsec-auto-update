@@ -14,6 +14,7 @@ import subprocess
 import sys
 import tempfile
 from urllib.request import Request, urlopen
+from urllib.error import HTTPError
 from zipfile import ZipFile
 
 REPO='kygoodwi108/NetSec'
@@ -121,6 +122,24 @@ def rollback(backup):
     subprocess.run(['systemctl','restart','server-status.service'],check=True)
 
 
+def verify_dashboard():
+    """Verify both public serving and fail-closed unauthenticated analyst API."""
+    conf=LIVE/'config.json'
+    opts=json.loads(conf.read_text()) if conf.is_file() else {}
+    port=int(opts.get('port',8787))
+    if not 1<=port<=65535:raise RuntimeError('Invalid dashboard port')
+    root='http://127.0.0.1:'+str(port)
+    with urlopen(root+'/',timeout=15) as response:
+        if response.status!=200:raise RuntimeError('Dashboard HTTP health check failed')
+        response.read(1000)
+    try:
+        with urlopen(root+'/api/jimmy/workspace',timeout=15):
+            raise RuntimeError('SECURITY FAILURE: unauthenticated analyst endpoint exposed')
+    except HTTPError as error:
+        if error.code!=403:
+            raise RuntimeError('Analyst authorization check failed: HTTP '+str(error.code))
+
+
 def main():
     if os.geteuid()!=0:raise RuntimeError('Auto-update requires root')
     current=parse_version(VERSION.read_text()) if VERSION.exists() else None
@@ -142,6 +161,7 @@ def main():
         try:
             subprocess.run(['bash',str(source/'scripts/install-lxc.sh'),'--upgrade'],check=True,timeout=240)
             subprocess.run(['systemctl','is-active','--quiet','server-status.service'],check=True)
+            verify_dashboard()
             VERSION.write_text('.'.join(map(str,latest))+'\n')
             print('NetSec update complete: '+VERSION.read_text().strip()+'; backup '+str(backup))
         except Exception:
