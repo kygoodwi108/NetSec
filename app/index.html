@@ -622,7 +622,7 @@ $('aiForceRefresh').addEventListener('click',aiForceRefresh);
     if(existingIntel)existingIntel.remove();
     initConnections(tabs.intel);
     if(existingIntel)tabs.intel.append(existingIntel);
-    const history=existingIntel?.querySelector('#intelHistory')?.closest('div[style]');
+    const history=existingIntel?.querySelector('#intelHistory')?.closest('.table-scroll')?.parentElement;
     if(history){
       const details=makeH('details','jimmy-card jimmy-history');
       details.append(makeH('summary','', 'Recent AI assessments'),history);
