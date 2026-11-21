@@ -74,3 +74,7 @@ The updater does not reconfigure host Nginx, CrowdSec bouncers, TLS, model place
 ## v1.3 unified investigations
 
 The Source Intelligence tab now includes HTTP outcome charts and all observed IP rows, direct persisted manual classification (including low-volume sources), safe manual CrowdSec ban queuing with worker status, and a paginated per-IP request explorer. The explorer only returns sanitized records available in bounded Nginx logs, not guaranteed complete historical traffic; rotated or truncated logs show coverage warnings. Recent AI assessments appear in Jimmy, which now uses a dark bubble conversation with optimistic send and retry. Security findings are evidence-derived and variable; the former fixed CrowdSec/Nginx/sensitive-path boxes are retained under expandable technical verification. Existing state, credentials, and security controls are preserved by the in-place installer.
+
+## Jimmy Action Plan and PatchMon (v1.4)
+
+Jimmy's evidence-linked findings appear as prioritized, read-only action cards, with investigation prompts and copyable diagnostic commands. NetSec does not execute model instructions or system changes. An optional standalone PatchMon companion provides read-only reachability in Jimmy; see [PatchMon installation and integration](docs/PATCHMON.md). Configure a private-IP `patchmon_url` in the NetSec LXC's `config.json`. The recommended PatchMon installation runs in a separate Debian VM.
