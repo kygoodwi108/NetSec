@@ -269,7 +269,7 @@ def main():
         advice=R384.calibrate(advice,verified_metrics)
         risk_assessment=advice.pop('risk_assessment')
         from netsec_findings import build as build_findings
-        dynamic_findings=build_findings(verified_metrics,telemetry.get('history_context') or {})
+        dynamic_findings=build_findings(verified_metrics,telemetry.get('history_context') or {},telemetry)
         report={'state':'ready','updated_at':now,'model':model,'assistant_name':str(cfg.get('assistant_name','Jimmy'))[:32],
                 'traffic_risk':(status.get('risk') or {}).get('level','unknown'),
                 'source_generated_at':status.get('generated_at'),'verification_results':verification,
