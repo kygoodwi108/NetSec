@@ -1,0 +1,11 @@
+[Unit]
+Description=Check NetSec GitHub releases for verified automatic updates
+
+[Timer]
+OnCalendar=*-*-* 04:00:00
+RandomizedDelaySec=6h
+Persistent=true
+Unit=netsec-auto-update.service
+
+[Install]
+WantedBy=timers.target
