@@ -3,6 +3,8 @@
 PatchMon is an independent host-patch management platform. **It is not bundled inside NetSec**, and Jimmy never receives PatchMon patch-execution credentials. The integration is read-only service reachability, not package inventory, patch scheduling, or remote patch execution.
 
 ## Deployment
+A guarded helper is included as `scripts/install-patchmon-standalone.sh`. Copy that script to the fresh Debian VM and run `bash install-patchmon-standalone.sh`; it downloads the official setup script for inspection but **does not automatically execute it**. The manual commands below do the same.
+
 
 Recommended: a **new Debian 12/13 VM** on Proxmox with Docker, separate from the NetSec container (CT 108). A dedicated LXC with Docker nesting configured appropriately may work, but is more complex and has additional isolation considerations. Do not install it on the Proxmox host or inside NetSec LXC 108.
 
