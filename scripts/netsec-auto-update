@@ -1,0 +1,187 @@
+#!/usr/bin/env python3
+"""NetSec unattended release updater. Root-only inside the NetSec LXC.
+
+Uses only published GitHub release assets with GitHub-provided SHA-256 digests.
+Never downloads arbitrary URLs from dashboard requests or changes host bouncers.
+"""
+import hashlib
+import json
+import os
+from pathlib import Path
+import re
+import shutil
+import subprocess
+import sys
+import tempfile
+from urllib.request import Request, urlopen
+from urllib.error import HTTPError
+from zipfile import ZipFile
+
+REPO='kygoodwi108/NetSec'
+API='https://api.github.com/repos/'+REPO+'/releases/latest'
+LIVE=Path('/opt/server-status')
+SYSTEMD=Path('/etc/systemd/system')
+STATE=Path('/var/lib/server-status')
+BACKUPS=Path('/root/netsec-auto-update-backups')
+VERSION=Path('/etc/netsec-installed-version')
+USER_AGENT='NetSec-auto-updater/1.2'
+MAX_ZIP=30*1024*1024
+
+
+def parse_version(value):
+    match=re.fullmatch(r'v?(1)\.(\d+)\.(\d+)',str(value).strip())
+    return tuple(map(int,match.groups())) if match else None
+
+
+def read_json(url):
+    with urlopen(Request(url,headers={'User-Agent':USER_AGENT,'Accept':'application/vnd.github+json'}),timeout=25) as response:
+        if response.status!=200: raise RuntimeError('Release metadata HTTP '+str(response.status))
+        raw=response.read(1000001)
+    if len(raw)>1000000:raise RuntimeError('Release metadata too large')
+    return json.loads(raw)
+
+
+def get_asset(release):
+    tag=release.get('tag_name','')
+    latest=parse_version(tag)
+    if not latest or release.get('draft') or release.get('prerelease'):
+        raise RuntimeError('No supported stable v1.x release')
+    expected='netsec-'+tag+'-source.zip'
+    for asset in release.get('assets',[]):
+        if asset.get('name')!=expected:continue
+        url=asset.get('browser_download_url','')
+        digest=asset.get('digest') or ''
+        if not re.fullmatch('sha256:[a-fA-F0-9]{64}',digest):
+            raise RuntimeError('Release ZIP has no GitHub SHA-256 digest; refusing unattended upgrade')
+        if url!='https://github.com/'+REPO+'/releases/download/'+tag+'/'+expected:
+            raise RuntimeError('Unexpected release asset URL')
+        return latest,url,digest.split(':',1)[1].lower()
+    raise RuntimeError('Release source ZIP not published: '+expected)
+
+
+def download_and_verify(url,expected,destination):
+    h=hashlib.sha256()
+    with urlopen(Request(url,headers={'User-Agent':USER_AGENT}),timeout=75) as response, destination.open('wb') as target:
+        if response.status!=200:raise RuntimeError('Release asset download HTTP '+str(response.status))
+        size=0
+        while True:
+            chunk=response.read(65536)
+            if not chunk:break
+            size+=len(chunk)
+            if size>MAX_ZIP:raise RuntimeError('Release ZIP exceeds size limit')
+            target.write(chunk);h.update(chunk)
+    if h.hexdigest()!=expected:raise RuntimeError('Release SHA-256 mismatch')
+
+
+def unpack(zip_path,folder,version):
+    with ZipFile(zip_path) as archive:
+        members=archive.infolist()
+        if len(members)>1500:raise RuntimeError('Too many source files')
+        for m in members:
+            p=Path(m.filename)
+            if p.is_absolute() or '..' in p.parts or not p.parts or m.file_size>5*1024*1024:
+                raise RuntimeError('Unsafe ZIP member')
+            mode=(m.external_attr>>16) & 0o170000
+            if mode not in (0,0o040000,0o100000):
+                raise RuntimeError('Unsupported ZIP member type')
+        archive.extractall(folder)
+    roots=[p for p in folder.iterdir() if p.is_dir()]
+    if len(roots)!=1:raise RuntimeError('Expected one source root')
+    root=roots[0]
+    if (root/'VERSION').read_text().strip()!='.'.join(map(str,version)):
+        raise RuntimeError('Release version mismatch')
+    if not (root/'scripts/install-lxc.sh').is_file() or not (root/'app/app.py').is_file():
+        raise RuntimeError('Incomplete release package')
+    return root
+
+
+def save_backup():
+    BACKUPS.mkdir(parents=True,exist_ok=True,mode=0o700)
+    backup=BACKUPS/('before-'+subprocess.check_output(['date','-u','+%Y%m%dT%H%M%SZ'],text=True).strip()+'-'+str(os.getpid()))
+    backup.mkdir(mode=0o700)
+    shutil.copytree(LIVE,backup/'server-status',symlinks=True)
+    units=backup/'units';units.mkdir()
+    for p in list(SYSTEMD.glob('netsec-*'))+[SYSTEMD/'server-status.service']:
+        if p.is_file():shutil.copy2(p,units/p.name)
+    runner=Path('/usr/local/sbin/netsec-ai-manual-runner')
+    if runner.is_file():shutil.copy2(runner,backup/'netsec-ai-manual-runner')
+    if VERSION.exists():shutil.copy2(VERSION,backup/'version')
+    return backup
+
+
+def rollback(backup):
+    print('Restoring previous application from '+str(backup),file=sys.stderr)
+    subprocess.run(['systemctl','stop','server-status.service'],check=False)
+    if LIVE.exists():shutil.rmtree(LIVE)
+    shutil.copytree(backup/'server-status',LIVE,symlinks=True)
+    for p in (backup/'units').iterdir():shutil.copy2(p,SYSTEMD/p.name)
+    runner=backup/'netsec-ai-manual-runner'
+    if runner.exists():shutil.copy2(runner,'/usr/local/sbin/netsec-ai-manual-runner')
+    if (backup/'version').exists():shutil.copy2(backup/'version',VERSION)
+    subprocess.run(['systemctl','daemon-reload'],check=True)
+    subprocess.run(['systemctl','restart','server-status.service'],check=True)
+
+
+def verify_dashboard():
+    """Verify both public serving and fail-closed unauthenticated analyst API."""
+    conf=LIVE/'config.json'
+    opts=json.loads(conf.read_text()) if conf.is_file() else {}
+    port=int(opts.get('port',8787))
+    if not 1<=port<=65535:raise RuntimeError('Invalid dashboard port')
+    root='http://127.0.0.1:'+str(port)
+    with urlopen(root+'/',timeout=15) as response:
+        if response.status!=200:raise RuntimeError('Dashboard HTTP health check failed')
+        response.read(1000)
+    try:
+        with urlopen(root+'/api/jimmy/workspace',timeout=15):
+            raise RuntimeError('SECURITY FAILURE: unauthenticated analyst endpoint exposed')
+    except HTTPError as error:
+        if error.code!=403:
+            raise RuntimeError('Analyst authorization check failed: HTTP '+str(error.code))
+
+
+def prune_backups(keep=5):
+    """Keep the latest recovery points without deleting a failed-update backup."""
+    ordered=sorted((p for p in BACKUPS.iterdir() if p.is_dir() and p.name.startswith('before-')),
+                   key=lambda p:p.stat().st_mtime,reverse=True)
+    for old in ordered[keep:]:
+        shutil.rmtree(old)
+
+
+def main():
+    if os.geteuid()!=0:raise RuntimeError('Auto-update requires root')
+    current=parse_version(VERSION.read_text()) if VERSION.exists() else None
+    if not current:
+        raise RuntimeError('No recorded installed version; perform one reviewed v1.2 upgrade first')
+    release=read_json(API)
+    latest,url,digest=get_asset(release)
+    if latest<=current:
+        print('NetSec current: '+'.'.join(map(str,current)))
+        return
+    print('NetSec update: '+'.'.join(map(str,current))+' -> '+'.'.join(map(str,latest)))
+    with tempfile.TemporaryDirectory(prefix='netsec-update-') as tmp:
+        work=Path(tmp)
+        zip_path=work/'release.zip'
+        download_and_verify(url,digest,zip_path)
+        source=unpack(zip_path,work/'source',latest)
+        subprocess.run(['bash',str(source/'ci/check.sh')],cwd=source,check=True,timeout=180)
+        backup=save_backup()
+        try:
+            subprocess.run(['bash',str(source/'scripts/install-lxc.sh'),'--upgrade'],check=True,timeout=240,
+                           env={**os.environ,'NETSEC_PREBACKED_UP':'1'})
+            subprocess.run(['systemctl','is-active','--quiet','server-status.service'],check=True)
+            verify_dashboard()
+            VERSION.write_text('.'.join(map(str,latest))+'\n')
+            print('NetSec update complete: '+VERSION.read_text().strip()+'; backup '+str(backup))
+            try:prune_backups()
+            except OSError as ex:print('Backup pruning skipped: '+str(ex),file=sys.stderr)
+        except Exception:
+            rollback(backup)
+            raise
+
+
+if __name__=='__main__':
+    try:main()
+    except Exception as exc:
+        print('NetSec auto-update failed: '+str(exc),file=sys.stderr)
+        sys.exit(1)

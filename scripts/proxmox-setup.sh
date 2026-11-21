@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# NetSec first-time Proxmox LXC installer (v1.1.1).
+# NetSec first-time Proxmox LXC installer (v1.2.0).
 # Deliberately refuses existing LXCs and Nginx sites.
 # Opt-in host bouncer cutover requires explicit operator confirmation.
 set -Eeuo pipefail
@@ -8,7 +8,7 @@ HERE="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 
 usage(){
   cat <<'HELP'
-NetSec first-time Proxmox installer, v1.1.1
+NetSec first-time Proxmox installer, v1.2.0
 Usage: sudo bash scripts/proxmox-setup.sh
 
 Interactive prompts: new LXC ID, static private IPv4/CIDR, gateway, DNS,
@@ -29,7 +29,7 @@ HELP
 for cmd in pct pveam pvesm python3 awk tar; do
   command -v "$cmd" >/dev/null || { echo "Missing required command: $cmd" >&2; exit 2; }
 done
-[[ $(cat "$HERE/VERSION") == 1.1.1 ]] || { echo 'Wrong source version' >&2; exit 2; }
+[[ $(cat "$HERE/VERSION") == 1.2.0 ]] || { echo 'Wrong source version' >&2; exit 2; }
 [[ -f "$HERE/app/netsec_ai_provider.py" ]] || { echo 'Missing provider adapter' >&2; exit 2; }
 
 ask(){
@@ -47,7 +47,7 @@ yesno(){ local answer; read -r -p "$1 [${2:-y/N}]: " answer; [[ "$answer" =~ ^([
 yesno_default_yes(){ local answer; read -r -p "$1 [Y/n]: " answer; [[ -z "$answer" || "$answer" =~ ^([Yy]|[Yy][Ee][Ss])$ ]]; }
 die(){ echo "ERROR: $*" >&2; exit 2; }
 
-printf '\nNetSec v1.1.1 — New installation wizard\n'
+printf '\nNetSec v1.2.0 — New installation wizard\n'
 printf 'Existing LXCs/sites are protected; host bouncer changes are explicitly opt-in.\n\n'
 ask CTID 'New, unused LXC ID' '150'
 [[ "$CTID" =~ ^[1-9][0-9]{1,5}$ ]] || die 'Invalid CTID'
@@ -432,7 +432,7 @@ server {
         proxy_set_header X-NetSec-Authenticated-User \$remote_user;
         proxy_set_header Authorization "";
         proxy_connect_timeout 5s;
-        proxy_read_timeout 60s;
+        proxy_read_timeout 420s;
     }
 }
 HTTPS

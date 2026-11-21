@@ -295,34 +295,33 @@ button,input{font:inherit}button{cursor:pointer}button:focus-visible,input:focus
 
 
 <section class="panel jimmy-workspace" id="jimmyWorkspace" hidden>
-  <div class="panelhead"><div><h2>Ask Jimmy · Evidence-linked conversation</h2><p class="subtle tiny">Operator feedback is a claim, not independently verified evidence. Chat never executes commands or bans.</p></div>
-    <div class="row"><button class="btn" type="button" id="jimmyReload">Reload</button><button class="btn" type="button" id="jimmyLatest">Latest report</button></div></div>
-  <p class="jimmy-status" id="jimmyWorkspaceStatus" role="status">Loading analyst workspace…</p>
-  <div class="jimmy-evidence-grid">
-    <div class="jimmy-card"><small>Assessment ID</small><strong id="jimmyReportId">—</strong><small>Recorded UTC</small><span id="jimmyReportTime">—</span></div>
-    <div class="jimmy-card"><small>Evidence-calibrated severity</small><strong id="jimmyReportSeverity">—</strong><span id="jimmyReportSummary">—</span></div>
+  <div class="panelhead"><div><h2>Jimmy · Security Analyst</h2><p class="subtle tiny">Focused security intelligence and read-only investigation. The AI cannot execute commands or create bans.</p></div>
+    <div class="row"><button class="btn" type="button" id="jimmyReload">Reload</button><button class="btn" type="button" id="jimmyLatest">Latest assessment</button></div></div>
+  <p class="jimmy-status" id="jimmyWorkspaceStatus" role="status">Loading Jimmy…</p>
+  <div class="jimmy-card" style="margin-bottom:12px">
+    <div class="row" style="align-items:center;justify-content:space-between"><h3 style="margin:0">Current security picture</h3><strong id="jimmyReportSeverity">—</strong></div>
+    <p id="jimmyReportSummary">Checking the latest assessment…</p>
+    <small>Assessment recorded: <span id="jimmyReportTime">—</span></small>
+    <details style="margin-top:12px"><summary>Evidence and limitations</summary>
+      <p id="jimmyReportEvidence">No evidence yet</p><p id="jimmyReportLimits">—</p><small>Assessment ID: <span id="jimmyReportId">—</span></small>
+    </details>
   </div>
-  <div class="jimmy-card"><strong>Observed evidence and calibrated reasons</strong><p id="jimmyReportEvidence">No evidence yet</p><small>Feedback influence / before-after</small><p id="jimmyOperatorComparison">—</p><small>Coverage limitations</small><p id="jimmyReportLimits">—</p></div>
-  <div class="jimmy-evidence-grid">
-    <div class="jimmy-card"><h3>Conversation anchored to this assessment</h3><div class="jimmy-chatlog" id="jimmyChatLog"></div>
-      <form id="jimmyChatForm" class="jimmy-form"><label for="jimmyQuestion">Your question</label><textarea id="jimmyQuestion" maxlength="2000" rows="3" required placeholder="Why did these 5xx events matter? What evidence is missing?"></textarea><button class="btn" type="submit">Ask Jimmy</button></form></div>
-    <div class="jimmy-card"><h3>Operator intelligence / feedback</h3><p class="subtle tiny">Recorded with author, timestamp and expiry; verified telemetry is never rewritten.</p>
-      <form id="jimmyFeedbackForm" class="jimmy-form">
-        <label for="jimmyAction">Feedback type</label><select id="jimmyAction"><option value="confirm">I confirm</option><option value="expected">That is expected</option><option value="own_ip">I own this IP</option><option value="disagree">I disagree</option><option value="maintenance">Maintenance until…</option></select>
-        <label for="jimmyFeedbackIp">IP (required for ownership only)</label><input id="jimmyFeedbackIp" type="text" maxlength="48" placeholder="Optional IP address">
-        <label for="jimmyFeedbackTtl">Expires after (hours, blank = 7 days)</label><input id="jimmyFeedbackTtl" type="number" min="1" max="2160" placeholder="For maintenance use 1–168">
-        <label for="jimmyFeedbackNote">Your context / evidence</label><textarea id="jimmyFeedbackNote" rows="3" maxlength="500" placeholder="Why is this expected? Identify the relevant service or maintenance."></textarea>
-        <button class="btn" type="submit">Save operator feedback</button>
-      </form><h3>Active operator context</h3><div id="jimmyFeedbackList" class="jimmy-feedback-list"></div></div>
+  <div class="jimmy-card" style="margin-bottom:12px">
+    <h3>Ask Jimmy</h3><p class="subtle tiny">The conversation carries forward between assessments. Jimmy uses saved recent reports and bounded live service checks, not unrestricted network access.</p>
+    <div class="jimmy-chatlog" id="jimmyChatLog" aria-live="polite"></div>
+    <form id="jimmyChatForm" class="jimmy-form"><label for="jimmyQuestion">Your question</label>
+      <textarea id="jimmyQuestion" maxlength="2000" rows="3" required placeholder="Which problems changed since the last assessment, and what should I check first?"></textarea>
+      <button class="btn" type="submit">Ask Jimmy</button></form>
   </div>
-  <div class="jimmy-evidence-grid">
-    <div class="jimmy-card"><h3>Security incidents</h3><p class="subtle tiny">Notifications trigger only for new corroborated red assessments, not repeated red refreshes.</p><div id="jimmyIncidents"></div><label for="jimmyQuietHours">Pause alerts (hours)</label><div class="row"><select id="jimmyQuietHours"><option value="0">Off</option><option value="1">1 hour</option><option value="8">8 hours</option><option value="24">24 hours</option><option value="72">72 hours</option></select><button class="btn" type="button" id="jimmyQuiet">Set quiet period</button></div>
-      <label for="jimmyEscalationHours">Unacknowledged escalation (once)</label><div class="row"><select id="jimmyEscalationHours"><option value="0">Off</option><option value="1">After 1 hour</option><option value="3">After 3 hours</option><option value="8">After 8 hours</option></select><button class="btn" type="button" id="jimmyEscalation">Save escalation</button></div></div>
-    <div class="jimmy-card"><h3>Installable mobile app and Web Push</h3><p class="subtle tiny">On Android: use browser Install App. On iPhone: Safari → Share → Add to Home Screen, then open the installed app to enable push (iOS 16.4+).</p>
-      <p id="jimmyPushState" class="jimmy-status">Checking push…</p><div class="row"><button class="btn" type="button" id="jimmyPushEnable">Enable notifications</button><button class="btn" type="button" id="jimmyPushTest">Test notification</button><button class="btn" type="button" id="jimmyPushDisable">Disable on this device</button></div>
-      <p class="subtle tiny">Notifications contain no IPs, logs or assessment details. Tap to sign in and open Jimmy.</p>
+  <details class="jimmy-card"><summary>Notifications and alert settings</summary>
+    <div style="padding-top:12px"><h3>Security incidents</h3><div id="jimmyIncidents"></div>
+      <label for="jimmyQuietHours">Pause alerts (hours)</label><div class="row"><select id="jimmyQuietHours"><option value="0">Off</option><option value="1">1 hour</option><option value="8">8 hours</option><option value="24">24 hours</option><option value="72">72 hours</option></select><button class="btn" type="button" id="jimmyQuiet">Set quiet period</button></div>
+      <label for="jimmyEscalationHours">One unacknowledged reminder</label><div class="row"><select id="jimmyEscalationHours"><option value="0">Off</option><option value="1">After 1 hour</option><option value="3">After 3 hours</option><option value="8">After 8 hours</option></select><button class="btn" type="button" id="jimmyEscalation">Save</button></div>
+      <h3>Web Push</h3><p id="jimmyPushState" class="jimmy-status">Checking push…</p>
+      <div class="row"><button class="btn" type="button" id="jimmyPushEnable">Enable notifications</button><button class="btn" type="button" id="jimmyPushTest">Test notification</button><button class="btn" type="button" id="jimmyPushDisable">Disable on this device</button></div>
+      <p class="subtle tiny">The installed mobile app supports notifications where the platform permits them. Messages never contain log or IP details.</p>
     </div>
-  </div>
+  </details>
 </section>
 <section class="panel" id="homepageSection" aria-label="Homepage service status" style="margin-bottom:15px">
 <div class="panelhead"><div><h2>Infrastructure services</h2><div class="subtle tiny">Read-only HTTP(S) and TCP checks; optional homepage integration</div></div><span class="tag" id="homepageFeedBadge">WAITING FOR FEED</span></div>
