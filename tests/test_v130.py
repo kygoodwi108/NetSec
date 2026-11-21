@@ -3,6 +3,7 @@ import datetime as dt
 from pathlib import Path
 import sys
 import unittest
+from unittest.mock import patch
 ROOT=Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(ROOT/'app'))
 import netsec_request_explorer as RX
@@ -15,14 +16,16 @@ class V13(unittest.TestCase):
           {'ip':'203.0.113.7','when':now-dt.timedelta(minutes=10),'method':'GET','path':'/.env','status':403,'bytes':90,'probe_like':True},
           {'ip':'203.0.113.7','when':now-dt.timedelta(minutes=5),'method':'GET','path':'/login','status':200,'bytes':124,'probe_like':False},
           {'ip':'203.0.113.8','when':now,'method':'GET','path':'/other','status':200,'bytes':10,'probe_like':False}]
-        result=RX.explore(lambda:['/tmp/mock.log'],lambda p:['x','y','z'],lambda raw:records['xyz'.index(raw)],
-                          '203.0.113.7')
+        with patch.object(RX.os.path,'isfile',return_value=True):
+            result=RX.explore(lambda:['/tmp/mock.log'],lambda p:['x','y','z'],lambda raw:records['xyz'.index(raw)],
+                              '203.0.113.7')
         self.assertTrue(result['ok'])
         self.assertEqual(result['matching_records'],2)
         self.assertEqual(result['records'][0]['path'],'/login')
         self.assertNotIn('query',result['records'][0])
-        self.assertEqual(len(RX.explore(lambda:['/tmp/mock.log'],lambda p:['x','y','z'],
-          lambda raw:records['xyz'.index(raw)],'203.0.113.7',status='4xx')['records']),1)
+        with patch.object(RX.os.path,'isfile',return_value=True):
+            self.assertEqual(len(RX.explore(lambda:['/tmp/mock.log'],lambda p:['x','y','z'],
+              lambda raw:records['xyz'.index(raw)],'203.0.113.7',status='4xx')['records']),1)
     def test_explorer_rejects_unsafe_pagination(self):
         with self.assertRaises(ValueError):
             RX.explore(lambda:[],lambda p:[],lambda raw:None,'example.com')
