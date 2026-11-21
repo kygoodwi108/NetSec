@@ -439,7 +439,8 @@ class Handler(BaseHTTPRequestHandler):
             if not NPA.require(self,write=False):return
             try:
                 meta=NI.read_registry().get('addresses',{})
-                return NSH_send(self,200,{'ok':True,'labels':dict(list(meta.items())[:1000])})
+                return NSH_send(self,200,{'ok':True,'labels':dict(list(meta.items())[:1000]),
+                                           'ai':dict(list(NSH.stored_ai().items())[:1000])})
             except (OSError,ValueError):
                 return NSH_send(self,503,{'ok':False,'error':'Source labels unavailable'})
         if path == '/api/connections':
@@ -471,7 +472,7 @@ class Handler(BaseHTTPRequestHandler):
                 self.send_response(500)
             mime = 'application/json; charset=utf-8'
         elif path in ('/', '/index.html', '/world.svg', '/manifest.webmanifest',
-                      '/sw.js', '/jimmy-ui.js', '/mobile-ui.js', '/mobile.css', '/offline.html', '/icon-192.png', '/icon-512.png'):
+                      '/sw.js', '/jimmy-ui.js', '/netsec-v13.js', '/mobile-ui.js', '/mobile.css', '/offline.html', '/icon-192.png', '/icon-512.png'):
             name = 'index.html' if path in ('/', '/index.html') else path.lstrip('/')
             with open(os.path.join(DIR, name), 'rb') as f:
                 b = f.read()
@@ -483,6 +484,7 @@ class Handler(BaseHTTPRequestHandler):
                     'offline.html':'text/html; charset=utf-8',
                     'world.svg':'image/svg+xml', 'sw.js':'text/javascript; charset=utf-8',
                     'jimmy-ui.js':'text/javascript; charset=utf-8',
+                    'netsec-v13.js':'text/javascript; charset=utf-8',
                     'mobile-ui.js':'text/javascript; charset=utf-8',
                     'mobile.css':'text/css; charset=utf-8',
                     'manifest.webmanifest':'application/manifest+json',
