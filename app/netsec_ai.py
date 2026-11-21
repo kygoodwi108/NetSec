@@ -268,6 +268,8 @@ def main():
         advice=J37.reconcile(advice,verification,status)
         advice=R384.calibrate(advice,verified_metrics)
         risk_assessment=advice.pop('risk_assessment')
+        from netsec_findings import build as build_findings
+        dynamic_findings=build_findings(verified_metrics,telemetry.get('history_context') or {})
         report={'state':'ready','updated_at':now,'model':model,'assistant_name':str(cfg.get('assistant_name','Jimmy'))[:32],
                 'traffic_risk':(status.get('risk') or {}).get('level','unknown'),
                 'source_generated_at':status.get('generated_at'),'verification_results':verification,
@@ -285,6 +287,7 @@ def main():
             'interpretation':'Used as model context; deterministic corroborated evidence still controls calibrated severity',
             'severity_before':prev_severity or 'none', 'severity_after':report['severity'],
             'reason':'Calibrated from current bounded verification; feedback alone cannot change proven event severity'}
+        report['findings']=dynamic_findings
         atomic_json(OUT_FILE,report)
         AR.succeeded(report)
         try:
