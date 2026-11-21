@@ -73,16 +73,29 @@ function decorate(){
   }
   for(const tr of rows.querySelectorAll('tr')){
     const ipbtn=tr.querySelector('.hub-ip-button');
-    if(!ipbtn||tr.dataset.v13Applied==='1')continue;
+    if(!ipbtn)continue;
+    if(tr.dataset.v13Applied==='1'){
+      const existing=tr.querySelector('select.v13-classify'),banButton=tr.querySelector('button.v13-ban');
+      if(existing&&document.activeElement!==existing){
+        const value=manual[ip]?.status||ai[ip]?.label||existing.dataset.value||'unknown';
+        if(options.some(x=>x[0]===value)){
+          existing.value=value;existing.dataset.value=value;
+          existing.title=manual[ip]?'Operator-classified':'AI suggestion only; not verified by operator';
+          if(banButton)banButton.disabled=value==='friendly'||clearlyLocal(ip);
+        }
+      }
+      continue;
+    }
     const ip=ipbtn.textContent.trim(),cell=tr.children[1];
     if(!cell)continue;
     tr.dataset.v13Applied='1';
     const old=cell.querySelector('.hub-pill:not(.flag)');
+    const oldTrusted=!!old?.classList.contains('trusted');
     if(old)old.remove();
     const select=make('select','v13-classify');
     select.setAttribute('aria-label','Classification for '+ip);
-    let selected=manual[ip]?.status||ai[ip]?.label||(tr.querySelector('.hub-pill.trusted')?'friendly':'unknown');
-    if(!manual[ip]&&ai[ip]?.label)select.title='Jimmy suggested classification; not operator verified';
+    let selected=manual[ip]?.status||ai[ip]?.label||(oldTrusted?'friendly':'unknown');
+    select.title=manual[ip]?'Operator-classified':'AI suggestion only; not verified by operator';
     for(const [value,label] of options){const opt=make('option','',label);opt.value=value;select.append(opt);}
     if(!options.some(x=>x[0]===selected))selected='unknown';
     select.value=selected;select.dataset.value=selected;
