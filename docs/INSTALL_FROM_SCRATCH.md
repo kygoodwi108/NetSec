@@ -274,3 +274,8 @@ pct exec 108 -- systemctl list-timers netsec-auto-update.timer
 ```
 
 **Verify the ZIP hash against the published release SHA-256 before installing.** The extracted top-level directory may differ depending on packaging; check before running the last installer command. Never run the *fresh Proxmox setup wizard* against an existing LXC such as 108. For third-party installs, replace 108 with the actual existing container ID; don't assume host Nginx, HTTPS, CrowdSec or the GPU should be changed by the app updater.
+
+
+### Existing reverse proxy: longer Jimmy chat timeout
+
+Jimmy v1.2's larger context can take more than the 60-second proxy timeout used in v1.1 installers. On existing systems, inspect the **specific NetSec HTTPS Nginx server block on the Proxmox host** and change the NetSec upstream location's `proxy_read_timeout` to `420s`; use `nginx -t && systemctl reload nginx`. Do not change unrelated sites, and do not overwrite the entire HTTPS server block. The v1.2 **fresh** wizard sets the longer timeout automatically. The application updater does not edit host Nginx.
