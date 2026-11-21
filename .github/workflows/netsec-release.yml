@@ -45,5 +45,9 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           VERSION="$(cat VERSION)"
-          gh release create "v${VERSION}" "netsec-v${VERSION}-source.zip" SHA256SUMS.txt \
-            --title "NetSec v${VERSION}" --generate-notes --verify-tag
+          if gh release view "v${VERSION}" >/dev/null 2>&1; then
+            gh release upload "v${VERSION}" "netsec-v${VERSION}-source.zip" SHA256SUMS.txt --clobber
+          else
+            gh release create "v${VERSION}" "netsec-v${VERSION}-source.zip" SHA256SUMS.txt \
+              --title "NetSec v${VERSION}" --generate-notes --verify-tag
+          fi
