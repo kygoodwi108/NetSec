@@ -1,4 +1,4 @@
-/* NetSec 1.1.0 — assessment-linked analyst workspace and opt-in PWA push. */
+/* NetSec 1.2.0 — focused analyst workspace and opt-in PWA push. */
 (() => {
 'use strict';
 const el=id=>document.getElementById(id);
@@ -20,10 +20,6 @@ function draw(report,items,feedback,incidents){
     kv('jimmyReportSummary',report.summary);
     const risk=report.risk_assessment||{};
     kv('jimmyReportEvidence',(risk.reasons||[]).join(' · ')||'No verified reason supplied');
-    const oc=report.operator_feedback_context||{};
-    kv('jimmyOperatorComparison',oc.active_count?
-      'Operator context items: '+oc.active_count+'. Calibrated severity: '+(oc.severity_before||'none')+' → '+(oc.severity_after||'unknown')+'. '+(oc.reason||''):
-      'Operator statements are separate from verifiable observations.');
     kv('jimmyReportLimits',risk.limitations||report.warning||'Read-only bounded evidence');
   } else {
     kv('jimmyReportId','No assessment');kv('jimmyReportTime','—');kv('jimmyReportSeverity','NOT CONFIGURED');
@@ -36,16 +32,7 @@ function draw(report,items,feedback,incidents){
     row.append(field('strong','',line.role==='user'?'Operator':'Jimmy'),field('div','',line.content),field('small','',line.at||''));
     list.append(row);
   }
-  if(!items?.length)list.append(field('div','jimmy-placeholder','Ask about this specific assessment: what evidence supports the severity, what is missing, or what a safe next check would be.'));
-  const fbox=el('jimmyFeedbackList');fbox.replaceChildren();
-  for(const f of (feedback||[]).slice(0,12)){
-    const entry=field('div','jimmy-feedback-line');
-    entry.append(field('strong','',f.action.replace('_',' ')+' · '+(f.ip||'general')),
-      field('span','',f.note||'No additional note'),
-      field('small','',(f.author||'operator')+' · '+f.created_at+(f.expires_at?' · expires '+f.expires_at:' · persistent')));
-    fbox.append(entry);
-  }
-  if(!fbox.children.length)fbox.append(field('div','jimmy-placeholder','No active feedback yet.'));
+  if(!items?.length)list.append(field('div','jimmy-placeholder','Ask Jimmy about the latest findings, earlier assessments, or what to investigate next.'));
   const ibox=el('jimmyIncidents');ibox.replaceChildren();
   for(const incident of (incidents||[]).slice(0,6)){
     const row=field('div','jimmy-incident');
@@ -58,7 +45,7 @@ function draw(report,items,feedback,incidents){
   if(!ibox.children.length)ibox.append(field('div','jimmy-placeholder','No evidence-calibrated red incidents recorded.'));
   const active=!!report;
   el('jimmyChatForm').querySelector('button[type=submit]').disabled=!active;
-  el('jimmyFeedbackForm').querySelector('button[type=submit]').disabled=!active;
+
 }
 async function load(requested=''){
   message('Loading assessment workspace…');
@@ -68,24 +55,15 @@ async function load(requested=''){
     const d=await r.json();if(!r.ok||!d.ok)throw new Error(d.error||'HTTP '+r.status);
     currentId=d.current_report_id||'';selectedId=d.report_id||'';
     draw(d.report,d.messages,d.feedback,d.incidents);
-    message(selectedId?'Assessment loaded · chat remains linked to this report.':'No successful assessment found.');
+    message(selectedId?'Assessment loaded · conversation continues across reports.':'No successful assessment found.');
   }catch(e){message('Workspace unavailable: '+e.message);}
 }
 el('jimmyChatForm').addEventListener('submit',async e=>{
   e.preventDefault();const input=el('jimmyQuestion');const msg=input.value.trim();if(!msg||!selectedId)return;
-  const send=el('jimmyChatForm').querySelector('button[type=submit]');send.disabled=true;message('Jimmy is reviewing the saved evidence…');
+  const send=el('jimmyChatForm').querySelector('button[type=submit]');send.disabled=true;message('Jimmy is investigating…');
   try{const r=await post('/api/jimmy/chat',{report_id:selectedId,message:msg});input.value='';await load(selectedId);
-       message('Answer saved to assessment '+selectedId+'.');}
+       message('Jimmy answered · conversation saved.');}
   catch(ex){message('Jimmy chat error: '+ex.message);}finally{send.disabled=false;}
-});
-el('jimmyFeedbackForm').addEventListener('submit',async e=>{
-  e.preventDefault();if(!selectedId)return;const action=el('jimmyAction').value;
-  if(action==='own_ip'&&!confirm('Confirm this IP belongs to you. This changes a friendly metadata label, not CrowdSec enforcement.'))return;
-  const ip=el('jimmyFeedbackIp').value.trim();const note=el('jimmyFeedbackNote').value.trim();
-  const ttlVal=el('jimmyFeedbackTtl').value;const ttl=ttlVal?Number(ttlVal):null;
-  try{await post('/api/jimmy/feedback',{report_id:selectedId,action,ip:ip||null,note,ttl_hours:ttl});
-      el('jimmyFeedbackNote').value='';await load(selectedId);message('Feedback saved with provenance and expiry. Refresh Jimmy to include it in the next model assessment.');}
-  catch(ex){message('Feedback not saved: '+ex.message);}
 });
 el('jimmyReload').onclick=()=>load();
 el('jimmyLatest').onclick=()=>{history.replaceState(null,'','#jimmy');load();};
