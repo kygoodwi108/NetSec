@@ -1,0 +1,13 @@
+[Unit]
+Description=Refresh NetSec Proxmox host GeoIP2 country database
+Wants=network-online.target
+After=network-online.target
+ConditionPathExists=/usr/local/sbin/netsec-host-geo-guard.py
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/python3 /usr/local/sbin/netsec-host-geo-guard.py refresh-db
+TimeoutStartSec=180
+
+[Install]
+WantedBy=multi-user.target
