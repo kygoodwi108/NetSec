@@ -93,6 +93,7 @@ def evidence(telemetry, verification, status):
     return {
         'generated_at':str(v.get('generated_at') or telemetry.get('generated_at') or '')[:40],
         'nginx_diagnostics_state':nginx_state,
+        'security_intelligence':telemetry.get('security_intelligence') or {},
         'sampled_backend_errors':backend_count,
         'sampled_crowdsec_timer_errors':timer_count,
         'recent_backend_errors':recent_backend,
@@ -221,6 +222,12 @@ def calibrate(reply, e):
             reasons.append(str(historical_backend)+' historical upstream errors; none in most recent 15 minutes')
         if historical_timer>0 and timer==0:
             reasons.append(str(historical_timer)+' historical CrowdSec timer errors; none in most recent 15 minutes')
+    intelligence=e.get('security_intelligence') or {}
+    bouncer=intelligence.get('bouncer') or {}
+    if (bouncer.get('registered_bouncers',0)>0 and
+        bouncer.get('state')=='unverified_or_stale' and severity in ('green','unknown')):
+        severity='amber'
+        reasons.insert(0,'Registered CrowdSec bouncer has no verified recent LAPI pull; actual enforcement remains untested')
     blocked=e['observed_denials_sample']
     if blocked:
         protected=str(blocked)+' observed CrowdSec denial events indicate blocking, not compromise'
