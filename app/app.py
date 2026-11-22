@@ -16,6 +16,7 @@ import gzip
 import ipaddress
 import json
 import os
+from pathlib import Path
 import re
 import sqlite3
 import threading
@@ -353,11 +354,23 @@ def _make_snapshot(scope='all'):
            'countries': geo_rows, 'mapped_requests': mapped_req, 'total_requests': timeline_total,
            'scope': 'Approximate country of network IP, not the visitor\'s physical location. Private IPs excluded.',
            'attribution': 'IP geolocation by DB-IP.com (CC BY 4.0)'}
-    return {'generated_at': _iso(now), 'host': str(CFG.get('display_name', 'Home Server'))[:100],
+    return {'generated_at': _iso(now), 'version': installed_version(), 'host': str(CFG.get('display_name', 'Home Server'))[:100],
             'traffic': traffic, 'geo': geo, 'risk': _risk_traffic(traffic, cs, svc, now),
             'services': svc, 'homepage': homepage, 'service_monitor': service_monitor,
             'service_source': service_source, 'crowdsec': cs, 'ai': _load_ai_assessment(),
             'scope': 'Nginx HTTP(S) logs plus optional exported CrowdSec; not SSH/firewall/VPN audit data.'}
+
+
+def installed_version():
+    """Read the actual deployed release marker, not an outdated UI string."""
+    for path in (Path(__file__).resolve().parent / 'VERSION', Path('/etc/netsec-installed-version')):
+        try:
+            value=path.read_text(encoding='utf-8').strip()
+            if re.fullmatch(r'1\.[0-9]+\.[0-9]+', value):
+                return value
+        except OSError:
+            continue
+    return 'unknown'
 
 
 def snapshot(scope='unknown'):
