@@ -1,0 +1,11 @@
+[Unit]
+Description=Monthly GeoIP2 country database refresh on Proxmox host (opt-in)
+
+[Timer]
+OnCalendar=monthly
+Persistent=true
+RandomizedDelaySec=2h
+Unit=netsec-host-geoip-update.service
+
+[Install]
+WantedBy=timers.target
