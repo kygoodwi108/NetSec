@@ -31,11 +31,11 @@ def build(evidence,history,telemetry=None):
         add('nginx-upstream','Upstream failures in Nginx logs','high' if backend>=20 else 'medium',
             str(backend)+' classified upstream error(s) in a bounded sample. Correlate service, backend and timestamps. This alone does not prove hostile activity.')
     if historical_backend and not backend:
-        add('nginx-upstream-resolved','Historical upstream failures — no recent recurrence','info',
+        add('nginx-upstream-resolved','Historical upstream failures — no recent recurrence','low',
             str(historical_backend)+' upstream error(s) remain in the 24h sample; no matching errors in the most recent 15 minutes. Verify backend health before closing.',
             'medium','availability')
     if historical_timer and not timer:
-        add('crowdsec-connectivity-recovered','Historical CrowdSec connectivity warnings','info',
+        add('crowdsec-connectivity-recovered','Historical CrowdSec connectivity warnings','low',
             str(historical_timer)+' timer/LAPI error(s) remain in the 24h sample; none in the last 15 minutes. Current enforcement must still be verified.',
             'medium','enforcement')
     if timer>=3:
