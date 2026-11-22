@@ -439,7 +439,7 @@ function empty(tbody,message='No matching data'){tbody.replaceChildren();let tr=
 function table(id,rows,fn){const tb=$(id);tb.replaceChildren();if(!rows?.length){empty(tb);return}for(const item of rows){const tr=el('tr');for(const cell of fn(item)){const td=el('td');if(typeof cell==='object'&&cell!==null){td.appendChild(cell)}else{td.textContent=String(cell??'—')}tr.appendChild(td)}tb.appendChild(tr)}}
 function code(v){let span=el('span','code'+(v>=500?' err':v===401||v===403||v===404?' warn':''),String(v));return span}
 function label(id,value,cls){const node=$(id);node.textContent=value;node.className='status '+cls}
-function risk(d){let r=d.risk||{},level=r.level||'unknown';$('riskLabel').textContent=r.label||'UNKNOWN';$('riskLabel').style.color=({red:'var(--red)',amber:'var(--amber)',green:'var(--green)',unknown:'var(--muted)'})[level];$('lights').setAttribute('aria-label','Traffic security posture: '+level);for(const bulb of $('lights').children)bulb.classList.toggle('on',bulb.classList.contains(level));const rs=$('riskReasons');rs.replaceChildren();for(const reason of (r.reasons||[])){rs.appendChild(el('div','reason',reason))}$('riskScope').textContent=r.scope||'';const t=d.traffic||{},cs=d.crowdsec||{},services=d.services||[];label('logHealth',t.log_files_readable>0?'READING':'NO LOGS',t.log_files_readable>0?'ok':'bad');label('csHealth',!cs.configured?'NOT CONFIGURED':cs.error?'EXPORT ERROR':'CONNECTED',!cs.configured?'muted':cs.error?'warn':'ok');label('svcHealth',!services.length?'NOT CONFIGURED':d.service_source==='homepage'&&d.homepage&&d.homepage.state!=='fresh'?'FEED STALE':services.some(s=>s.status==='down')?'DEGRADED':services.some(s=>s.status!=='up')?'UNKNOWN':'RESPONDING',!services.length?'muted':d.service_source==='homepage'&&d.homepage&&d.homepage.state!=='fresh'?'warn':services.some(s=>s.status==='down')?'warn':services.some(s=>s.status!=='up')?'warn':'ok');label('geoHealth',d.geo?.enabled?'OFFLINE ACTIVE':'NOT INSTALLED',d.geo?.enabled?'ok':'muted')}
+function risk(d){let r=d.risk||{},level=r.level||'unknown';$('riskLabel').textContent=r.label||'UNKNOWN';$('riskLabel').style.color=({red:'var(--red)',amber:'var(--amber)',green:'var(--green)',unknown:'var(--muted)'})[level];$('lights').setAttribute('aria-label','Traffic security posture: '+level);for(const bulb of $('lights').children)bulb.classList.toggle('on',bulb.classList.contains(level));const rs=$('riskReasons');rs.replaceChildren();for(const reason of (r.reasons||[])){rs.appendChild(el('div','reason',reason))}$('riskScope').textContent=r.scope||'';const t=d.traffic||{},cs=d.crowdsec||{},services=d.services||[];label('logHealth',t.log_files_readable>0?'READING':'NO LOGS',t.log_files_readable>0?'ok':'bad');label('csHealth',!cs.configured?'NOT CONFIGURED':cs.error?'EXPORT ERROR':'CONNECTED',!cs.configured?'muted':cs.error?'warn':'ok');label('svcHealth',d.service_source==='homepage'&&d.homepage?.state==='unavailable'?'FEED ERROR':d.service_source==='homepage'&&d.homepage?.state==='stale'?'FEED STALE':!services.length?'NOT CONFIGURED':services.some(s=>s.status==='down')?'DEGRADED':services.some(s=>s.status!=='up')?'UNKNOWN':'RESPONDING',d.service_source==='homepage'&&d.homepage?.state!=='fresh'?'warn':!services.length?'muted':services.some(s=>s.status!=='up')?'warn':'ok');label('geoHealth',d.geo?.enabled?'OFFLINE ACTIVE':'NOT INSTALLED',d.geo?.enabled?'ok':'muted')}
 function chart(){if(!data)return;const t=data.traffic||{};const arr=period===24?(t.hourly||[]):(t.daily||[]).slice(period===7?-7:-14);let svg=$('trafficChart');svg.replaceChildren();const W=720,H=258,L=37,R=12,T=20,B=37;const P=W-L-R,Q=H-T-B;let max=Math.max(1,...arr.map(x=>x.requests||0));max=Math.ceil(max*1.18)||1;const x=i=>L+(arr.length<2?P/2:P*i/(arr.length-1)),y=v=>T+Q*(1-v/max);
 for(let j=0;j<=4;j++){let val=max*j/4,Y=y(val);svg.append(sEl('line',{x1:L,y1:Y,x2:W-R,y2:Y,stroke:'#2b4559','stroke-dasharray':'3 6'}));svg.append(sEl('text',{x:26,y:Y+4,fill:'#87a1b5','font-size':11,'text-anchor':'end'},Math.round(val).toString()))}
 if(!arr.length)return;
@@ -465,9 +465,17 @@ function homepageRender(d){
    (state==='checked'?'DIRECT CHECKS':'NOT CONFIGURED');
  badge.title=feed.error||'';
  if(!items.length){
-  grid.append(el('div','callout','No services configured. Add HTTP(S) URLs or TCP endpoints in NetSec config.json, or use the first-time setup wizard.'));
+  const problem=fromHomepage && state==='unavailable'
+     ? 'Homepage status feed unavailable. Check the configured status.json mount, JSON format, and producer timestamp. No live service health is available.'
+     : fromHomepage && state==='stale'
+       ? 'Homepage status feed is stale, and no previous service list is available. Check the status generator.'
+       : 'No services configured. Add HTTP(S) URLs or TCP endpoints in NetSec config.json, or use the first-time setup wizard.';
+   grid.append(el('div','callout',problem));
   return;
  }
+ if(fromHomepage && state==='stale'){
+   grid.append(el('div','callout','Showing last-known Homepage entries ONLY. Their current health is unverified.'));
+  }
  for(const item of items){
   const cell=el('div','homepage-item');
   const title=el('strong','',String(item.name||item.id||'Service'));
