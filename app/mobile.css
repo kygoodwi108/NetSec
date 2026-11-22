@@ -61,7 +61,16 @@
   .jimmy-card{padding:13px;gap:10px}
   .jimmy-chatlog{max-height:38svh;overscroll-behavior:contain}
   .jimmy-form input,.jimmy-form textarea,.jimmy-form select,.jimmy-card select{min-height:46px;padding:11px}
-  .jimmy-form button[type="submit"]{width:100%;min-height:48px}
+  /* The desktop composer uses a flex row, while the mobile button rule
+     forces Send to full width. Stack them to prevent a one-character textarea. */
+  #jimmyChatForm{display:grid;grid-template-columns:minmax(0,1fr);gap:10px;width:100%;min-width:0;align-items:stretch}
+  #jimmyChatForm #jimmyQuestion{display:block;box-sizing:border-box;width:100%;min-width:0;max-width:100%;min-height:86px;max-height:180px;flex:none;font-size:16px;line-height:1.45;resize:vertical}
+  #jimmyChatForm button[type="submit"]{display:block;box-sizing:border-box;width:100%;min-width:0;min-height:48px;flex:none}
+  #jimmyChatLog{box-sizing:border-box;min-width:0;max-width:100%;height:clamp(260px,46svh,520px);max-height:46svh;overflow-x:hidden}
+  #jimmyChatLog .jimmy-msg{box-sizing:border-box;min-width:0;max-width:94%}
+  #jimmyChatLog .jimmy-bubble-text{min-width:0;max-width:100%;overflow-wrap:anywhere;word-break:normal}
+  #jimmyChatLog .jimmy-bubble-text code{overflow-wrap:anywhere;word-break:break-word;white-space:pre-wrap}
+  #jimmyChatLog .jimmy-md-paragraph{overflow-wrap:anywhere}
   #jimmyPushEnable,#jimmyPushTest,#jimmyPushDisable{width:100%}
   .jimmy-card .row select{flex:1 1 100%}
   .jimmy-card .row button{flex:1 1 100%}
