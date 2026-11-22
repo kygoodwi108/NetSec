@@ -16,6 +16,7 @@ import gzip
 import ipaddress
 import json
 import os
+from pathlib import Path
 import re
 import sqlite3
 import threading
@@ -326,10 +327,7 @@ def _make_snapshot(scope='all'):
     # use the configured direct checks instead of fabricating a service failure.
     service_monitor = SVC.sample(CFG.get('services', []))
     homepage = KVG.feed(CFG.get('homepage_status_file'), CFG.get('homepage_max_age_seconds', 150)) if CFG.get('homepage_status_file') else None
-    use_homepage = bool(homepage and (homepage['state'] == 'fresh' or
-                         (not service_monitor['services'] and homepage['state'] == 'stale')))
-    svc = homepage['services'] if use_homepage else service_monitor['services']
-    service_source = 'homepage' if use_homepage else 'configured'
+    svc, service_source = KVG.select_services(homepage, service_monitor)
     geo_rows = []
     for code, count in by_country.most_common(35):
         c = CENTROIDS.get(code)
@@ -356,11 +354,23 @@ def _make_snapshot(scope='all'):
            'countries': geo_rows, 'mapped_requests': mapped_req, 'total_requests': timeline_total,
            'scope': 'Approximate country of network IP, not the visitor\'s physical location. Private IPs excluded.',
            'attribution': 'IP geolocation by DB-IP.com (CC BY 4.0)'}
-    return {'generated_at': _iso(now), 'host': str(CFG.get('display_name', 'Home Server'))[:100],
+    return {'generated_at': _iso(now), 'version': installed_version(), 'host': str(CFG.get('display_name', 'Home Server'))[:100],
             'traffic': traffic, 'geo': geo, 'risk': _risk_traffic(traffic, cs, svc, now),
             'services': svc, 'homepage': homepage, 'service_monitor': service_monitor,
             'service_source': service_source, 'crowdsec': cs, 'ai': _load_ai_assessment(),
             'scope': 'Nginx HTTP(S) logs plus optional exported CrowdSec; not SSH/firewall/VPN audit data.'}
+
+
+def installed_version():
+    """Read the actual deployed release marker, not an outdated UI string."""
+    for path in (Path(__file__).resolve().parent / 'VERSION', Path('/etc/netsec-installed-version')):
+        try:
+            value=path.read_text(encoding='utf-8').strip()
+            if re.fullmatch(r'1\.[0-9]+\.[0-9]+', value):
+                return value
+        except OSError:
+            continue
+    return 'unknown'
 
 
 def snapshot(scope='unknown'):
