@@ -1,6 +1,22 @@
-# NetSec v1.3.0 — Proxmox security dashboard and Jimmy analyst
+# NetSec v1.4.1 — Proxmox security dashboard and Jimmy analyst
 
 **Release source; back up existing installations before deploying and confirm CI and release checks.** Source includes the NetSec 3.8.5-derived security dashboard, generic server monitoring, evidence-calibrated local/cloud AI, optional independent CrowdSec engine and host bouncer, and a mobile-ready Jimmy analyst workspace.
+
+## v1.4.1 Jimmy security intelligence
+
+- Separates historical Nginx upstream/CrowdSec failures from recent incidents.
+- Adds an opt-in, read-only NGINX CVE advisory watchlist (dated November 2026).
+  Package revision and vendor backports **must** be verified before declaring
+  a vulnerability. See `docs/SECURITY_INTELLIGENCE.md`.
+- Reports LAPI bouncer pull freshness without claiming a controlled block.
+- Adds Canada-first *monitoring* of Nginx HTTP source geography, incident
+  lifecycle labels and improved Jimmy Markdown/chat presentation.
+- Adds red-team regression cases for scanning, historical outages, CVE
+  applicability, unknown geography and stale CrowdSec synchronization.
+- **Does not install or enable geographic blocking.** Nginx GeoIP2, direct
+  Proxmox ports, router forwards, IPv6 and rollback must be staged separately;
+  see `docs/CANADA_FIRST_POLICY.md`.
+- Does not issue automatic bans or change Transmission/Proton VPN routing.
 
 ## Get started
 
