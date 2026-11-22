@@ -49,6 +49,7 @@ for p in "$HERE"/app/*;do
  [[ -f "$p" ]] || continue
  install -o root -g root -m 0644 "$p" "$APP/$(basename "$p")"
 done
+install -o root -g root -m 0644 "$HERE/VERSION" "$APP/VERSION"
 if [[ ! -e "$APP/config.json" ]];then install -o root -g statusdash -m 0640 "$HERE/config/config.json.example" "$APP/config.json";fi
 if [[ ! -e "$APP/operator-context.json" ]];then install -o root -g statusdash -m 0640 "$HERE/config/operator-context.json.example" "$APP/operator-context.json";fi
 if [[ ! -e /etc/netsec-diagnostics.json ]];then install -o root -g statusdash -m 0640 "$HERE/config/netsec-diagnostics.json.example" /etc/netsec-diagnostics.json;fi
