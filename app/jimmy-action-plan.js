@@ -13,6 +13,12 @@ const CHECKS={
  'auth-denials':{step:'Inspect the affected endpoints; 401/403 alone is not evidence of an attack.',command:'tail -n 150 /var/log/nginx/access.log'},
  'missing-logs':{step:'Verify Nginx logs are present and accessible to the NetSec log reader.',command:'ls -lah /var/log/nginx/'},
  'crowdsec-export':{step:'Verify that CrowdSec export data is refreshed and readable.',command:'cscli metrics'},
+ 'cve-inventory-needed':{step:'Inventory NGINX package revision, vendor backports and enabled HTTP/2, HTTP/3, resolver and mail features before claiming exposure.',command:'nginx -V 2>&1; dpkg-query -W nginx nginx-common 2>/dev/null'},
+ 'cve-package-review':{step:'Review the relevant NGINX advisory and distribution security tracker; version alone cannot establish exposure.',command:'nginx -V 2>&1; apt-cache policy nginx'},
+ 'international-traffic':{step:'Attribute foreign requests to the contacted virtual host and authentication outcome; do not ban solely by country.',command:''},
+ 'bouncer-sync':{step:'Inspect last API pull, exporter freshness and NGINX bouncer health without disabling existing enforcement.',command:'cscli bouncers list; cscli metrics'},
+ 'nginx-upstream-resolved':{step:'Confirm backend health and that the last upstream error predates the recovery window.',command:'journalctl -u nginx -n 80 --no-pager'},
+ 'crowdsec-connectivity-recovered':{step:'Verify current LAPI synchronization and differentiate historical timer errors from active enforcement gaps.',command:'cscli bouncers list'},
  'traffic-change':{step:'Compare the same time windows and check for normal scheduled activity.',command:'tail -n 150 /var/log/nginx/access.log'}
 };
 const priorities={high:0,medium:1,low:2};
@@ -26,7 +32,7 @@ function drawPlan(report){
   const box=text('article','','jimmy-action-item');
   const heading=text('div','','jimmy-action-heading');
   heading.append(text('strong',f.title||'Investigation'));
-  heading.append(text('span',String(f.priority||'review').toUpperCase(),'jimmy-action-priority'));
+  heading.append(text('span',String(f.lifecycle||'unverified').toUpperCase()+' · '+String(f.priority||'review').toUpperCase(),'jimmy-action-priority'));
   box.append(heading,text('p',f.summary||'Review the underlying evidence.','jimmy-action-evidence'));
   const step=CHECKS[f.id]||{step:'Review available evidence, identify affected endpoints, and verify an expected change before applying it.',command:''};
   box.append(text('p','Next check: '+step.step,'jimmy-action-next'));
