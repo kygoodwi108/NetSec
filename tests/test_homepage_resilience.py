@@ -81,6 +81,16 @@ class HomepageResilience(unittest.TestCase):
         self.assertEqual(source,'homepage')
         self.assertEqual(rows[0]['status'],'stale')
 
+    def test_release_version_is_not_hardcoded_in_dashboard(self):
+        ui=(ROOT/'app/index.html').read_text()
+        app=(ROOT/'app/app.py').read_text()
+        installer=(ROOT/'scripts/install-lxc.sh').read_text()
+        self.assertNotIn('Security overview · NetSec v1.1.1', ui)
+        self.assertIn('id="netsecInstalledVersion"',ui)
+        self.assertIn("versionText.textContent='v'+String(d.version||'unknown')",ui)
+        self.assertIn("'version': installed_version()",app)
+        self.assertIn('"$HERE/VERSION" "$APP/VERSION"',installer)
+
     def test_dashboard_does_not_call_unavailable_not_configured(self):
         ui=(ROOT/'app/index.html').read_text()
         self.assertIn("state==='unavailable'?'FEED ERROR'",ui)
