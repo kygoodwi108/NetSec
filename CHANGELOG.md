@@ -1,3 +1,10 @@
+## v1.4.3 — Service status stability hotfix (same release line)
+
+- Keep fresh Homepage service-status snapshots in a bounded memory fallback for intermittent missing or invalid `status.json`. Fallback data is always marked stale; it is not presented as live service health.
+- Preserve the Homepage source when its feed fails and no direct checks exist; show an explicit feed-unavailable message instead of "No services configured."
+- Prefer configured direct checks when the Homepage feed is stale, retaining the existing fresh-feed behavior.
+- Add focused service-status regressions; no changes to the independent Homepage producer or to host Nginx.
+
 ## v1.4.3 — Proxmox host GeoIP policy and manual patch reconciliation
 
 - Packaged the previously manual host-side GeoIP2 HTTPS guard as an **opt-in**
