@@ -1,17 +1,17 @@
-# Canada-first inbound policy — staged host rollout
+# Canada + US inbound policy — staged host rollout
 
 **Do not enable country restrictions through a NetSec application upgrade.**
-The operator's access baseline is Canada for human users. Transmission torrent
+The operator's normal access baseline is Canada + United States for human users, including common US-exit Safari Private Relay traffic. Transmission torrent
 peer traffic is worldwide. No AI response may create firewall or CrowdSec bans.
 
 ## Scope and boundaries
 
-- HTTPS reverse-proxy sites: Canada-only inbound user access by GeoIP country,
+- HTTPS reverse-proxy sites: Canada + US inbound user access by GeoIP country,
   after validating client IP attribution and the GeoIP2 module.
 - Transmission peer traffic: worldwide; do not alter its Proton VPN tunnel,
   routing, kill switch, or torrent listening port.
 - Transmission web interface on transmission.kvgoodwin.com: **not** part of
-  the worldwide peer exemption. Restrict the administrative UI to Canada.
+  the worldwide peer exemption. Restrict the administrative UI to Canada and the United States.
 - Other direct public listeners (Proxmox 8006, SSH 22, SPICE 3128): Nginx rules
   cannot protect them. Audit router NAT and IPv4/IPv6 reachability separately,
   then stage appropriate host/router firewall controls with an out-of-band
@@ -39,6 +39,8 @@ peer traffic is worldwide. No AI response may create firewall or CrowdSec bans.
    active Nginx unchanged. Do not enable firewall default-deny remotely without
    rollback/watchdog and reliable console access.
 
+The opt-in tested host helper is documented in [HOST_GEOIP_GUARD.md](HOST_GEOIP_GUARD.md). It supports migration from the November 2026 manual CA-only guard, CA+US defaults, independent timed rollback of a country allowlist update, and a separately opt-in monthly host database refresh. The LXC installer never changes these host rules.
+
 ## CrowdSec
 
 Keep CrowdSec's behavioural scenarios and bouncer decisions independent of
@@ -53,7 +55,7 @@ separately, and continue treating foreign traffic as an investigative feature.
   in chat bubbles. The renderer must not interpret HTML from logs/model replies.
 - Preserve bounded history; distinguish last-24h incident counts from last-15m
   current activity and fresh service checks.
-- Canada is an expected geographic baseline, **not** proof of benign activity;
+- Canada and the US are expected geographic baselines, **not** proof of benign activity;
   source country, service, traffic direction and authentication outcome govern
   assessment. No unconditional international exemption for the Transmission UI.
 - CVE advisory intelligence requires a validated package inventory, including
