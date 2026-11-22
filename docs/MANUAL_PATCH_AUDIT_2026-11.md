@@ -43,3 +43,20 @@ not strong authentication. Private Relay can use countries other than US;
 traveling users can still be blocked. Unknown locations remain denied;
 country is not an identity or authorization signal. Always keep HTTP
 authentication and CrowdSec protections.
+
+## Follow-up — v1.4.3 service-status hotfix
+
+The legacy Homepage feed is an operator-owned read-only `status.json`. A momentary
+missing/partially written/invalid JSON feed previously made all services disappear
+from NetSec despite a working mount; if no direct checks were configured the UI
+incorrectly reported "No services configured." The hotfix caches the latest fresh
+valid sample **in memory for at most one hour**, explicitly renders it as
+**STALE — not live**, preserves the source as `homepage` on unavailable data,
+and prioritizes configured direct checks when the Homepage feed is stale.
+No saved file, database, or Homepage generator is overwritten.
+A full process restart clears this optional last-known cache.
+
+The **cause of any particular live 0/10 incident remains unverified** without
+fresh logs from the host. This patch makes the monitoring status honest and
+resistant to short JSON-write interruptions; it does not repair an unhealthy
+external Homepage status generator.
