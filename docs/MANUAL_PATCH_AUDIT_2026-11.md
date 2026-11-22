@@ -23,6 +23,10 @@ actual deployed state before any future cutover.
 | Direct SSH 22 / Proxmox 8006 / SPICE 3128 | No proof they are internet-forwarded | **Not modified**; router and IPv6 reachability audit remains |
 | Transmission Proton VPN torrent peer exemptions | Working separate deployment | Unchanged; policy applies to reverse-proxied admin UI only |
 | PatchMon sign-in expired message | Operator entered wrong PIN/TFA code | **Not a code defect** |
+| Host Nginx reverse-proxy timeouts for long Jimmy operations | Fresh wizard and `examples/nginx-location.conf` already support an extended read timeout | Live host settings must be compared before changing |
+| PatchMon proxy WebSocket Upgrade, forwarded headers, buffering disabled, long read timeout | Previously only manual host vhost and prose | Added `examples/nginx-patchmon-location.conf`; not auto-installed |
+| Host ACLs allowing unprivileged NetSec to read Nginx logs | Already packaged as `scripts/grant-host-log-acl.sh` | Preserve default ACL for rotated logs; no new host mutation |
+| Standalone Homepage 11-item layout / service generator | Separate /var/www/html site, not a NetSec-owned app file | Do not overwrite or publish the host homepage; NetSec's optional read-only feed already supported |
 | Nginx hardening and CrowdSec bouncer host state | Existing host config not necessarily in app repo | No automatic importer; no token/certificate/secret exposure |
 | NGINX package CVEs / Debian backports | Advisory watchlist in app | Patch status requires separate vendor/distro verification |
 
