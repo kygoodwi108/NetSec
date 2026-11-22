@@ -16,8 +16,10 @@ def build(evidence,history,telemetry=None):
                          'confidence':confidence,'category':category,'origin':'bounded verified telemetry'})
     svc=e.get('service_health') or {}
     down=_n(svc.get('down')) if svc.get('fresh') else 0
-    backend=_n(e.get('sampled_backend_errors'))
-    timer=_n(e.get('sampled_crowdsec_timer_errors'))
+    historical_backend=_n(e.get('sampled_backend_errors'))
+    historical_timer=_n(e.get('sampled_crowdsec_timer_errors'))
+    backend=_n(e.get('recent_backend_errors',historical_backend))
+    timer=_n(e.get('recent_crowdsec_timer_errors',historical_timer))
     requests=_n(e.get('requests_aggregate'))
     errors=_n(e.get('http_5xx_aggregate'))
     paths=e.get('sensitive_paths') or {}
@@ -28,6 +30,14 @@ def build(evidence,history,telemetry=None):
     if backend:
         add('nginx-upstream','Upstream failures in Nginx logs','high' if backend>=20 else 'medium',
             str(backend)+' classified upstream error(s) in a bounded sample. Correlate service, backend and timestamps. This alone does not prove hostile activity.')
+    if historical_backend and not backend:
+        add('nginx-upstream-resolved','Historical upstream failures — no recent recurrence','info',
+            str(historical_backend)+' upstream error(s) remain in the 24h sample; no matching errors in the most recent 15 minutes. Verify backend health before closing.',
+            'medium','availability')
+    if historical_timer and not timer:
+        add('crowdsec-connectivity-recovered','Historical CrowdSec connectivity warnings','info',
+            str(historical_timer)+' timer/LAPI error(s) remain in the 24h sample; none in the last 15 minutes. Current enforcement must still be verified.',
+            'medium','enforcement')
     if timer>=3:
         add('crowdsec-connectivity','CrowdSec connectivity warnings','medium',
             str(timer)+' CrowdSec timer/LAPI error(s) observed in bounded diagnostics. Verify relay health and bouncer synchronization.')
