@@ -27,7 +27,7 @@ PatchMon includes its own authentication and host enrollment workflow. Create an
 
 ## Optional reverse proxy
 
-If exposing it through the existing Proxmox Nginx reverse proxy, use a *new*, HTTPS-protected hostname with a dedicated server block and valid certificate, pointing to the VM's private address and the port shown by the PatchMon setup script (typically 3000). Ensure WebSocket support if required by the selected PatchMon features. Do not modify the working NetSec/PVE virtual hosts.
+If exposing it through the existing Proxmox Nginx reverse proxy, use a *new*, HTTPS-protected hostname with a dedicated server block and valid certificate, pointing to the VM's private address and the port shown by the PatchMon setup script (typically 3000). Ensure WebSocket support if required by the selected PatchMon features. Do not modify the working NetSec/PVE virtual hosts. The prior manual PatchMon proxy used forwarded-proto/host headers, WebSocket Upgrade, buffering disabled and a long read timeout. A reviewed, **opt-in** Nginx location example is now in `examples/nginx-patchmon-location.conf`; adjust the upstream IP and test against your existing Certbot-managed server block. Do not duplicate its TLS listener or remove its CA+US host GeoIP gate.
 
 ## Connect its availability status to NetSec
 

@@ -15,7 +15,7 @@ EXISTING=0
 if [[ "$MODE" == --fresh && $EXISTING -eq 1 ]];then echo 'Existing NetSec installation: refusing overwrite. Use --upgrade only after backup/review.' >&2;exit 2;fi
 if [[ "$MODE" == --upgrade && $EXISTING -eq 0 ]];then echo 'No existing NetSec installation. Use --fresh.' >&2;exit 2;fi
 # For non-blank upgrades require known legacy NetSec markers; no blind overwrite.
-if [[ "$MODE" == --upgrade ]] && ! grep -qE 'NetSec v3|NetSec product release v1.0.[12]|NetSec product release v1.1.[01]|NetSec product release v1.4.0|NetSec v1.2' "$APP/app.py"; then
+if [[ "$MODE" == --upgrade ]] && ! grep -qE 'NetSec v3|NetSec product release v1.0.[12]|NetSec product release v1.1.[01]|NetSec product release v1.4.[0-9]+|NetSec v1.2' "$APP/app.py"; then
  echo 'Unknown preexisting code: refusing upgrade' >&2; exit 2
 fi
 # Verify Python syntax and essential modules before touching live paths.
@@ -27,7 +27,7 @@ print('Python parse preflight PASS')
 PYCOMPILE
 BACKUP=
 if [[ $EXISTING -eq 1 && ${NETSEC_PREBACKED_UP:-0} != 1 ]]; then
- BACKUP="/root/netsec-before-v${RELEASE_VERSION//./}-$(date -u +%Y%m%dT%H%M%SZ)-$"
+ BACKUP="/root/netsec-before-v${RELEASE_VERSION//./}-$(date -u +%Y%m%dT%H%M%SZ)-$$"
  mkdir -m 0700 "$BACKUP"
  cp -a "$APP" "$BACKUP/server-status"
  for path in /etc/netsec-proxy-auth.json /etc/netsec-diagnostics.json /etc/netsec-ai.env; do
