@@ -27,6 +27,7 @@ import netsec_jimmy_checks as JCHECK  # Fixed autonomous read-only checks
 import netsec_jimmy_v37 as J37  # Evidence-first reconciliation
 import netsec_json_v371 as JFMT  # Validated schema and safe diagnostics
 import netsec_risk_v384 as R384  # Bounded JSON and calibrated evidence
+import netsec_security_intel as SEC
 import netsec_ai_resilience as AR  # NetSec AI reliability v3.2
 from email.message import EmailMessage
 from urllib.error import HTTPError, URLError
@@ -215,6 +216,7 @@ def main():
         if (status.get('traffic') or {}).get('log_files_readable',0) < 1:
             raise RuntimeError('No readable Nginx logs; cannot assess risk')
         telemetry=metrics_for_model(status)
+        telemetry['security_intelligence']=SEC.snapshot((status.get('geo') or {}).get('countries') or [], status.get('enforcement') or NI.read_enforcement())
         telemetry['operator_context']=JC.build_context(status,cfg)
         # Operator feedback is persistent and timestamped, but remains an
         # assertion, never independently verified telemetry or a ban signal.
@@ -288,6 +290,7 @@ def main():
             'severity_before':prev_severity or 'none', 'severity_after':report['severity'],
             'reason':'Calibrated from current bounded verification; feedback alone cannot change proven event severity'}
         report['findings']=dynamic_findings
+        report['security_intelligence']=telemetry.get('security_intelligence',{})
         atomic_json(OUT_FILE,report)
         AR.succeeded(report)
         try:
