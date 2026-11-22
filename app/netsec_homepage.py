@@ -8,6 +8,13 @@ from datetime import datetime, timezone
 from pathlib import Path
 import json
 import math
+import threading
+import time
+
+# Latest valid homepage snapshot, retained only for a short outage.
+_LAST_GOOD = {}
+_CACHE_LOCK = threading.Lock()
+LAST_GOOD_MAX_AGE_SECONDS = 3600
 
 DISPLAY_NAMES = {
     'pve':'Proxmox VE', 'netsec':'NetSec', 'ai':'Open WebUI',
@@ -35,6 +42,7 @@ def feed(path, max_age_seconds=150):
     if not path:
         result['state']='not_configured'
         return result
+    key = str(path)
     try:
         path = Path(path)
         if not path.is_file():
@@ -77,8 +85,40 @@ def feed(path, max_age_seconds=150):
                                        'checked_at':result['checked_at']})
         if not result['services']:
             raise ValueError('No services found in homepage status feed')
+        # Keep a bounded, in-memory snapshot so a partially written JSON file
+        # does not make the entire list disappear on the next dashboard refresh.
+        # Never treat this fallback as a live reachability result.
+        if fresh:
+            with _CACHE_LOCK:
+                _LAST_GOOD.clear()
+                _LAST_GOOD[key] = (time.monotonic(), result['checked_at'],
+                                   [dict(item) for item in result['services']])
     except (OSError, ValueError, TypeError, OverflowError) as exc:
-        # Never interpret unreadable/malformed status data as service health.
         result.update(state='unavailable',checked_at=None,age_seconds=None,
                       services=[],error=type(exc).__name__ + ': ' + str(exc)[:130])
+        with _CACHE_LOCK:
+            previous = _LAST_GOOD.get(key)
+        if previous and 0 <= time.monotonic() - previous[0] <= LAST_GOOD_MAX_AGE_SECONDS:
+            result.update(state='stale',checked_at=previous[1],
+                          age_seconds=round(time.monotonic()-previous[0]),
+                          services=[dict(item,status='stale') for item in previous[2]],
+                          error=result['error']+'; displaying last known services, NOT live status')
     return result
+
+
+def select_services(homepage, service_monitor):
+    """Prefer fresh homepage data, configured direct checks, then stale context.
+
+    If an operator configured a homepage feed but it is unavailable, preserve
+    that source state so the UI does not inaccurately say 'not configured'.
+    """
+    monitoring = service_monitor if isinstance(service_monitor, dict) else {}
+    direct = monitoring.get('services') or []
+    feed = homepage if isinstance(homepage, dict) else None
+    if feed and feed.get('state') == 'fresh' and feed.get('services'):
+        return feed['services'], 'homepage'
+    if direct:
+        return direct, 'configured'
+    if feed:
+        return feed.get('services') or [], 'homepage'
+    return [], 'configured'
