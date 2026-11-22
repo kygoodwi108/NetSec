@@ -49,11 +49,13 @@ def _recent_lines(p, size=1500000):
     except (OSError,EOFError,gzip.BadGzipFile):return []
 
 
-def _errors(tz='America/Toronto', max_lines=60000):
+def _errors(tz='America/Moncton', max_lines=60000):
     try:timezone=ZoneInfo(tz)
     except (KeyError,ValueError):timezone=UTC
     cutoff=dt.datetime.now(UTC)-dt.timedelta(hours=24)
     counts=collections.Counter();ups=collections.Counter()
+    active_counts=collections.Counter();last_by_class={};first_by_class={};last_by_upstream={};first_by_upstream={};now_utc=dt.datetime.now(UTC)
+    recent_cutoff=now_utc-dt.timedelta(minutes=15)
     recent_blocks={}; examined=0; readable=0
     for path in [ERRORLOG,ERRORLOG.with_name('error.log.1')]:
         lines=_recent_lines(path)
@@ -65,6 +67,26 @@ def _errors(tz='America/Toronto', max_lines=60000):
             try:at=dt.datetime.strptime(m.group(1),'%Y/%m/%d %H:%M:%S').replace(tzinfo=timezone).astimezone(UTC)
             except ValueError:continue
             if at<cutoff or at>dt.datetime.now(UTC)+dt.timedelta(minutes=5):continue
+            # Classify each error once; preserve the 24h audit counts while
+            # exposing genuinely recent activity and exact incident bounds.
+            classes=[]
+            if 'context: ngx.timer' in line and ('connection refused' in line or 'no route to host' in line):
+                classes.append('crowdsec_timer_connectivity')
+            if 'connect() failed' in line and 'while connecting to upstream' in line:
+                classes.append('upstream_connection_failure')
+            if 'upstream timed out' in line:classes.append('upstream_timeout')
+            if 'no live upstreams' in line:classes.append('no_live_upstream')
+            if 'upstream prematurely closed' in line:classes.append('upstream_closed')
+            for cls in classes:
+                first_by_class[cls]=min(first_by_class.get(cls,at),at)
+                last_by_class[cls]=max(last_by_class.get(cls,at),at)
+                if at>=recent_cutoff:active_counts[cls]+=1
+            if any(cls!='crowdsec_timer_connectivity' for cls in classes):
+                upstream_match=re.search(r'upstream: "(?:https?://)?([^/" ]+)',line)
+                if upstream_match:
+                    endpoint=upstream_match.group(1)[:70]
+                    first_by_upstream[endpoint]=min(first_by_upstream.get(endpoint,at),at)
+                    last_by_upstream[endpoint]=max(last_by_upstream.get(endpoint,at),at)
             if 'context: ngx.timer' in line and ('connection refused' in line or 'no route to host' in line):
                 counts['crowdsec_timer_connectivity']+=1
             if 'connect() failed' in line and 'while connecting to upstream' in line:
@@ -85,6 +107,11 @@ def _errors(tz='America/Toronto', max_lines=60000):
                     event['last_seen']=max(event['last_seen'],at.isoformat())
     return {'source':'Nginx error.log and error.log.1, bounded tails','readable_files':readable,
             'lines_examined':examined,'time_window':'last_24h','class_counts':dict(counts),
+            'recent_15m_class_counts':dict(active_counts),
+            'first_seen_by_class':{k:v.isoformat() for k,v in first_by_class.items()},
+            'last_seen_by_class':{k:v.isoformat() for k,v in last_by_class.items()},
+            'first_seen_by_upstream':{k:v.isoformat() for k,v in first_by_upstream.items()},
+            'last_seen_by_upstream':{k:v.isoformat() for k,v in last_by_upstream.items()},
             'upstreams':[{'address':addr,'errors':n} for addr,n in ups.most_common(8)],
             'observed_bouncer_denials':sorted(recent_blocks.values(),key=lambda v:v['last_seen'],reverse=True)[:16],
             'limits':'Nginx error logs do not prove every denied response was HTTP 403; rotated .gz files not sampled'}
@@ -222,7 +249,7 @@ def sensitive_http_checks(d):
 
 def collect(status=None,config=None):
     d=settings();now=dt.datetime.now(UTC).isoformat()
-    try:errors=_errors(d.get('nginx_timezone','America/Toronto'))
+    try:errors=_errors(d.get('nginx_timezone','America/Moncton'))
     except Exception as exc:errors={'state':'unavailable','reason':type(exc).__name__}
     enforcement=(status or {}).get('enforcement') or NI.read_enforcement()
     active=enforcement.get('state')=='active'
@@ -245,5 +272,5 @@ def collect(status=None,config=None):
                    'limits':sensitive.get('limits','No live checks performed')})
     return {'generated_at':now,'mode':'predefined read-only checks, no model-generated code or remediations',
             'checks':checks,'sensitive_path_details':(sensitive.get('results') or [])[:12],
-            'nginx_error_summary':{k:errors.get(k) for k in ('readable_files','class_counts','upstreams','observed_bouncer_denials')},
+            'nginx_error_summary':{k:errors.get(k) for k in ('readable_files','class_counts','recent_15m_class_counts','first_seen_by_class','last_seen_by_class','first_seen_by_upstream','last_seen_by_upstream','upstreams','observed_bouncer_denials')},
             'enforcement_note':'Successful cscli decision + current bouncer pull does not independently prove HTTP 403 without an observed controlled test'}

@@ -70,6 +70,16 @@ def evidence(telemetry, verification, status):
         'no_live_upstreams','no_live_upstream'))
     if not raw_counts:backend_count=number(nginx.get('real_upstream_errors_sample'))
     timer_count=number(raw_counts.get('crowdsec_timer_connectivity')) if raw_counts else number(nginx.get('crowdsec_timer_connectivity_sample'))
+    # A historical bounded sample is evidence of an event, not necessarily an
+    # ongoing incident. Use the most recent window for live severity only when
+    # the collector has supplied it; otherwise retain legacy conservative logic.
+    recent_counts=(v.get('nginx_error_summary') or {}).get('recent_15m_class_counts')
+    recent_available=isinstance(recent_counts,dict)
+    recent_backend=(sum(number(recent_counts.get(k)) for k in (
+        'upstream_connection_failure','upstream_timeout','upstream_closed',
+        'no_live_upstreams','no_live_upstream')) if recent_available else backend_count)
+    recent_timer=(number(recent_counts.get('crowdsec_timer_connectivity'))
+                  if recent_available else timer_count)
     p=(v.get('sensitive_path_details') or [])
     paths=[x for x in p if isinstance(x,dict)]
     outcomes=[str(x.get('outcome') or '') for x in paths]
@@ -83,8 +93,14 @@ def evidence(telemetry, verification, status):
     return {
         'generated_at':str(v.get('generated_at') or telemetry.get('generated_at') or '')[:40],
         'nginx_diagnostics_state':nginx_state,
+        'security_intelligence':telemetry.get('security_intelligence') or {},
         'sampled_backend_errors':backend_count,
         'sampled_crowdsec_timer_errors':timer_count,
+        'recent_backend_errors':recent_backend,
+        'recent_crowdsec_timer_errors':recent_timer,
+        'recent_activity_available':recent_available,
+        'first_seen_by_class':(v.get('nginx_error_summary') or {}).get('first_seen_by_class') or {},
+        'last_seen_by_class':(v.get('nginx_error_summary') or {}).get('last_seen_by_class') or {},
         'crowdsec_state':cs_state,
         'observed_denials_sample':number(cs.get('observed_denial_events_sample')),
         'http_5xx_aggregate':number(telemetry.get('http_5xx_24h')),
@@ -173,8 +189,10 @@ def calibrate(reply, e):
     """Conservative deterministic severity; no model claims are silently promoted to red."""
     result=dict(reply)
     down=e['service_health']['down'] if e['service_health']['fresh'] else 0
-    backend=e['sampled_backend_errors']
-    timer=e['sampled_crowdsec_timer_errors']
+    backend=e.get('recent_backend_errors',e['sampled_backend_errors'])
+    timer=e.get('recent_crowdsec_timer_errors',e['sampled_crowdsec_timer_errors'])
+    historical_backend=e['sampled_backend_errors']
+    historical_timer=e['sampled_crowdsec_timer_errors']
     web_5xx=e['http_5xx_aggregate']
     path=e['sensitive_paths']
     reasons=[]
@@ -197,6 +215,19 @@ def calibrate(reply, e):
         severity='green';reasons.append('No high-risk condition established by available read-only diagnostics')
         if backend:reasons.append(str(backend)+' genuine upstream failures in bounded sample')
         if timer:reasons.append(str(timer)+' CrowdSec timer connectivity errors in bounded sample')
+    # Preserve the 24h incident history without falsely elevating current
+    # severity after a quiet window. Service checks still take precedence.
+    if e.get('recent_activity_available') and severity in ('green','unknown'):
+        if historical_backend>0 and backend==0:
+            reasons.append(str(historical_backend)+' historical upstream errors; none in most recent 15 minutes')
+        if historical_timer>0 and timer==0:
+            reasons.append(str(historical_timer)+' historical CrowdSec timer errors; none in most recent 15 minutes')
+    intelligence=e.get('security_intelligence') or {}
+    bouncer=intelligence.get('bouncer') or {}
+    if (bouncer.get('registered_bouncers',0)>0 and
+        bouncer.get('state')=='unverified_or_stale' and severity in ('green','unknown')):
+        severity='amber'
+        reasons.insert(0,'Registered CrowdSec bouncer has no verified recent LAPI pull; actual enforcement remains untested')
     blocked=e['observed_denials_sample']
     if blocked:
         protected=str(blocked)+' observed CrowdSec denial events indicate blocking, not compromise'
@@ -238,9 +269,10 @@ def calibrate(reply, e):
         'severity':severity,'model_severity_before_calibration':reply.get('severity'),
         'model_severity_adjusted':severity!=reply.get('severity'),
         'reasons':reasons[:6], 'enforcement_interpretation':protected,
-        'limitations':'No confirmed compromise/disclosure can be inferred from ban counts or HTTP codes alone; bounded samples may miss incidents.',
+        'limitations':'Historical log counts persist for auditing; current severity uses recent sampled events plus fresh health checks. Quiet samples cannot prove an asset safe. Bounded samples may miss incidents.',
         'sample_counts':{
-            'real_upstream_errors':backend,'crowdsec_timer_errors':timer,
+            'real_upstream_errors':historical_backend,'crowdsec_timer_errors':historical_timer,
+            'recent_15m_upstream_errors':backend,'recent_15m_crowdsec_timer_errors':timer,
             'aggregate_http_5xx':web_5xx,'observed_denials':blocked,
             'sensitive_path_results':path['recorded']}}
     return result

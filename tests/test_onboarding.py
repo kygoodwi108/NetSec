@@ -55,7 +55,7 @@ class Onboarding(unittest.TestCase):
         self.assertIn('ask_secret AI_KEY', script)
         self.assertIn('No', (ROOT/'docs/INSTALL_FROM_SCRATCH.md').read_text())
         self.assertIn('netsec-ban-worker.path', script)
-        self.assertIn('1.4.0', (ROOT/'VERSION').read_text())
+        self.assertGreaterEqual(tuple(map(int,(ROOT/'VERSION').read_text().strip().split('.'))),(1,4,0))
         p=subprocess.run(['bash',str(ROOT/'scripts/proxmox-setup.sh'),'--help'],
                          text=True,capture_output=True)
         self.assertEqual(p.returncode,0)
