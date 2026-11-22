@@ -48,7 +48,7 @@ yesno(){ local answer; read -r -p "$1 [${2:-y/N}]: " answer; [[ "$answer" =~ ^([
 yesno_default_yes(){ local answer; read -r -p "$1 [Y/n]: " answer; [[ -z "$answer" || "$answer" =~ ^([Yy]|[Yy][Ee][Ss])$ ]]; }
 die(){ echo "ERROR: $*" >&2; exit 2; }
 
-printf '\nNetSec v${RELEASE_VERSION} — New installation wizard\n'
+printf '\nNetSec v%s — New installation wizard\n' "$RELEASE_VERSION"
 printf 'Existing LXCs/sites are protected; host bouncer changes are explicitly opt-in.\n\n'
 ask CTID 'New, unused LXC ID' '150'
 [[ "$CTID" =~ ^[1-9][0-9]{1,5}$ ]] || die 'Invalid CTID'
