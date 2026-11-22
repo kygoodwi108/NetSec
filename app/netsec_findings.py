@@ -48,6 +48,24 @@ def build(evidence,history,telemetry=None):
         add('http-error-rate','Elevated HTTP 5xx responses','medium',
             str(errors)+' HTTP 5xx responses across '+str(requests)+' observed requests (rolling 24h). Attribute to specific services before assuming an incident.',
             'low' if not backend else 'medium','availability')
+    intelligence=telemetry.get('security_intelligence') or {}
+    advisory=intelligence.get('advisories') or {}
+    review_cves=[x.get('id','') for x in (advisory.get('items') or [])
+                 if isinstance(x,dict) and x.get('state')=='needs_vendor_verification']
+    if review_cves:
+        add('cve-package-review','Verify NGINX security advisory applicability','medium',
+            ', '.join(review_cves[:5])+': review vendor package revision and enabled modules; this is NOT a confirmed vulnerability.',
+            'high','vulnerability')
+    geo=intelligence.get('geography') or {}
+    if _n(geo.get('foreign_requests_sample')):
+        add('international-traffic','Non-Canadian Nginx requests observed','low',
+            str(_n(geo.get('foreign_requests_sample')))+' foreign-origin request(s) in sampled Nginx traffic. Country alone does not prove unauthorized access; attribute to virtual host and authentication before escalating.',
+            'medium','traffic')
+    bouncer=intelligence.get('bouncer') or {}
+    if _n(bouncer.get('registered_bouncers')) and bouncer.get('state')!='recent_lapi_pull':
+        add('bouncer-sync','CrowdSec bouncer synchronization unverified','medium',
+            'A registered bouncer has no fresh, parseable LAPI pull in the current export. Check collector freshness, local API connectivity and real enforcement separately.',
+            'medium','enforcement')
     probes=_n(telemetry.get('probes_24h'))
     if probes>=50 and requests>=100 and probes/requests>=0.01:
         add('probe-activity','Elevated probe-like HTTP requests','medium',
