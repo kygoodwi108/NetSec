@@ -13,18 +13,46 @@ function post(path,body){return fetch(path,{method:'POST',credentials:'same-orig
   });}
 function kv(id,v){el(id).textContent=String(v??'—');}
 function toBottom(){const list=el('jimmyChatLog');list.scrollTop=list.scrollHeight;}
+function inlineMarkdown(node,line){
+  // Text nodes only: never evaluate user/model HTML or attributes.
+  const parts=line.split(/(\*\*[^*\n]+\*\*|`[^`\n]+`|\*[^*\n]+\*)/g);
+  for(const part of parts){
+    if(part.startsWith('**')&&part.endsWith('**')&&part.length>4)
+      node.append(field('strong','',part.slice(2,-2)));
+    else if(part.startsWith('`')&&part.endsWith('`')&&part.length>2)
+      node.append(field('code','',part.slice(1,-1)));
+    else if(part.startsWith('*')&&part.endsWith('*')&&part.length>2)
+      node.append(field('em','',part.slice(1,-1)));
+    else node.append(document.createTextNode(part));
+  }
+}
 function contentText(node,body){
-  // Render a deliberately small Markdown subset with DOM text nodes, never innerHTML.
-  const lines=String(body||'').split('\n');
-  for(let i=0;i<lines.length;i++){
-    if(i)node.append(document.createElement('br'));
-    const fragments=lines[i].split(/(\*\*[^*]+\*\*|`[^`]+`)/g);
-    for(const part of fragments){
-      if(part.startsWith('**')&&part.endsWith('**')&&part.length>4){
-        node.append(field('strong','',part.slice(2,-2)));
-      }else if(part.startsWith('\x60')&&part.endsWith('\x60')&&part.length>2){
-        node.append(field('code','',part.slice(1,-1)));
-      }else node.append(document.createTextNode(part));
+  // Some model responses include literal backslash-n sequences, not actual newlines.
+  const source=String(body||'');
+  const raw=source.includes('\n')?source:source.replace(/\\n/g,'\n');
+  const lines=raw.replace(/\r\n?/g,'\n').split('\n');
+  let list=null,listType='';
+  for(const line of lines){
+    if(!line.trim()){list=null;listType='';continue;}
+    const heading=line.match(/^\s{0,3}(#{1,4})\s+(.+)$/);
+    const item=line.match(/^\s*(?:([-*+])|(\d+)\.)\s+(.+)$/);
+    const quote=line.match(/^\s*>\s?(.*)$/);
+    if(heading){
+      list=null;listType='';
+      const h=field('div','jimmy-md-heading jimmy-md-h'+heading[1].length);
+      inlineMarkdown(h,heading[2]);node.append(h);
+    }else if(item){
+      const kind=item[2]?'ol':'ul';
+      if(!list||listType!==kind){
+        list=field(kind,'jimmy-md-list');node.append(list);listType=kind;
+      }
+      const li=field('li','');inlineMarkdown(li,item[3]);list.append(li);
+    }else if(quote){
+      list=null;listType='';
+      const q=field('blockquote','jimmy-md-quote');inlineMarkdown(q,quote[1]);node.append(q);
+    }else{
+      list=null;listType='';
+      const p=field('div','jimmy-md-paragraph');inlineMarkdown(p,line);node.append(p);
     }
   }
 }
