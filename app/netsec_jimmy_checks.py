@@ -49,7 +49,7 @@ def _recent_lines(p, size=1500000):
     except (OSError,EOFError,gzip.BadGzipFile):return []
 
 
-def _errors(tz='America/Toronto', max_lines=60000):
+def _errors(tz='America/Moncton', max_lines=60000):
     try:timezone=ZoneInfo(tz)
     except (KeyError,ValueError):timezone=UTC
     cutoff=dt.datetime.now(UTC)-dt.timedelta(hours=24)
@@ -249,7 +249,7 @@ def sensitive_http_checks(d):
 
 def collect(status=None,config=None):
     d=settings();now=dt.datetime.now(UTC).isoformat()
-    try:errors=_errors(d.get('nginx_timezone','America/Toronto'))
+    try:errors=_errors(d.get('nginx_timezone','America/Moncton'))
     except Exception as exc:errors={'state':'unavailable','reason':type(exc).__name__}
     enforcement=(status or {}).get('enforcement') or NI.read_enforcement()
     active=enforcement.get('state')=='active'
