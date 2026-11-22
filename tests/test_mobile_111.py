@@ -38,6 +38,17 @@ class MobileUI(unittest.TestCase):
         self.assertIn('document.querySelector(\'#lights .bulb.red.on\')',js)
         self.assertNotIn('CrowdSec decisions add',js)
 
+    def test_jimmy_composer_stays_full_width_on_phone(self):
+        css=(APP/'mobile.css').read_text()
+        self.assertIn('#jimmyChatForm{display:grid;grid-template-columns:minmax(0,1fr)',css)
+        self.assertIn('#jimmyChatForm #jimmyQuestion{display:block;box-sizing:border-box;width:100%;min-width:0',css)
+        self.assertIn('#jimmyChatForm button[type="submit"]{display:block;box-sizing:border-box;width:100%',css)
+        self.assertIn('#jimmyChatLog .jimmy-msg{box-sizing:border-box;min-width:0;max-width:94%',css)
+        self.assertIn('#jimmyChatLog .jimmy-bubble-text code{overflow-wrap:anywhere',css)
+        index=(APP/'index.html').read_text()
+        self.assertIn('<form id="jimmyChatForm"',index)
+        self.assertIn('id="jimmyQuestion"',index)
+
     def test_mobile_layout_no_desktop_override(self):
         css=(APP/'mobile.css').read_text()
         self.assertIn('@media (max-width:900px)',css)
