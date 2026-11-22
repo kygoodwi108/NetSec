@@ -326,10 +326,7 @@ def _make_snapshot(scope='all'):
     # use the configured direct checks instead of fabricating a service failure.
     service_monitor = SVC.sample(CFG.get('services', []))
     homepage = KVG.feed(CFG.get('homepage_status_file'), CFG.get('homepage_max_age_seconds', 150)) if CFG.get('homepage_status_file') else None
-    use_homepage = bool(homepage and (homepage['state'] == 'fresh' or
-                         (not service_monitor['services'] and homepage['state'] == 'stale')))
-    svc = homepage['services'] if use_homepage else service_monitor['services']
-    service_source = 'homepage' if use_homepage else 'configured'
+    svc, service_source = KVG.select_services(homepage, service_monitor)
     geo_rows = []
     for code, count in by_country.most_common(35):
         c = CENTROIDS.get(code)
