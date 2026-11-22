@@ -1,3 +1,22 @@
+## v1.4.3 — Proxmox host GeoIP policy and manual patch reconciliation
+
+- Packaged the previously manual host-side GeoIP2 HTTPS guard as an **opt-in**
+  Proxmox utility. Default country allowlist is CA,US (to accommodate common
+  Safari Private Relay US egress); local TCP peers remain allowed.
+- Supports safe migration of an existing 2026 Canada-only guard without
+  reinstalling or duplicating HTTPS server blocks. Includes a five-minute
+  rollback for country-list edits and retention of original Nginx backups.
+- Corrected the Debian 13 `mmdb-bin` package name and rotated stale
+  `backup` directories safely. Added optional host-only monthly GeoIP
+  database refresh service/timer, independent of the LXC update timer.
+- Fixed the fresh Proxmox installer hardcoded 1.4.0 guard and a backup
+  directory shell suffix. Added host GeoIP regression tests.
+- Reconciled previous manual patches (chat UI, historical incident logic,
+  Homepage, GeoIP, PatchMon, existing Nginx/CrowdSec host config) in
+  `docs/MANUAL_PATCH_AUDIT_2026-11.md`.
+- Does not automatically alter host Nginx, router/NAT, SSH, CrowdSec, or
+  Transmission peer/VPN routing during any LXC upgrade.
+
 ## v1.1.1 — Phone-first interface (mobile UI feature release)
 
 - Added a dedicated phone layout at widths up to 760px, keeping the existing desktop dashboard unchanged.
