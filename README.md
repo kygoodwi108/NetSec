@@ -18,6 +18,17 @@
   see `docs/CANADA_FIRST_POLICY.md`.
 - Does not issue automatic bans or change Transmission/Proton VPN routing.
 
+## v1.4.3 — Optional Proxmox host geo policy
+
+The consolidated repository now includes the formerly manual Proxmox
+Nginx GeoIP2 guard, defaulting to **Canada + US** when explicitly used.
+It supports safe migration of the already-active CA-only host policy,
+country-list editing with five-minute rollback, preservation/rotation of
+old backups, and optional monthly host GeoIP updates. The NetSec LXC
+upgrade **does not** enable or modify host filtering. See
+[Host GeoIP instructions](docs/HOST_GEOIP_GUARD.md) and the
+[manual patch reconciliation audit](docs/MANUAL_PATCH_AUDIT_2026-11.md).
+
 ## Get started
 
 Start with **[the complete Proxmox fresh-install guide](docs/INSTALL_FROM_SCRATCH.md)**. The automated wizard runs as root on the **Proxmox host** from the extracted release source, creates a **new Debian 12 unprivileged LXC**, and refuses to overwrite an existing CT or Nginx virtual host:
