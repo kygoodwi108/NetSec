@@ -56,6 +56,9 @@ class Onboarding(unittest.TestCase):
         self.assertIn('No', (ROOT/'docs/INSTALL_FROM_SCRATCH.md').read_text())
         self.assertIn('netsec-ban-worker.path', script)
         self.assertGreaterEqual(tuple(map(int,(ROOT/'VERSION').read_text().strip().split('.'))),(1,4,0))
+        self.assertIn('RELEASE_VERSION=$(tr', (ROOT/'scripts/install-lxc.sh').read_text())
+        self.assertIn('printf \'%s\\n\' "$RELEASE_VERSION" > /etc/netsec-installed-version', (ROOT/'scripts/install-lxc.sh').read_text())
+        self.assertNotIn('Release version mismatch', (ROOT/'scripts/install-lxc.sh').read_text())
         p=subprocess.run(['bash',str(ROOT/'scripts/proxmox-setup.sh'),'--help'],
                          text=True,capture_output=True)
         self.assertEqual(p.returncode,0)
