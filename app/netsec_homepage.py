@@ -42,7 +42,7 @@ def feed(path, max_age_seconds=150):
     if not path:
         result['state']='not_configured'
         return result
-    key = str(path)
+    source_key = str(path)
     try:
         path = Path(path)
         if not path.is_file():
@@ -91,13 +91,13 @@ def feed(path, max_age_seconds=150):
         if fresh:
             with _CACHE_LOCK:
                 _LAST_GOOD.clear()
-                _LAST_GOOD[key] = (time.monotonic(), result['checked_at'],
+                _LAST_GOOD[source_key] = (time.monotonic(), result['checked_at'],
                                    [dict(item) for item in result['services']])
     except (OSError, ValueError, TypeError, OverflowError) as exc:
         result.update(state='unavailable',checked_at=None,age_seconds=None,
                       services=[],error=type(exc).__name__ + ': ' + str(exc)[:130])
         with _CACHE_LOCK:
-            previous = _LAST_GOOD.get(key)
+            previous = _LAST_GOOD.get(source_key)
         if previous and 0 <= time.monotonic() - previous[0] <= LAST_GOOD_MAX_AGE_SECONDS:
             result.update(state='stale',checked_at=previous[1],
                           age_seconds=round(time.monotonic()-previous[0]),
