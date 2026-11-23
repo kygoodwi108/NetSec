@@ -351,7 +351,6 @@ button,input{font:inherit}button{cursor:pointer}button:focus-visible,input:focus
     <div class="row"><button class="btn" type="button" id="jimmyReload">Reload</button><button class="btn" type="button" id="jimmyLatest">Latest assessment</button></div></div>
   <p class="jimmy-status" id="jimmyWorkspaceStatus" role="status">Loading Jimmy…</p>
   <div class="jimmy-card" style="margin-bottom:12px"><div class="jimmy-chathead"><div><h3>Action plan · evidence first</h3><p class="subtle tiny">Prioritized verified findings · read-only diagnostics · changes require operator approval and manual execution</p></div></div><div id="jimmyActionList" aria-live="polite"></div></div>
-  <div class="jimmy-card" style="margin-bottom:12px"><div class="jimmy-chathead"><div><h3>PatchMon · Host patch visibility</h3><p class="subtle tiny">Separate installation · reachability only · no patch-execution privileges</p></div><a href="#" id="jimmyPatchmonLink" target="_blank" rel="noopener noreferrer" hidden>Open PatchMon</a></div><p class="subtle tiny" id="jimmyPatchmonStatus">Checking PatchMon integration…</p></div>
   <div class="jimmy-card" style="margin-bottom:12px">
     <div class="jimmy-chathead"><div><h3>Jimmy · Conversation</h3><p class="subtle tiny">Secure read-only investigation · Historical and latest evidence available</p></div></div>
     <div class="jimmy-chatlog" id="jimmyChatLog" aria-live="polite"></div>
@@ -633,6 +632,24 @@ $('aiForceRefresh').addEventListener('click',aiForceRefresh);
         if(element)tabs[key].append(element);
       }
     }
+    // Host patch intelligence belongs to Command Hub, not the Jimmy chat workspace.
+    const patchPanel=makeH('section','panel');
+    patchPanel.id='patchmonHubPanel';
+    patchPanel.style.marginBottom='15px';
+    patchPanel.innerHTML=`<div class="panelhead"><div><h2>PatchMon · Host patch intelligence</h2>
+      <p class="subtle tiny">Authenticated read-only host inventory · Jimmy can interpret the same evidence</p></div>
+      <div class="row"><span class="tag" id="patchmonHubState">Loading…</span>
+      <button class="btn" type="button" id="patchmonHubRefresh">↻ Refresh</button>
+      <a class="btn" id="patchmonHubLink" hidden target="_blank" rel="noopener noreferrer">Open PatchMon</a>
+      <button class="btn" type="button" id="patchmonHubAsk">✦ Ask Jimmy</button></div></div>
+    <div class="hub-ribbon" style="margin-bottom:10px">
+      <div class="hub-ribbon-card"><small>Security updates pending</small><strong id="patchmonHubSecurity">—</strong><span>Reported across hosts</span></div>
+      <div class="hub-ribbon-card"><small>All updates pending</small><strong id="patchmonHubUpdates">—</strong><span>All package updates</span></div>
+      <div class="hub-ribbon-card"><small>Overdue / stale agents</small><strong id="patchmonHubReport">—</strong><span>Reporting coverage gap</span></div>
+      <div class="hub-ribbon-card"><small>Hosts needing reboot</small><strong id="patchmonHubReboots">—</strong><span>Reported reboot status</span></div>
+    </div><p class="subtle tiny" id="patchmonHubScope">Checking PatchMon host data…</p>
+    <div id="patchmonHubHosts">Loading…</div>`;
+    tabs.command.append(patchPanel);
     tabs.traffic.prepend(makeH('div','hub-titleline'));
     tabs.traffic.firstChild.innerHTML='<div><div class="hub-kicker">Traffic / Patterns</div><h2>HTTP traffic analytics</h2><p>Request volumes, status classes and trends from your existing Nginx feed.</p></div>';
     tabs.investigate.prepend(makeH('div','hub-titleline'));
@@ -1270,4 +1287,4 @@ $('aiForceRefresh').addEventListener('click',aiForceRefresh);
 })();
 
 refresh();
-</script><script src="/jimmy-ui.js"></script><script src="/jimmy-action-plan.js"></script><script src="/mobile-ui.js"></script><script src="/netsec-v13.js"></script></body></html>
+</script><script src="/jimmy-ui.js"></script><script src="/jimmy-action-plan.js"></script><script src="/netsec-patchmon-hub.js"></script><script src="/mobile-ui.js"></script><script src="/netsec-v13.js"></script></body></html>

@@ -45,6 +45,7 @@ for dir in ai intel;do install -d -o statusdash -g statusdash -m 0750 "$STATE/$d
 install -d -o statusdash -g statusdash -m 0750 "$STATE"
 install -d -o root -g statusdash -m 0750 "$STATE/ban-queue"
 for dir in requests results;do install -d -o statusdash -g statusdash -m 0700 "$STATE/ban-queue/$dir";done
+python3 -I "$HERE/scripts/netsec-patchmon-configure" --migrate "$APP/netsec_patchmon_intel.py"
 for p in "$HERE"/app/*;do
  [[ -f "$p" ]] || continue
  install -o root -g root -m 0644 "$p" "$APP/$(basename "$p")"
@@ -54,6 +55,7 @@ if [[ ! -e "$APP/config.json" ]];then install -o root -g statusdash -m 0640 "$HE
 if [[ ! -e "$APP/operator-context.json" ]];then install -o root -g statusdash -m 0640 "$HERE/config/operator-context.json.example" "$APP/operator-context.json";fi
 if [[ ! -e /etc/netsec-diagnostics.json ]];then install -o root -g statusdash -m 0640 "$HERE/config/netsec-diagnostics.json.example" /etc/netsec-diagnostics.json;fi
 install -o root -g root -m 0755 "$HERE/scripts/netsec-ai-manual-runner" /usr/local/sbin/netsec-ai-manual-runner
+install -o root -g root -m 0755 "$HERE/scripts/netsec-patchmon-configure" /usr/local/sbin/netsec-patchmon-configure
 install -o root -g root -m 0755 "$HERE/scripts/netsec-auto-update" /usr/local/sbin/netsec-auto-update
 printf '%s\n' "$RELEASE_VERSION" > /etc/netsec-installed-version
 chmod 0644 /etc/netsec-installed-version

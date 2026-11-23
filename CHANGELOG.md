@@ -1,3 +1,7 @@
+## v1.4.4 — PatchMon Command Hub
+
+- Show authenticated host inventory, pending updates, reboot needs and agent reporting in Command Hub and Jimmy. Preserve the standalone hotfix credentials and proxy endpoint during upgrade.
+
 ## v1.4.3 — Service status stability hotfix (same release line)
 
 - Keep fresh Homepage service-status snapshots in a bounded memory fallback for intermittent missing or invalid `status.json`. Fallback data is always marked stale; it is not presented as live service health.

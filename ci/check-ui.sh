@@ -4,6 +4,7 @@ node --check app/jimmy-ui.js
 node --check app/jimmy-action-plan.js
 node --check app/netsec-v13.js
 node --check app/mobile-ui.js
+node --check app/netsec-patchmon-hub.js
 tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT
 python3 - "$tmp" <<'PY'

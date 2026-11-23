@@ -1,0 +1,65 @@
+#!/usr/bin/env python3
+"""Configure a minimal PatchMon integration token without entering a secret in shell history."""
+import ast
+import sys
+import getpass
+import grp
+import json
+import os
+import re
+import tempfile
+from pathlib import Path
+
+DEST = Path('/etc/netsec-patchmon-readonly.json')
+if os.geteuid() != 0:
+    raise SystemExit('Run as root inside NetSec CT 108')
+# The installer runs this script from its release tree before replacing the old module.
+source_app = Path(__file__).resolve().parents[1] / 'app'
+sys.path.insert(0, str(source_app if source_app.is_dir() else Path('/opt/server-status')))
+from netsec_patchmon_intel import ENDPOINT, endpoint
+
+if sys.argv[1:2] == ['--migrate']:
+    legacy = Path(sys.argv[2])
+    if ENDPOINT.exists() or not legacy.is_file():
+        sys.exit(0)
+    values = {}
+    for node in ast.parse(legacy.read_text()).body:
+        if isinstance(node, ast.Assign) and len(node.targets) == 1 and isinstance(node.targets[0], ast.Name):
+            name = node.targets[0].id
+            if name in ('API_HOST', 'NGINX_IP'):
+                values[name] = ast.literal_eval(node.value)
+    if values:
+        host, address = endpoint(values['API_HOST'], values['NGINX_IP'])
+        with tempfile.NamedTemporaryFile(mode='w', dir=ENDPOINT.parent, delete=False) as out:
+            json.dump({'hostname': host, 'proxy_ip': address}, out)
+        try:
+            os.chmod(out.name, 0o644)
+            os.link(out.name, ENDPOINT)
+        except FileExistsError:
+            pass
+        finally:
+            os.unlink(out.name)
+    sys.exit(0)
+
+host, address = endpoint(input('PatchMon TLS hostname: ').strip(), input('Private HTTPS proxy IP: ').strip())
+print('PatchMon → Settings → Integrations → Auto-Enrollment & API → New Token.')
+print('Usage type API; grant ONLY host:get (no delete or patch execution).')
+print('Credentials are stored in /etc (root:statusdash, 0640), not in NetSec config.json.')
+key = input('PatchMon API token key / ID: ').strip()
+secret = getpass.getpass('PatchMon API token secret (hidden): ').strip()
+if not re.fullmatch(r'[A-Za-z0-9_\-]{8,160}', key) or not 12 <= len(secret) <= 512:
+    raise SystemExit('Invalid credential length/format; no changes made')
+gid = grp.getgrnam('statusdash').gr_gid
+fd, path = tempfile.mkstemp(prefix='.netsec-patchmon-readonly-', dir='/etc')
+try:
+    os.fchmod(fd, 0o640)
+    os.fchown(fd, 0, gid)
+    with os.fdopen(fd, 'w') as out:
+        json.dump({'hostname':host,'proxy_ip':address,'api_id':key,'api_secret':secret}, out)
+        out.write('\n')
+    os.replace(path, DEST)
+except BaseException:
+    try:os.unlink(path)
+    except FileNotFoundError:pass
+    raise
+print('Saved credentials safely. The NetSec panel can now retrieve read-only PatchMon data.')

@@ -55,16 +55,5 @@ function drawPlan(report){
   box.append(actions);list.append(box);
  }
 }
-async function patchmonStatus(){
- const status=get('jimmyPatchmonStatus'),link=get('jimmyPatchmonLink');if(!status)return;
- try{
-  const response=await fetch('/api/integrations/patchmon',{credentials:'same-origin',cache:'no-store'});
-  const data=await response.json();
-  if(!response.ok||!data.ok)throw new Error(data.error||'Unavailable');
-  status.textContent=data.configured?(data.status==='up'?'Reachable · HTTP '+data.http_code:data.status==='down'?'Unreachable · check host and network':'Not checked'):'Not configured — see docs/PATCHMON.md';
-  if(link){link.hidden=!data.configured;if(data.configured)link.href=data.url;}
- }catch(e){status.textContent='Status unavailable';if(link)link.hidden=true;}
-}
 window.netsecJimmyActionPlan=drawPlan;
-patchmonStatus();
 })();

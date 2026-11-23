@@ -1,6 +1,6 @@
 # PatchMon: fresh standalone installation and NetSec integration
 
-PatchMon is an independent host-patch management platform. **It is not bundled inside NetSec**, and Jimmy never receives PatchMon patch-execution credentials. The integration is read-only service reachability, not package inventory, patch scheduling, or remote patch execution.
+PatchMon is an independent host-patch management platform. **It is not bundled inside NetSec**, and Jimmy never receives PatchMon patch-execution credentials. NetSec uses scoped API credentials for read-only host and package inventory. Installations without a token retain their reachability check.
 
 ## Deployment
 A guarded helper is included as `scripts/install-patchmon-standalone.sh`. Copy that script to the fresh Debian VM and run `bash install-patchmon-standalone.sh`; it downloads the official setup script for inspection but **does not automatically execute it**. The manual commands below do the same.
@@ -47,11 +47,16 @@ systemctl restart server-status
 systemctl is-active server-status
 ```
 
-Open the Jimmy tab to see PatchMon's reachability and a link. A 401/403 response can indicate an authentication-protected but reachable application. This check **does not** validate patch compliance, uptime history, or health of enrolled agents.
+Open Command Hub to see availability. For host inventory, run
+`netsec-patchmon-configure` as root inside NetSec. Supply the hostname on the
+PatchMon TLS certificate, the private proxy IP listening on 443, and a
+PatchMon API token scoped to `host:get`. The helper atomically saves these
+settings in /etc/netsec-patchmon-readonly.json (root:statusdash, 0640).
+The standalone hotfix's existing credential file is preserved on upgrade.
+Its original hostname and proxy IP are recovered from the installed module
+before replacement. Reachability-only installations can continue without a token.
 
-## Security boundaries
-
-- NetSec checks only the administrator-configured private IP and **never follows HTTP redirects**.
-- No PatchMon credentials, patch jobs, Docker socket, or shell permissions are shared with Jimmy.
-- Jimmy can generate evidence-linked investigation prompts, but cannot execute PatchMon updates.
-- Back up the PatchMon database/volumes and keep host patching under explicit operator control.
+Command Hub shows pending packages, security updates, stale agents and reboot
+indicators. Jimmy receives a bounded summary from the same read-only API.
+An HTTP 401 or 403 from that API appears as access denied. The client verifies
+the certificate and sends credentials only to the configured TLS endpoint.

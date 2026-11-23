@@ -1,6 +1,10 @@
-# NetSec v1.4.1 — Proxmox security dashboard and Jimmy analyst
+# NetSec v1.4.4 — Proxmox security dashboard and Jimmy analyst
 
 **Release source; back up existing installations before deploying and confirm CI and release checks.** Source includes the NetSec 3.8.5-derived security dashboard, generic server monitoring, evidence-calibrated local/cloud AI, optional independent CrowdSec engine and host bouncer, and a mobile-ready Jimmy analyst workspace.
+
+## v1.4.4 PatchMon Command Hub
+
+Command Hub and Jimmy share authenticated, read-only PatchMon host inventory. The installer carries forward the standalone hotfix endpoint and credentials. See [PatchMon configuration](docs/PATCHMON.md).
 
 ## v1.4.1 Jimmy security intelligence
 
@@ -104,4 +108,4 @@ The Source Intelligence tab now includes HTTP outcome charts and all observed IP
 
 ## Jimmy Action Plan and PatchMon (v1.4)
 
-Jimmy's evidence-linked findings appear as prioritized, read-only action cards, with investigation prompts and copyable diagnostic commands. NetSec does not execute model instructions or system changes. An optional standalone PatchMon companion provides read-only reachability in Jimmy; see [PatchMon installation and integration](docs/PATCHMON.md). Configure a private-IP `patchmon_url` in the NetSec LXC's `config.json`. The recommended PatchMon installation runs in a separate Debian VM.
+Jimmy's evidence-linked findings appear as prioritized, read-only action cards, with investigation prompts and copyable diagnostic commands. NetSec does not execute model instructions or system changes. An optional standalone PatchMon companion provides read-only host inventory in Command Hub and Jimmy; see [PatchMon installation and integration](docs/PATCHMON.md). Configure a private-IP `patchmon_url` in the NetSec LXC's `config.json`. The recommended PatchMon installation runs in a separate Debian VM.
